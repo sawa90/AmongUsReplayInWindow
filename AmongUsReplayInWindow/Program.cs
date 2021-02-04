@@ -11,6 +11,11 @@ namespace AmongUsReplayInWindow
 {
     static class Program
     {
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")] // Ç±ÇÃçsÇí«â¡
+        private static extern bool AllocConsole();
+
+        static public string exePath;
+        static public string exeFolder;
 
         /// <summary>
         ///  The main entry point for the application.
@@ -18,13 +23,24 @@ namespace AmongUsReplayInWindow
         [STAThread]
         static void Main()
         {
-            
+            exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            if (exePath != null) exeFolder = System.IO.Path.GetDirectoryName(exePath);
+            if (exeFolder == null || exeFolder == string.Empty) exeFolder = "";
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-            var form = new ConfigWindow();
-            Application.Run(form);
+            //AllocConsole();
+            try
+            {
+                var form = new ConfigWindow();
+                Application.Run(form);
+            } catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+            }
+            //Console.WriteLine("\n\nPress Key to exit");
+            //Console.ReadKey();
 
         }
 

@@ -35,22 +35,30 @@ namespace AmongUsReplayInWindow
             tokenSource?.Dispose();
         }
 
-        private void openFileDialogButton_Click(object sender, EventArgs e)
+        private void openFileDialogButton_Click(object sender, EventArgs ev)
         {
             if (filenameTextBox.Text != "")
                 openFileDialog1.InitialDirectory = filenameTextBox.Text;
             else
-                openFileDialog1.InitialDirectory = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Among Us\\AmongUsReplayInWindow";
+                openFileDialog1.InitialDirectory = Program.exeFolder + "\\AmongUsReplayInWindow";
             DialogResult dr = openFileDialog1.ShowDialog();
             if (dr == System.Windows.Forms.DialogResult.OK)
             {
                 filenameTextBox.Text = openFileDialog1.FileName;
-                var form2 = new fromFile(this, filenameTextBox.Text);
-                form2.Show();
+                try
+                {
+                    var form2 = new fromFile(this, filenameTextBox.Text);
+                    form2.Show();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.StackTrace);
+                }
             }
         }
 
-        private void GetAmongUsWindow_Click(object sender, EventArgs e)
+        private void GetAmongUsWindow_Click(object sender, EventArgs ev)
         {
             if (!OverlayWindow.open)
             {
@@ -59,7 +67,7 @@ namespace AmongUsReplayInWindow
                 try { gameReaderTask?.Wait(10000); }
                 catch(TimeoutException time_e)
                 {
-                    System.Diagnostics.Debug.WriteLine(time_e.Message);
+                    Console.WriteLine(time_e.Message);
                     OverlayWindow.open = false;
                     tokenSource?.Dispose();
                     tokenSource = null;
@@ -89,7 +97,7 @@ namespace AmongUsReplayInWindow
                             {
                                 if (e.GetType() != typeof(TaskCanceledException))
                                 {
-                                    System.Diagnostics.Debug.WriteLine(e.Message);
+                                    Console.WriteLine(e.Message);
                                     return false;
                                 }
                                 return true;
@@ -114,11 +122,12 @@ namespace AmongUsReplayInWindow
         internal int speed = 0;
         internal int interval = 50;
         internal int step = 1;
-        private void replaySpeedTrackBar_Scroll(object sender, EventArgs e)
+        private void replaySpeedTrackBar_Scroll(object sender, EventArgs ev)
         {
             speed = replaySpeedTrackBar.Value;
             interval = 50 + Math.Max(0, -speed) * 25;
             step = 1 + Math.Max(0, speed);
+            if (speed == replaySpeedTrackBar.Minimum) step = 0;
             if (overlayForm?.drawTimer != null)
             {
                 overlayForm.drawTimer.Interval = interval;

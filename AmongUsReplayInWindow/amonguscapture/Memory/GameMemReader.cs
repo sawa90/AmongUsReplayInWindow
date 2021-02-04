@@ -178,6 +178,7 @@ namespace AmongUsCapture
                 if (cancelToken.IsCancellationRequested) break;
                 try
                 {
+                    #region amonguscapture
                     {
                         if (!ProcessMemory.getInstance().IsHooked || ProcessMemory.getInstance().process is null ||
                             ProcessMemory.getInstance().process.HasExited)
@@ -187,7 +188,7 @@ namespace AmongUsCapture
                                 Thread.Sleep(1000);
                                 continue;
                             }
-                            System.Diagnostics.Debug.WriteLine($"Connected to Among Us process ({ProcessMemory.getInstance().process.Id})");
+                            Console.WriteLine($"Connected to Among Us process ({ProcessMemory.getInstance().process.Id})");
 
 
                             var foundModule = false;
@@ -201,12 +202,12 @@ namespace AmongUsCapture
                                         if (!GameVerifier.VerifySteamHash(module.FileName))
                                         {
                                             cracked = true;
-                                            System.Diagnostics.Debug.WriteLine($"Client verification: FAIL.", "GameVerifier");
+                                            Console.WriteLine($"Client verification: FAIL.", "GameVerifier");
                                         }
                                         else
                                         {
                                             cracked = false;
-                                            System.Diagnostics.Debug.WriteLine($"Client verification: PASS.", "GameVerifier");
+                                            Console.WriteLine($"Client verification: PASS.", "GameVerifier");
                                         }
 
                                         using (SHA256Managed sha256 = new SHA256Managed())
@@ -229,12 +230,12 @@ namespace AmongUsCapture
                                                     CurrentOffsets = offMan.FetchForHash(GameAssemblyhashSb.ToString());
                                                     if (CurrentOffsets is not null)
                                                     {
-                                                        System.Diagnostics.Debug.WriteLine("GameMemReader", $"Loaded offsets: {CurrentOffsets.Description}");
+                                                        Console.WriteLine("GameMemReader", $"Loaded offsets: {CurrentOffsets.Description}");
                                                         ProcessHook?.Invoke(this, new ProcessHookArgs { PID = ProcessMemory.getInstance().process.Id });
                                                     }
                                                     else
                                                     {
-                                                        System.Diagnostics.Debug.WriteLine(
+                                                        Console.WriteLine(
                                                             $"No offsets found for: {GameAssemblyhashSb.ToString()}.", "GameMemReader");
 
                                                     }
@@ -249,7 +250,7 @@ namespace AmongUsCapture
 
                                 if (!foundModule)
                                 {
-                                    System.Diagnostics.Debug.WriteLine(
+                                    Console.WriteLine(
                                         "Still looking for modules...", "GameMemReader");
                                     //Program.conInterface.WriteModuleTextColored("GameMemReader", Color.Green, "Still looking for modules..."); // TODO: This still isn't functional, we need to re-hook to reload module addresses
                                     Thread.Sleep(500); // delay and try again
@@ -271,14 +272,14 @@ namespace AmongUsCapture
                             }
                             catch
                             {
-                                System.Diagnostics.Debug.WriteLine("Outdated version of the game.", "ERROR");
+                                Console.WriteLine("Outdated version of the game.", "ERROR");
                             }
 
                         }
 
                         if (cracked && ProcessMemory.getInstance().IsHooked)
                         {
-                            System.Diagnostics.Debug.WriteLine("CrackDetected", "ERROR");
+                            Console.WriteLine("CrackDetected", "ERROR");
                             Environment.Exit(0);
 
                             continue;
@@ -306,7 +307,7 @@ namespace AmongUsCapture
                                 ); // 0 = Discussion, 1 = NotVoted, 2 = Voted, 3 = Results, 4 = Proceeding
                     var gameState =
                         ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.GameStateOffsets); // 0 = NotJoined, 1 = Joined, 2 = Started, 3 = ENDED (during "defeat" or "victory" screen only)
-
+#endregion
                     switch (gameState)
                     {
                         case 0:
@@ -370,7 +371,7 @@ namespace AmongUsCapture
                                     Disconnected = pi.GetIsDisconnected(),
                                     Color = pi.GetPlayerColor()
                                 });
-                                if (playerIsDead[exiledPlayerId] != 11)
+                                if (playerIsDead[exiledPlayerId] != 11 && playerIsDead[exiledPlayerId] != -11)
                                 {
                                     disconnect = false;
                                     playerIsDead[pi.PlayerId] = 11;
@@ -413,11 +414,12 @@ namespace AmongUsCapture
                             state = exileCausesEndState;
                         }
                     }
-
+                    #region amonguscapture
                     if (state != oldState || shouldForceTransmitState)
                     {
                         GameStateChanged?.Invoke(this, new GameStateChangedEventArgs { NewState = state });
                         shouldForceTransmitState = false;
+                        Console.WriteLine($"GameState Changed: {state}");
                     }
 
                     if (state != oldState && state == GameState.LOBBY)
@@ -480,7 +482,7 @@ namespace AmongUsCapture
                             GameOverReason = gameOverReason,
                             PlayerInfos = endingPlayerInfos
                         });
-                        System.Diagnostics.Debug.WriteLine($"{gameOverReason}");
+                        Console.WriteLine($"{gameOverReason}");
                     }
 
                     GameState cachedOldState = oldState;
@@ -489,7 +491,7 @@ namespace AmongUsCapture
 
 
                     newPlayerInfos.Clear();
-
+#endregion
                     playerAddrPtr = allPlayers + 0x10;
                     Int32 gametimeMili = (Int32)((DateTime.Now.Ticks - gameStartTime) / TimeSpan.TicksPerMillisecond);
                     AllImposterNum = 0;
@@ -508,7 +510,7 @@ namespace AmongUsCapture
                         if (Math.Abs(playerIsDead[id]) < 10)
                         {
                             if (pi.GetIsDead()) playerIsDead[id] = 1;
-                            else if (pi.GetIsDisconnected()) playerIsDead[id] = -10;
+                            else if (pi.GetIsDisconnected()) playerIsDead[id] = 10;
                             else playerIsDead[id] = 0;
                         }
 
@@ -570,7 +572,7 @@ namespace AmongUsCapture
                         }
                         if (playerIsDead[id] == 11) PlayerPoses[id] = centerOfTable[(int)playMap];
                         if (pi.IsImpostor == 1) AllImposterNum++;
-
+                        #region amonguscapture
                         newPlayerInfos[playerName] = pi; // add to new playerinfos for comparison later
 
                         if (!oldPlayerInfos.ContainsKey(playerName)) // player wasn't here before, they just joined
@@ -635,7 +637,7 @@ namespace AmongUsCapture
                                 });
                         }
                     }
-
+                    #endregion
 
                     //impostor set
                     for (int i = 0; i < AllImposterNum; i++)
@@ -652,6 +654,10 @@ namespace AmongUsCapture
                         if (Math.Abs(playerIsDead[i]) == 1)
                         {
                             DeadLogList.Add(new DeadLog(gameStartTime, i, PlayerPoses[i]));
+                        } else if(playerIsDead[i] == 10)
+                        {
+                            DeadLogList.Add(new DeadLog(gameStartTime, i, PlayerPoses[i]));
+                            playerIsDead[i] = -10;
                         }
                         if (playerIsDead[i] == 1)
                         {
@@ -669,7 +675,7 @@ namespace AmongUsCapture
 
 
 
-
+                    #region amonguscapture
                     foreach (var kvp in oldPlayerInfos)
                     {
                         var pi = kvp.Value;
@@ -763,7 +769,7 @@ namespace AmongUsCapture
 
                         shouldTransmitLobby = false;
                     }
-
+#endregion
 
 
 
@@ -822,7 +828,7 @@ namespace AmongUsCapture
                 }
                 catch (Exception e)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Message: {e.Message} | stack: {e.StackTrace} | Retrying in 1000ms.", "ERROR");
+                    Console.WriteLine($"Message: {e.Message} | stack: {e.StackTrace} | Retrying in 1000ms.", "ERROR");
                     Console.WriteLine(e);
                     Thread.Sleep(1000);
                 }
@@ -832,64 +838,104 @@ namespace AmongUsCapture
         //writer開始、playerIsDead,DeadBodyPosList,DeadLogList初期化、PlayerNames,IsImpostorLis,PlayerColors,PlayerColorsInt,ImpostorId設定
         private void BeginWrite()
         {
+            bool dataCompleted = false;
+            int repeatcount = 0;
             Thread.Sleep(100);
             initConInfo();
             Console.WriteLine("\n\nStart\n\n");
-            gameStartTime = DateTime.Now.Ticks;
             frame = -1;
             var ImposterNum = 0;
 
-            var allPlayersPtr  = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
-            var allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
+            var allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
             var playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
+
+            while (playerCount > 10 && repeatcount < 50)
+            {
+                Console.WriteLine($"Wrong data : Player count is {playerCount}. | Retrying in 100ms");
+                Thread.Sleep(100);
+                allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);      
+                playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);     
+                repeatcount++;
+            }
+            if (repeatcount > 50)
+            {
+                Console.WriteLine($"Wrong data : Player count is {playerCount}. | Continue");
+                playerCount = 10;
+            }
+
+            var allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
             var playerAddrPtr = allPlayers + 0x10;
 
             uint[] HatIds = new uint[10];
             uint[] PetIds = new uint[10];
             uint[] SkinIds = new uint[10];
 
-            filename = DateTime.Now.ToString("yyyyMMdd_HHmm_ss");
-
-            for (var i = 0; i < playerCount; i++)
+            while (!dataCompleted)
             {
-                var pi = ProcessMemory.getInstance().Read<PlayerInfo>(playerAddrPtr, 0, 0);
-                playerAddrPtr += 4;
-                int id = pi.PlayerId;
-                PlayerNames[id] = pi.GetPlayerName();
-                if (PlayerNames[id] == null) PlayerNames[id] = "";
-                PlayerName2IDdict[PlayerNames[id]] = pi.PlayerId;
-                IsImpostorLis[id] = pi.IsImpostor == 1;
-                var col = (int)pi.GetPlayerColor();
-                if (col >= 0 && col < 12)
+                gameStartTime = DateTime.Now.Ticks;
+                filename = DateTime.Now.ToString("yyyyMMdd_HHmm_ss");
+
+                for (var i = 0; i < playerCount; i++)
                 {
-                    PlayerColors[id] = ColorList[col];
-                    PlayerColorsInt[id] = (PlayerColor)col;
+                    var pi = ProcessMemory.getInstance().Read<PlayerInfo>(playerAddrPtr, 0, 0);
+                    playerAddrPtr += 4;
+                    int id = pi.PlayerId;
+                    PlayerNames[id] = pi.GetPlayerName();
+                    if (PlayerNames[id] == null) PlayerNames[id] = "";
+                    PlayerName2IDdict[PlayerNames[id]] = pi.PlayerId;
+                    IsImpostorLis[id] = pi.IsImpostor == 1;
+                    var col = (int)pi.GetPlayerColor();
+                    if (col >= 0 && col < 12)
+                    {
+                        PlayerColors[id] = ColorList[col];
+                        PlayerColorsInt[id] = (PlayerColor)col;
+                    }
+                    else PlayerColors[id] = Color.Empty;
+                    if (pi.IsImpostor == 1)
+                    {
+                        filename += "_" + PlayerNames[id];
+                        ImpostorId[ImposterNum] = id;
+                        ImposterNum++;
+                    }
+                    HatIds[id] = pi.HatId;
+                    PetIds[id] = pi.PetId;
+                    SkinIds[id] = pi.SkinId;
+
+                    var pcontrol = ProcessMemory.getInstance().Read<PlayerControl>((IntPtr)pi._object);
+
+                    int offset = 0x3C;
+                    if (pcontrol.myLight_ != 0) offset = 0x50;
+                    PlayerPoses[id] = ProcessMemory.getInstance().Read<Vector2>((IntPtr)(pcontrol.NetTransform + offset));
+                    newPlayerCon[id] = pcontrol;
+                    if (pcontrol.myLight_ != 0) myId = id;
                 }
-                else  PlayerColors[id] = Color.Empty; 
-                if (pi.IsImpostor == 1)
+
+                playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
+                dataCompleted = true;
+                for (int i = 0; i < playerCount; i++)
                 {
-                    filename += "_" + PlayerNames[id];
-                    ImpostorId[ImposterNum] = id;
-                    ImposterNum++;
+                    if (PlayerColors[i] == Color.Empty) dataCompleted = false;
                 }
-                HatIds[id] = pi.HatId;
-                PetIds[id] = pi.PetId;
-                SkinIds[id] = pi.SkinId;
-
-                var pcontrol = ProcessMemory.getInstance().Read<PlayerControl>((IntPtr)pi._object);
-
-                int offset = 0x3C;
-                if (pcontrol.myLight_ != 0) offset = 0x50;
-                PlayerPoses[id] = ProcessMemory.getInstance().Read<Vector2>((IntPtr)(pcontrol.NetTransform + offset));
-                newPlayerCon[id] = pcontrol;
-                if (pcontrol.myLight_ != 0) myId = id;
-
+                
+                if (!dataCompleted)
+                {
+                    repeatcount++;
+                    if (repeatcount > 50) break;
+                    Console.WriteLine($"Wrong data : Empty player color | Retrying in 100ms");
+                    Thread.Sleep(100);
+                    allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
+                    allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
+                    playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
+                    playerAddrPtr = allPlayers + 0x10; 
+                }
             }
+
+            if (repeatcount > 50) Console.WriteLine($"Wrong data : Empty player color | Continue");
 
             var s = "";
             for (int i = 0; i < playerCount; i++)
             {
-                s += $"{PlayerNames[i]}/{PlayerColorsInt[i]}:{IsImpostorLis[i]}  ";
+                s += $"{PlayerNames[i]}/{PlayerColorsInt[i]}, ";
             }
             Console.WriteLine(s);
             playMap = (PlayMap)ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.PlayMapOffsets);

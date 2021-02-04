@@ -35,6 +35,7 @@ DLLAPI int SetKeyboardHook(INT32 threadId, HWND winhandle, HWND trackhandle)
     hwnd = winhandle;
     trackhwnd = trackhandle;
     hMyHook = SetWindowsHookEx(WH_KEYBOARD, MyHookProc, hInst, threadId);
+    if (hMyHook == NULL)MessageBox(NULL, L"Failed to hook keyboard", L"Error", MB_OK);
     return 0;
 }
 

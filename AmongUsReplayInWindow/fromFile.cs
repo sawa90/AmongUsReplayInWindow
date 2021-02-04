@@ -128,15 +128,17 @@ namespace AmongUsReplayInWindow
         {
             lock (lockObject)
             {
+                Console.WriteLine($"Read {filename}...");
                 logReader = new MoveLogFile.ReadMoveLogFile(filename);
                 if (logReader?.reader == null)
                 {
+                    Console.WriteLine($"Can not read {filename}");
                     logReader?.Close();
                     logReader = null;
                     return false;
                 }
                 mapId = (int)logReader.startArgs.PlayMap;
-                MapImage = Image.FromFile(mapFilename[mapId]);
+                MapImage = Image.FromFile(Program.exeFolder + "\\" + mapFilename[mapId]);
                 hw = Map.Maps[mapId].hw;
                 SizeChangedHandler(null, null);
                 Invalidate();

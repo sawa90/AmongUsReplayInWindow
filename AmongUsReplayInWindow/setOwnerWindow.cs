@@ -13,14 +13,19 @@ namespace AmongUsReplayInWindow.setOwnerWindow
     {
         public static Process findWindow(string processName = "Among Us")
         {
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 50; i++)
             {
                 foreach (System.Diagnostics.Process p in
                     System.Diagnostics.Process.GetProcesses())
                 {
-                    if (p.ProcessName.Equals(processName) && p.MainWindowHandle!=IntPtr.Zero) return p;
+                    if (p.ProcessName.Equals(processName) && p.MainWindowHandle != IntPtr.Zero)
+                    {
+                        Console.WriteLine($"Find {processName} window");
+                        return p;
+                    }
 
                 }
+                Console.WriteLine($"Looking for {processName} window... : Retrying in 1000ms");
                 System.Threading.Thread.Sleep(1000);
             }
             return null;

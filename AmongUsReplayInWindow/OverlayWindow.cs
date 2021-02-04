@@ -68,29 +68,39 @@ namespace AmongUsReplayInWindow
         #region Initialize
         public OverlayWindow(ConfigWindow configWindow, CancellationTokenSource tokenSource)
         {
-            this.configWindow = configWindow;
-            Init();
-            cancelTokenSource = tokenSource;
-            SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), 210, ULW_COLORKEY | ULW_ALPHA);
-            System.Diagnostics.Process ownerProcess = getOwnerWindow.findWindow("Among Us");
-
-            if (ownerProcess != null)
+            Console.WriteLine("Init Overlay Window...");
+            try
             {
-                ownerHandle = ownerProcess.MainWindowHandle;
-                ownerProcessId = ownerProcess.Id;
-                sizeChange = new AdjustForm1ToOwnerWindow(this, ownerHandle);
-                sizeChange.Start(1000);
-                sizeChange.resize();
-                int processId;
-                int threadId = GetWindowThreadProcessId(ownerHandle, out processId);
-                if (threadId != 0)
+                this.configWindow = configWindow;
+                Init();
+                cancelTokenSource = tokenSource;
+                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), 210, ULW_COLORKEY | ULW_ALPHA);
+                System.Diagnostics.Process ownerProcess = getOwnerWindow.findWindow("Among Us");
+
+                if (ownerProcess != null)
                 {
-                    SetKeyboardHook(threadId, Handle, trackwin.Handle);
-                    SetKeyboardEnable(Playing, false);
+                    ownerHandle = ownerProcess.MainWindowHandle;
+                    ownerProcessId = ownerProcess.Id;
+                    sizeChange = new AdjustForm1ToOwnerWindow(this, ownerHandle);
+                    sizeChange.Start(1000);
+                    sizeChange.resize();
+                    int processId;
+                    int threadId = GetWindowThreadProcessId(ownerHandle, out processId);
+                    if (threadId != 0)
+                    {
+                        Console.WriteLine("Set Keyboad hook...");
+                        SetKeyboardHook(threadId, Handle, trackwin.Handle);
+                        SetKeyboardEnable(Playing, false);
+                        return;
+
+                    }
                 }
-                else Close();
+            }catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
             }
-            else Close();
+            Close();
         }
 
         ~OverlayWindow()
@@ -109,7 +119,7 @@ namespace AmongUsReplayInWindow
             pictureBox1.Paint += new PaintEventHandler(Draw);
             FormClosing += new FormClosingEventHandler(overlay_FormClosing);
             trackwin = new TrackBarWin(this);
-            MapImage = Image.FromFile(mapFilename[mapId]);
+            MapImage = Image.FromFile(Program.exeFolder + "\\" + mapFilename[mapId]);
             backgroundPaint = new PaintEventHandler(DrawBackground);
             Paint += backgroundPaint;
             drawTimer = new System.Windows.Forms.Timer();
@@ -146,7 +156,7 @@ namespace AmongUsReplayInWindow
         bool drawPlaying = false;
         public bool setReader(string filename)
         {
-
+            Console.WriteLine("Set reader");
             lock (lockObject)
             {
                 logReader = new MoveLogFile.ReadMoveLogFile(filename);
@@ -154,6 +164,7 @@ namespace AmongUsReplayInWindow
                 {
                     logReader?.Close();
                     logReader = null;
+                    Console.WriteLine("Failed to set reader");
                     return false;
                 }
                 MapChange((int)logReader.startArgs.PlayMap);
@@ -171,6 +182,7 @@ namespace AmongUsReplayInWindow
 
         private void removeReader()
         {
+            Console.WriteLine("Remove reader");
             trackwin.Invoke(new voidDelegate(trackwin.deleteHandler));
             lock (lockObject)
             {
@@ -243,6 +255,7 @@ namespace AmongUsReplayInWindow
 
         public void GameStartHandler(object? sender, GameStartEventArgs startArgs)
         {
+            Console.WriteLine("game start");
             Playing = true;
             discussionTime = -1000;
             MapChange((int)startArgs.PlayMap);
@@ -382,7 +395,7 @@ namespace AmongUsReplayInWindow
             if (mapId == newMapId) return;
             mapId = newMapId;
             MapImage.Dispose();
-            MapImage = Image.FromFile(mapFilename[mapId]);
+            MapImage = Image.FromFile(Program.exeFolder + "\\" + mapFilename[mapId]);
             sizeChange.resize();
             Invalidate();
         }

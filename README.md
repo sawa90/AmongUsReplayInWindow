@@ -5,8 +5,8 @@ This project add a replay feature to Among Us. The replay will appear in the gam
 In the replay, you can see everyone's location, who killed them and when, the progress of the task, if they are in the vent, and sabotage.  
 
 # Requirement
-[.NET 5 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/5.0)
-
+[.NET 5 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/5.0)  
+[Visual C++ Redistributable for Visual Studio 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145)  
 # Usage
 - Download zip from [latest release](https://github.com/sawa90/AmongUsReplayInWindow/releases/latest) page and unpack it
 - Run Among Us
@@ -16,7 +16,7 @@ In the replay, you can see everyone's location, who killed them and when, the pr
 
 When the game is over, a replay of the last game will be displayed in the game window.  
 Use the control keys to open and close the replay, and drag the track bar or use the arrow keys to control it.  
-The replays will be saved in "C:\Program Files (x86)\Steam\steamapps\common\Among Us\AmongUsReplayInWindow" folder, and you can also view them by clicking the "Open" button to open the file.  
+The replays will be saved in "AmongUsReplayInWindow" folder under the folder containing the exe, and you can also view them by clicking the "Open" button to open the file.  
 
 # Note
 - Who killed a crew is determined by the imposter who was closest to the crew, so it is possible to make a mistake.

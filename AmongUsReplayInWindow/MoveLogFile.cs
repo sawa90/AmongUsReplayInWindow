@@ -107,7 +107,7 @@ namespace AmongUsReplayInWindow
         public class WriteMoveLogFile
         {
             static int version = 0;
-            static string folderPass = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Among Us\\AmongUsReplayInWindow";
+            string folderPass;
             private Stream stream;
             private BinaryWriter writer;
             int AllImposorNum;
@@ -118,6 +118,7 @@ namespace AmongUsReplayInWindow
             {
                 lock (lockObject)
                 {
+                    folderPass = Program.exeFolder + "\\AmongUsReplayInWindow";
                     AllImposorNum = 0;
                     for (int i = 0; i < startArgs.PlayerMove.PlayerNum; i++)
                     {
@@ -126,7 +127,11 @@ namespace AmongUsReplayInWindow
                             AllImposorNum++;
                         }
                     }
-                    if (!File.Exists(folderPass)) Directory.CreateDirectory(folderPass);
+                    if (!Directory.Exists(folderPass))
+                    {
+                        Console.WriteLine($"create folder {folderPass}");
+                        Directory.CreateDirectory(folderPass);
+                    }
                     this.filename = folderPass + "\\" + startArgs.filename + ".dat";
                     stream = File.Create(this.filename);
                     writer = new BinaryWriter(stream);
@@ -232,7 +237,11 @@ namespace AmongUsReplayInWindow
             public ReadMoveLogFile(string filename)
             {
                 this.filename = filename;
-                if (!File.Exists(filename)) return;
+                if (!File.Exists(filename))
+                {
+                    Console.WriteLine($"{filename} not exist");
+                    return;
+                }
                 stream = File.OpenRead(filename);
                 reader = new BinaryReader(stream);
 
@@ -284,6 +293,7 @@ namespace AmongUsReplayInWindow
                     maxMoveNum = (stream.Length - PlayerDataByte) / bytePerMove - 1;
 
                 }
+                else { Console.WriteLine($"BinaryReader is null"); }
             }
 
             ~ReadMoveLogFile()
