@@ -61,6 +61,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="robocopy $(ProjectDir)map\ $(TargetDir)  *.png&#xD;&#xA;robocopy $(SolutionDir)KeyboardHook\$(ConfigurationName) $(TargetDir) *.dll&#xD;&#xA;IF %25ERRORLEVEL%25 LSS 8 EXIT 0" />
   </Target>

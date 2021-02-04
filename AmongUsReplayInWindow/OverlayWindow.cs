@@ -8,6 +8,7 @@ using AmongUsCapture;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using AmongUsReplayInWindow.setOwnerWindow;
+using System.IO;
 
 namespace AmongUsReplayInWindow
 {
@@ -109,7 +110,6 @@ namespace AmongUsReplayInWindow
         }
 
 
-
         private void Init()
         {
             open = true;
@@ -119,13 +119,37 @@ namespace AmongUsReplayInWindow
             pictureBox1.Paint += new PaintEventHandler(Draw);
             FormClosing += new FormClosingEventHandler(overlay_FormClosing);
             trackwin = new TrackBarWin(this);
-            MapImage = Image.FromFile(Program.exeFolder + "\\" + mapFilename[mapId]);
+            setMapImage();
             backgroundPaint = new PaintEventHandler(DrawBackground);
             Paint += backgroundPaint;
             drawTimer = new System.Windows.Forms.Timer();
             drawTimer.Interval = configWindow.interval;
             drawTimer.Tick += new EventHandler(DrawTimerHandler);
             Visible = false;
+        }
+
+        void setMapImage()
+        {
+            if (File.Exists(Program.exeFolder + "\\" + mapFilename[mapId]))
+                MapImage = Image.FromFile(Program.exeFolder + "\\" + mapFilename[mapId]);
+            else
+            {
+                switch (mapId)
+                {
+                    case 0:
+                        MapImage = AmongUsReplayInWindow.Properties.Resources.skeld;
+                        break;
+                    case 1:
+                        MapImage = AmongUsReplayInWindow.Properties.Resources.mira;
+                        break;
+                    case 2:
+                        MapImage = AmongUsReplayInWindow.Properties.Resources.polus;
+                        break;
+                    default:
+                        Console.WriteLine($"Not found map image ID={mapId}");
+                        throw new FileNotFoundException();
+                }
+            }
         }
         #endregion
 
@@ -395,7 +419,7 @@ namespace AmongUsReplayInWindow
             if (mapId == newMapId) return;
             mapId = newMapId;
             MapImage.Dispose();
-            MapImage = Image.FromFile(Program.exeFolder + "\\" + mapFilename[mapId]);
+            setMapImage();
             sizeChange.resize();
             Invalidate();
         }

@@ -59,5 +59,57 @@ namespace AmongUsReplayInWindow.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap mira {
+            get {
+                object obj = ResourceManager.GetObject("mira", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   {
+        ///  &quot;FF1DAE62454312FCE09A39061999C26FD26440FDA5F36C1E6424290A34D05B08&quot;: {
+        ///    &quot;Description&quot;: &quot;v2020.11.17s (Release 2)&quot;,
+        ///    &quot;AmongUsClientOffset&quot;: 21216924,
+        ///    &quot;GameDataOffset&quot;: 21217080,
+        ///    &quot;MeetingHudOffset&quot;: 21216180,
+        ///    &quot;GameStartManagerOffset&quot;: 20552656,
+        ///    &quot;HudManagerOffset&quot;: 17173184,
+        ///    &quot;ServerManagerOffset&quot;: 20511952,
+        ///    &quot;TempDataOffset&quot;: 0x143B7AC
+        ///  },
+        ///  &quot;38119B8551718D9016BAFEEDC105610D5B3AED5B0036D1A6060B8E2ABE523C02&quot;: {
+        ///    &quot;Description&quot;: &quot;v2020.11.17s (Release 1)&quot;,
+        ///    &quot;AmongUsClientOff [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string Offsets {
+            get {
+                return ResourceManager.GetString("Offsets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap polus {
+            get {
+                object obj = ResourceManager.GetObject("polus", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap skeld {
+            get {
+                object obj = ResourceManager.GetObject("skeld", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

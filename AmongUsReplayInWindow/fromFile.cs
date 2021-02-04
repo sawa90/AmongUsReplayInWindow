@@ -4,9 +4,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using AmongUsCapture;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using AmongUsReplayInWindow.setOwnerWindow;
+using System.IO;
 
 namespace AmongUsReplayInWindow
 {
@@ -138,7 +136,7 @@ namespace AmongUsReplayInWindow
                     return false;
                 }
                 mapId = (int)logReader.startArgs.PlayMap;
-                MapImage = Image.FromFile(Program.exeFolder + "\\" + mapFilename[mapId]);
+                setMapImage();
                 hw = Map.Maps[mapId].hw;
                 SizeChangedHandler(null, null);
                 Invalidate();
@@ -154,6 +152,30 @@ namespace AmongUsReplayInWindow
                     g.DrawImage(MapImage, pictureBox1.Location.X, pictureBox1.Location.Y, pictureBox1.Size.Width, pictureBox1.Size.Height);
                 }
             return true;
+        }
+
+        void setMapImage()
+        {
+            if (File.Exists(Program.exeFolder + "\\" + mapFilename[mapId]))
+                MapImage = Image.FromFile(Program.exeFolder + "\\" + mapFilename[mapId]);
+            else
+            {
+                switch (mapId)
+                {
+                    case 0:
+                        MapImage = AmongUsReplayInWindow.Properties.Resources.skeld;
+                        break;
+                    case 1:
+                        MapImage = AmongUsReplayInWindow.Properties.Resources.mira;
+                        break;
+                    case 2:
+                        MapImage = AmongUsReplayInWindow.Properties.Resources.polus;
+                        break;
+                    default:
+                        Console.WriteLine($"Not found map image ID={mapId}");
+                        throw new FileNotFoundException();
+                }
+            }
         }
 
         private void removeReader()

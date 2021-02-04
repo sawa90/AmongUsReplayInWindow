@@ -67,10 +67,13 @@ namespace AUOffsetManager
                 {
                     OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(await File.ReadAllTextAsync(StorageLocationCache));
                 }
+                else
+                {
+                    OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
+                }
                 Console.WriteLine("If you are reading this that means that the site is down, and you have never used our program before. If github still exists in the future, try again in 30 minutes. - Carbon ");
             }
-            
-        }
+    }
 
         public GameOffsets FetchForHash(string sha256Hash)
         {
