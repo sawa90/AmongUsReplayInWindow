@@ -46,6 +46,7 @@ namespace AmongUsReplayInWindow
         public const int WS_EX_TOPMOST = 0x00000008;
         ConfigWindow configWindow;
         internal int step = 1;
+        internal bool drawIcon;
 
         #endregion
 
@@ -84,7 +85,8 @@ namespace AmongUsReplayInWindow
             Paint += backgroundPaint;
             SizeChanged += new EventHandler(SizeChangedHandler);
             step = configWindow.step;
-    }
+            drawIcon = configWindow.drawIcon;
+        }
         #endregion
 
 
@@ -94,7 +96,6 @@ namespace AmongUsReplayInWindow
             MapImage?.Dispose();
             logReader?.Close();
             deleteTrackBarHandler();
-
             MapImage = null;
             logReader = null;
 
@@ -139,6 +140,7 @@ namespace AmongUsReplayInWindow
                 setMapImage();
                 hw = Map.Maps[mapId].hw;
                 SizeChangedHandler(null, null);
+
                 Invalidate();
                 getFrameData();
             }
@@ -163,13 +165,13 @@ namespace AmongUsReplayInWindow
                 switch (mapId)
                 {
                     case 0:
-                        MapImage = AmongUsReplayInWindow.Properties.Resources.skeld;
+                        MapImage = Properties.Resources.skeld;
                         break;
                     case 1:
-                        MapImage = AmongUsReplayInWindow.Properties.Resources.mira;
+                        MapImage = Properties.Resources.mira;
                         break;
                     case 2:
-                        MapImage = AmongUsReplayInWindow.Properties.Resources.polus;
+                        MapImage = Properties.Resources.polus;
                         break;
                     default:
                         Console.WriteLine($"Not found map image ID={mapId}");
@@ -389,7 +391,10 @@ namespace AmongUsReplayInWindow
         {
             lock (lockObject)
             {
-                OverlayWindow.DrawMove(paint, e, deadOrderList, Map.Maps[mapId], pictureBox1.Width, pictureBox1.Height);
+                if (drawIcon && configWindow?.iconDict != null)
+                    OverlayWindow.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], configWindow.iconDict, pictureBox1.Width, pictureBox1.Height);
+                else
+                    OverlayWindow.DrawMove(paint, e, deadOrderList, Map.Maps[mapId], pictureBox1.Width, pictureBox1.Height);
             }
 
         }

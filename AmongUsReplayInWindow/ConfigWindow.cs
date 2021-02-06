@@ -18,10 +18,13 @@ namespace AmongUsReplayInWindow
         Task gameReaderTask = null;
         OverlayWindow overlayForm = null;
         delegate void void_stringDelegate(string str);
+        internal OverlayWindow.IconDict iconDict;
 
         public ConfigWindow()
         {
             InitializeComponent();
+            iconDict = new OverlayWindow.IconDict();
+            RenderingBox.SelectedIndex = 0;
         }
 
 
@@ -33,6 +36,7 @@ namespace AmongUsReplayInWindow
                 gameReaderTask?.Wait(10000);
             }
             tokenSource?.Dispose();
+            iconDict?.Dispose();
         }
 
         private void openFileDialogButton_Click(object sender, EventArgs ev)
@@ -40,7 +44,7 @@ namespace AmongUsReplayInWindow
             if (filenameTextBox.Text != "")
                 openFileDialog1.InitialDirectory = filenameTextBox.Text;
             else
-                openFileDialog1.InitialDirectory = Program.exeFolder + "\\AmongUsReplayInWindow";
+                openFileDialog1.InitialDirectory = Program.exeFolder + "\\AmogUsReplayInWindow";
             DialogResult dr = openFileDialog1.ShowDialog();
             if (dr == System.Windows.Forms.DialogResult.OK)
             {
@@ -146,5 +150,31 @@ namespace AmongUsReplayInWindow
                 formF.step = step;
             }
         }
+
+        #region Rendering
+        internal Rendering rendering = Rendering.Icon;
+        internal bool drawIcon = true;
+        private void RenderingBox_SelectedIndexChanged(object sender, EventArgs ev)
+        {
+            rendering = (Rendering)RenderingBox.SelectedIndex;
+            drawIcon = rendering == Rendering.Icon;
+            if (overlayForm != null)
+            {
+                overlayForm.drawIcon = drawIcon;
+            }
+
+            foreach (var formF in fromFile.fromFileList)
+            {
+                formF.drawIcon = drawIcon;
+            }
+        }
+
+        public enum Rendering
+        {
+            Icon,
+            Simple
+        }
+        #endregion
+
     }
 }

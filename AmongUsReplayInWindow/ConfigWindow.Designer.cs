@@ -35,6 +35,8 @@ namespace AmongUsReplayInWindow
             this.filenameTextBox = new System.Windows.Forms.TextBox();
             this.replaySpeedTrackBar = new System.Windows.Forms.TrackBar();
             this.speedLabel = new System.Windows.Forms.Label();
+            this.RenderingBox = new System.Windows.Forms.ComboBox();
+            this.RenderingLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.replaySpeedTrackBar)).BeginInit();
             this.SuspendLayout();
             // 
@@ -88,11 +90,34 @@ namespace AmongUsReplayInWindow
             this.speedLabel.TabIndex = 5;
             this.speedLabel.Text = "Replay speed";
             // 
+            // RenderingBox
+            // 
+            this.RenderingBox.FormattingEnabled = true;
+            this.RenderingBox.Items.AddRange(new object[] {
+            "Icon",
+            "Simple"});
+            this.RenderingBox.Location = new System.Drawing.Point(12, 174);
+            this.RenderingBox.Name = "RenderingBox";
+            this.RenderingBox.Size = new System.Drawing.Size(121, 23);
+            this.RenderingBox.TabIndex = 6;
+            this.RenderingBox.SelectedIndexChanged += new System.EventHandler(this.RenderingBox_SelectedIndexChanged);
+            // 
+            // RenderingLabel
+            // 
+            this.RenderingLabel.AutoSize = true;
+            this.RenderingLabel.Location = new System.Drawing.Point(12, 153);
+            this.RenderingLabel.Name = "RenderingLabel";
+            this.RenderingLabel.Size = new System.Drawing.Size(61, 15);
+            this.RenderingLabel.TabIndex = 7;
+            this.RenderingLabel.Text = "Rendering";
+            // 
             // ConfigWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(340, 170);
+            this.ClientSize = new System.Drawing.Size(340, 207);
+            this.Controls.Add(this.RenderingLabel);
+            this.Controls.Add(this.RenderingBox);
             this.Controls.Add(this.speedLabel);
             this.Controls.Add(this.replaySpeedTrackBar);
             this.Controls.Add(this.filenameTextBox);
@@ -114,5 +139,7 @@ namespace AmongUsReplayInWindow
         private System.Windows.Forms.TextBox filenameTextBox;
         private System.Windows.Forms.TrackBar replaySpeedTrackBar;
         private System.Windows.Forms.Label speedLabel;
+        private System.Windows.Forms.ComboBox RenderingBox;
+        private System.Windows.Forms.Label RenderingLabel;
     }
 }

@@ -972,7 +972,7 @@ namespace AmongUsCapture
 
         }
 
-        static Color[] ColorList = new Color[12]
+        static public Color[] ColorList = new Color[12]
         {
             Color.Red,
             Color.Blue,

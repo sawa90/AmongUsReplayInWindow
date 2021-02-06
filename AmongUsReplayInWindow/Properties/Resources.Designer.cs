@@ -63,6 +63,16 @@ namespace AmongUsReplayInWindow.Properties {
         /// <summary>
         ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
         /// </summary>
+        internal static System.Drawing.Bitmap impostor {
+            get {
+                object obj = ResourceManager.GetObject("impostor", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
         internal static System.Drawing.Bitmap mira {
             get {
                 object obj = ResourceManager.GetObject("mira", resourceCulture);
@@ -84,7 +94,7 @@ namespace AmongUsReplayInWindow.Properties {
         ///  },
         ///  &quot;38119B8551718D9016BAFEEDC105610D5B3AED5B0036D1A6060B8E2ABE523C02&quot;: {
         ///    &quot;Description&quot;: &quot;v2020.11.17s (Release 1)&quot;,
-        ///    &quot;AmongUsClientOff [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        ///    &quot;Amo [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string Offsets {
             get {
@@ -108,6 +118,16 @@ namespace AmongUsReplayInWindow.Properties {
         internal static System.Drawing.Bitmap skeld {
             get {
                 object obj = ResourceManager.GetObject("skeld", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap vent {
+            get {
+                object obj = ResourceManager.GetObject("vent", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
