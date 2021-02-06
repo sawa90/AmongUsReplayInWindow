@@ -118,7 +118,7 @@ namespace AmongUsReplayInWindow
             {
                 lock (lockObject)
                 {
-                    folderPass = Program.exeFolder + "\\AmongUsReplayInWindow";
+                    folderPass = Program.exeFolder + "\\replay";
                     AllImposorNum = 0;
                     for (int i = 0; i < startArgs.PlayerMove.PlayerNum; i++)
                     {

@@ -158,8 +158,8 @@ namespace AmongUsReplayInWindow
 
         void setMapImage()
         {
-            if (File.Exists(Program.exeFolder + "\\" + mapFilename[mapId]))
-                MapImage = Image.FromFile(Program.exeFolder + "\\" + mapFilename[mapId]);
+            if (File.Exists(Program.exeFolder + "\\map\\" + mapFilename[mapId]))
+                MapImage = Image.FromFile(Program.exeFolder + "\\map\\" + mapFilename[mapId]);
             else
             {
                 switch (mapId)

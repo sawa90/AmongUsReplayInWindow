@@ -44,7 +44,7 @@ namespace AmongUsReplayInWindow
             if (filenameTextBox.Text != "")
                 openFileDialog1.InitialDirectory = filenameTextBox.Text;
             else
-                openFileDialog1.InitialDirectory = Program.exeFolder + "\\AmogUsReplayInWindow";
+                openFileDialog1.InitialDirectory = Program.exeFolder + "\\replay";
             DialogResult dr = openFileDialog1.ShowDialog();
             if (dr == System.Windows.Forms.DialogResult.OK)
             {
