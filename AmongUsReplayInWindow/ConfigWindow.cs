@@ -22,12 +22,12 @@ namespace AmongUsReplayInWindow
         OverlayWindow overlayForm = null;
         delegate void void_stringDelegate(string str);
         delegate void void_ProcessDelegate(Process process);
-        internal OverlayWindow.IconDict iconDict;
+        internal DrawMove.IconDict iconDict;
 
         public ConfigWindow()
         {
             InitializeComponent();
-            iconDict = new OverlayWindow.IconDict();
+            iconDict = new DrawMove.IconDict();
             RenderingBox.SelectedIndex = 0;
         }
 

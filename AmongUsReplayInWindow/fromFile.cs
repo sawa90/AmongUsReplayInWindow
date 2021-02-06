@@ -34,8 +34,6 @@ namespace AmongUsReplayInWindow
         List<int[]> deadList = new List<int[]>();
         List<int> deadOrderList = new List<int>();
 
-        
-        string[] mapFilename = new string[3] { "skeld.png", "mira.png", "polus.png" };
 
         public const int ULW_COLORKEY = 1;
         public const int ULW_ALPHA = 2;
@@ -137,7 +135,7 @@ namespace AmongUsReplayInWindow
                     return false;
                 }
                 mapId = (int)logReader.startArgs.PlayMap;
-                setMapImage();
+                MapImage = Map.setMapImage(mapId);
                 hw = Map.Maps[mapId].hw;
                 SizeChangedHandler(null, null);
 
@@ -156,29 +154,6 @@ namespace AmongUsReplayInWindow
             return true;
         }
 
-        void setMapImage()
-        {
-            if (File.Exists(Program.exeFolder + "\\map\\" + mapFilename[mapId]))
-                MapImage = Image.FromFile(Program.exeFolder + "\\map\\" + mapFilename[mapId]);
-            else
-            {
-                switch (mapId)
-                {
-                    case 0:
-                        MapImage = Properties.Resources.skeld;
-                        break;
-                    case 1:
-                        MapImage = Properties.Resources.mira;
-                        break;
-                    case 2:
-                        MapImage = Properties.Resources.polus;
-                        break;
-                    default:
-                        Console.WriteLine($"Not found map image ID={mapId}");
-                        throw new FileNotFoundException();
-                }
-            }
-        }
 
         private void removeReader()
         {
@@ -392,25 +367,14 @@ namespace AmongUsReplayInWindow
             lock (lockObject)
             {
                 if (drawIcon && configWindow?.iconDict != null)
-                    OverlayWindow.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], configWindow.iconDict, pictureBox1.Width, pictureBox1.Height);
+                    DrawMove.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], configWindow.iconDict, pictureBox1.Width, pictureBox1.Height);
                 else
-                    OverlayWindow.DrawMove(paint, e, deadOrderList, Map.Maps[mapId], pictureBox1.Width, pictureBox1.Height);
+                    DrawMove.DrawMove_Simple(paint, e, deadOrderList, Map.Maps[mapId], pictureBox1.Width, pictureBox1.Height);
             }
 
         }
 
         #endregion
-
-
-        private Color GetCColor(Color color)
-        {
-            byte r = (byte)~color.R;
-            byte g = (byte)~color.G;
-            byte b = (byte)~color.B;
-
-            return Color.FromArgb(r, g, b);
-        }
-
        
     }
 }

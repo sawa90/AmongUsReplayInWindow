@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing;
+using System.IO;
 
 namespace AmongUsReplayInWindow
 {
     public static class Map
     {
+        static string[] mapFilename = new string[3] { "skeld.png", "mira.png", "polus.png" };
         public struct MapScale
         {
             public float hw, xs, ys, xp, yp;
@@ -39,5 +38,41 @@ namespace AmongUsReplayInWindow
                 yp = 0.0885f,
             }
         };
+
+        static public Image setMapImage(int mapId)
+        {
+            Image MapImage = null;
+            if (File.Exists(Program.exeFolder + "\\map\\" + mapFilename[mapId]))
+            {
+                try
+                {
+                    using (FileStream stream = File.OpenRead(Program.exeFolder + "\\map\\" + mapFilename[mapId]))
+                        MapImage = Image.FromStream(stream, false, false);
+                    return MapImage;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.StackTrace);
+                }
+            }
+
+            switch (mapId)
+            {
+                case 0:
+                    MapImage = Properties.Resources.skeld;
+                    break;
+                case 1:
+                    MapImage = Properties.Resources.mira;
+                    break;
+                case 2:
+                    MapImage = Properties.Resources.polus;
+                    break;
+                default:
+                    Console.WriteLine($"Not found map image ID={mapId}");
+                    throw new FileNotFoundException();
+            }
+            return MapImage;
+        }
     }
 }
