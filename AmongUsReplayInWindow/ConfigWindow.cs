@@ -9,15 +9,19 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using AmongUsCapture;
+using AmongUsReplayInWindow.setOwnerWindow;
+using System.Diagnostics;
 
 namespace AmongUsReplayInWindow
 {
     public partial class ConfigWindow : Form
     {
         CancellationTokenSource tokenSource = null;
+        Task createWindowTask = null;
         Task gameReaderTask = null;
         OverlayWindow overlayForm = null;
         delegate void void_stringDelegate(string str);
+        delegate void void_ProcessDelegate(Process process);
         internal OverlayWindow.IconDict iconDict;
 
         public ConfigWindow()
@@ -30,13 +34,14 @@ namespace AmongUsReplayInWindow
 
         ~ConfigWindow()
         {
-            if (!gameReaderTask.IsCompleted)
+            createWindowTask?.Wait();
+            if (gameReaderTask!=null && !gameReaderTask.IsCompleted)
             {
                 tokenSource?.Cancel();
                 gameReaderTask?.Wait(10000);
             }
-            tokenSource?.Dispose();
             iconDict?.Dispose();
+            tokenSource?.Dispose();
         }
 
         private void openFileDialogButton_Click(object sender, EventArgs ev)
@@ -62,6 +67,11 @@ namespace AmongUsReplayInWindow
             }
         }
 
+        void createOverlayWindow(Process process)
+        {
+            overlayForm = new OverlayWindow(this, tokenSource, process);
+        }
+
         private void GetAmongUsWindow_Click(object sender, EventArgs ev)
         {
             if (!OverlayWindow.open)
@@ -72,6 +82,7 @@ namespace AmongUsReplayInWindow
                 catch(TimeoutException time_e)
                 {
                     Console.WriteLine(time_e.Message);
+                    Console.WriteLine(time_e.StackTrace);
                     OverlayWindow.open = false;
                     tokenSource?.Dispose();
                     tokenSource = null;
@@ -80,40 +91,51 @@ namespace AmongUsReplayInWindow
                 
                 tokenSource = new CancellationTokenSource();
                 var cancelToken = tokenSource.Token;
-                overlayForm = new OverlayWindow(this, tokenSource);
-                if (overlayForm.ownerHandle != IntPtr.Zero)
+                GetAmongUsWindow.Text = "Looking for Among Us window";
+                createWindowTask = Task.Factory.StartNew(() =>
                 {
-                    GetAmongUsWindow.Text = "Running...";
-                    var gameReaderTask = Task.Factory.StartNew(() =>
+                    Process ownerProcess = getOwnerWindow.findWindow("Among Us");
+                    if (ownerProcess == null)
                     {
-                        var gameReader = Task.Factory.StartNew(() =>
+                        OverlayWindow.open = false;
+                        Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Get Among Us Window");
+                        return;
+                    }
+                    Invoke(new void_ProcessDelegate(createOverlayWindow), ownerProcess);
+                    if (overlayForm.ownerHandle != IntPtr.Zero)
+                    {
+                        Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Running...");
+                        gameReaderTask = Task.Factory.StartNew(() =>
                         {
-                            GameMemReader.getInstance().PlayerMove += overlayForm.PlayerPosHandler;
-                            GameMemReader.getInstance().GameStateChanged += overlayForm.GameStateChangedEventHandler;
-                            GameMemReader.getInstance().GameStart += overlayForm.GameStartHandler;
-                            GameMemReader.getInstance().RunLoop(cancelToken);
-                        }, cancelToken); // run loop in background
-                            
-                        try { gameReader.Wait(); }
-                        catch (System.AggregateException exc)
-                        {
-                            exc.Handle((e) =>
+                            var gameReader = Task.Factory.StartNew(() =>
                             {
-                                if (e.GetType() != typeof(TaskCanceledException))
+                                GameMemReader.getInstance().PlayerMove += overlayForm.PlayerPosHandler;
+                                GameMemReader.getInstance().GameStateChanged += overlayForm.GameStateChangedEventHandler;
+                                GameMemReader.getInstance().GameStart += overlayForm.GameStartHandler;
+                                GameMemReader.getInstance().RunLoop(cancelToken);
+                            }, cancelToken); // run loop in background
+
+                            try { gameReader.Wait(); }
+                            catch (System.AggregateException exc)
+                            {
+                                exc.Handle((e) =>
                                 {
-                                    Console.WriteLine(e.Message);
-                                    return false;
-                                }
-                                return true;
-                            });
-                        }
-                    }).ContinueWith(t =>
-                    {
-                        tokenSource?.Dispose();
-                        tokenSource = null;
-                        Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Get Among Us Window"); 
-                    });
-                }
+                                    if (e.GetType() != typeof(TaskCanceledException))
+                                    {
+                                        Console.WriteLine(e.Message);
+                                        return false;
+                                    }
+                                    return true;
+                                });
+                            }
+                        }).ContinueWith(t =>
+                        {
+                            tokenSource?.Dispose();
+                            tokenSource = null;
+                            Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Get Among Us Window");
+                        });
+                    }
+                });
 
             }
         }

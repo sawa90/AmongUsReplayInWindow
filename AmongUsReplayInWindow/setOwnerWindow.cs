@@ -28,6 +28,7 @@ namespace AmongUsReplayInWindow.setOwnerWindow
                 Console.WriteLine($"Looking for {processName} window... : Retrying in 1000ms");
                 System.Threading.Thread.Sleep(1000);
             }
+            Console.WriteLine($"Not found {processName} window");
             return null;
         }
     }

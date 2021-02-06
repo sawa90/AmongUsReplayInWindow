@@ -68,7 +68,7 @@ namespace AmongUsReplayInWindow
         #endregion
 
         #region Initialize
-        public OverlayWindow(ConfigWindow configWindow, CancellationTokenSource tokenSource)
+        public OverlayWindow(ConfigWindow configWindow, CancellationTokenSource tokenSource, System.Diagnostics.Process ownerProcess)
         {
             Console.WriteLine("Init Overlay Window...");
             try
@@ -77,7 +77,6 @@ namespace AmongUsReplayInWindow
                 Init();
                 cancelTokenSource = tokenSource;
                 SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), 210, ULW_COLORKEY | ULW_ALPHA);
-                System.Diagnostics.Process ownerProcess = getOwnerWindow.findWindow("Among Us");
 
                 if (ownerProcess != null)
                 {
