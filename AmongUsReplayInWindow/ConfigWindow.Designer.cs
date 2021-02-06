@@ -37,7 +37,10 @@ namespace AmongUsReplayInWindow
             this.speedLabel = new System.Windows.Forms.Label();
             this.RenderingBox = new System.Windows.Forms.ComboBox();
             this.RenderingLabel = new System.Windows.Forms.Label();
+            this.mapAlphaLabel = new System.Windows.Forms.Label();
+            this.mapAlphaUpdown = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.replaySpeedTrackBar)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.mapAlphaUpdown)).BeginInit();
             this.SuspendLayout();
             // 
             // GetAmongUsWindow
@@ -111,11 +114,40 @@ namespace AmongUsReplayInWindow
             this.RenderingLabel.TabIndex = 7;
             this.RenderingLabel.Text = "Rendering";
             // 
+            // mapAlphaLabel
+            // 
+            this.mapAlphaLabel.AutoSize = true;
+            this.mapAlphaLabel.Location = new System.Drawing.Point(183, 153);
+            this.mapAlphaLabel.Name = "mapAlphaLabel";
+            this.mapAlphaLabel.Size = new System.Drawing.Size(63, 15);
+            this.mapAlphaLabel.TabIndex = 8;
+            this.mapAlphaLabel.Text = "Map alpha";
+            // 
+            // mapAlphaUpdown
+            // 
+            this.mapAlphaUpdown.Location = new System.Drawing.Point(183, 172);
+            this.mapAlphaUpdown.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.mapAlphaUpdown.Name = "mapAlphaUpdown";
+            this.mapAlphaUpdown.Size = new System.Drawing.Size(120, 23);
+            this.mapAlphaUpdown.TabIndex = 9;
+            this.mapAlphaUpdown.Value = new decimal(new int[] {
+            240,
+            0,
+            0,
+            0});
+            this.mapAlphaUpdown.ValueChanged += new System.EventHandler(this.mapAlphaUpdown_ValueChanged);
+            // 
             // ConfigWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(340, 207);
+            this.Controls.Add(this.mapAlphaUpdown);
+            this.Controls.Add(this.mapAlphaLabel);
             this.Controls.Add(this.RenderingLabel);
             this.Controls.Add(this.RenderingBox);
             this.Controls.Add(this.speedLabel);
@@ -126,6 +158,7 @@ namespace AmongUsReplayInWindow
             this.Name = "ConfigWindow";
             this.Text = "AmongUsReplayInWindow";
             ((System.ComponentModel.ISupportInitialize)(this.replaySpeedTrackBar)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.mapAlphaUpdown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -141,5 +174,7 @@ namespace AmongUsReplayInWindow
         private System.Windows.Forms.Label speedLabel;
         private System.Windows.Forms.ComboBox RenderingBox;
         private System.Windows.Forms.Label RenderingLabel;
+        private System.Windows.Forms.Label mapAlphaLabel;
+        private System.Windows.Forms.NumericUpDown mapAlphaUpdown;
     }
 }

@@ -74,7 +74,7 @@ namespace AmongUsReplayInWindow
                 this.configWindow = configWindow;
                 Init();
                 cancelTokenSource = tokenSource;
-                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), 210, ULW_COLORKEY | ULW_ALPHA);
+                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), 240, ULW_COLORKEY | ULW_ALPHA);
 
                 if (ownerProcess != null)
                 {
@@ -424,6 +424,16 @@ namespace AmongUsReplayInWindow
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int SetLayeredWindowAttributes(IntPtr hwnd, int crKey, Byte bAlpha, int dwFlags);
+
+        internal void setAlpha(int a)
+        {
+            Invoke(new void_intDelegate(setAlphaDelegate), a);
+        }
+
+        void setAlphaDelegate(int a)
+        {
+            SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), (byte)a, ULW_COLORKEY | ULW_ALPHA);
+        }
 
         static private int ToCOLORREF(Color c)
         {

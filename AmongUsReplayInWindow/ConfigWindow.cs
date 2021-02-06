@@ -198,5 +198,10 @@ namespace AmongUsReplayInWindow
         }
         #endregion
 
+
+        private void mapAlphaUpdown_ValueChanged(object sender, EventArgs e)
+        {
+            overlayForm?.setAlpha((int)mapAlphaUpdown.Value);
+        }
     }
 }
