@@ -874,7 +874,7 @@ namespace AmongUsCapture
             {
                 gameStartTime = DateTime.Now.Ticks;
                 filename = DateTime.Now.ToString("yyyyMMdd_HHmm_ss");
-
+                ImposterNum = 0;
                 for (var i = 0; i < playerCount; i++)
                 {
                     var pi = ProcessMemory.getInstance().Read<PlayerInfo>(playerAddrPtr, 0, 0);
