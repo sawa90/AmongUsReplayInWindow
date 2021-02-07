@@ -29,7 +29,7 @@ namespace AmongUsReplayInWindow
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            AllocConsole();
+            //AllocConsole();
             try
             {
                 var form = new ConfigWindow();
