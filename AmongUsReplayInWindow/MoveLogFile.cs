@@ -111,6 +111,7 @@ namespace AmongUsReplayInWindow
             private Stream stream;
             private BinaryWriter writer;
             int AllImposorNum;
+            string tempfilename;
             public string filename;
             private object lockObject = new object();
 
@@ -133,8 +134,21 @@ namespace AmongUsReplayInWindow
                         Directory.CreateDirectory(folderPass);
                     }
                     this.filename = folderPass + "\\" + startArgs.filename + ".dat";
-                    stream = File.Create(this.filename);
-                    writer = new BinaryWriter(stream);
+                    tempfilename = folderPass + "\\" + DateTime.Now.ToString("yyyyMMdd_HHmm_ss")+".dat";
+                    try
+                    {
+                        stream = File.Create(tempfilename);
+                        writer = new BinaryWriter(stream);
+                    } catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        Console.WriteLine(e.StackTrace);
+                        writer?.Close();
+                        stream?.Close();
+                        writer = null;
+                        stream = null;
+                        return;
+                    }
                     writePlayerData2bFile(startArgs);
                 }
             }
@@ -155,6 +169,8 @@ namespace AmongUsReplayInWindow
                         stream?.Close();
                         writer = null;
                         stream = null;
+                        if (File.Exists(tempfilename))
+                            File.Move(tempfilename, filename);
                     } catch(ObjectDisposedException e)
                     {
                         writer = null;
