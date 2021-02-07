@@ -11,7 +11,7 @@ namespace AmongUsReplayInWindow
     public partial class fromFile : Form
     {
         #region variable
-        public static List<fromFile> fromFileList = new List<fromFile>(); 
+        public static List<fromFile> fromFileList = new List<fromFile>();
         public static bool open = false;
 
         public object lockObject = new object();
@@ -20,11 +20,12 @@ namespace AmongUsReplayInWindow
 
 
         PaintEventHandler drawTrackBar = null;
-        PaintEventHandler backgroundPaint = null;
 
         int mapId = 0;
-        Image MapImage;
+        Map.backgroundMap backgroundMap;
         float hw = 1;
+        public Point mapLocation;
+        public Size mapSize;
 
 
         public PlayerMoveArgs e = null;
@@ -74,13 +75,11 @@ namespace AmongUsReplayInWindow
         {
             open = true;
             InitializeComponent();
-            pictureBox1.Width = ClientSize.Width;
-            pictureBox1.Height = ClientSize.Height;
-            pictureBox1.Paint += new PaintEventHandler(Draw);
+            mapSize = ClientSize;
+            mapLocation = Point.Empty;
+            Paint += new PaintEventHandler(Draw);
             FormClosing += new FormClosingEventHandler(Form1_FormClosing);
 
-            backgroundPaint = new PaintEventHandler(DrawBackground);
-            Paint += backgroundPaint;
             SizeChanged += new EventHandler(SizeChangedHandler);
             step = configWindow.step;
             drawIcon = configWindow.drawIcon;
@@ -91,10 +90,10 @@ namespace AmongUsReplayInWindow
         private void Form1_FormClosing(Object sender, FormClosingEventArgs ev)
         {
             fromFileList.Remove(this);
-            MapImage?.Dispose();
+            backgroundMap?.Dispose();
             logReader?.Close();
             deleteTrackBarHandler();
-            MapImage = null;
+            backgroundMap = null;
             logReader = null;
 
             open = false;
@@ -104,18 +103,19 @@ namespace AmongUsReplayInWindow
         {
             float w = (float)ClientSize.Width;
             float h = (float)ClientSize.Height - 40;
-            
+
             if (h / w > hw)
             {
                 h = w * hw;
-                pictureBox1.Location = new Point(0, (int)((ClientSize.Height - 40 - h) * 0.5));
+                mapLocation = new Point(0, (int)((ClientSize.Height - 40 - h) * 0.5));
             }
             else
             {
                 w = h / hw;
-                pictureBox1.Location = new Point((int)(((float)ClientSize.Width - w) * 0.5), 0);
+                mapLocation = new Point((int)(((float)ClientSize.Width - w) * 0.5), 0);
             }
-            pictureBox1.Size = new Size((int)w, (int)h);
+            mapSize = new Size((int)w, (int)h);
+            backgroundMap?.ChangeSize(ClientSize, mapLocation, mapSize);
             Invalidate();
             pictureBox2.Invalidate();
         }
@@ -135,22 +135,20 @@ namespace AmongUsReplayInWindow
                     return false;
                 }
                 mapId = (int)logReader.startArgs.PlayMap;
-                MapImage = Map.setMapImage(mapId);
                 hw = Map.Maps[mapId].hw;
                 SizeChangedHandler(null, null);
-
+                backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId);
                 Invalidate();
                 getFrameData();
             }
             drawTrackBar = new PaintEventHandler(DrawBar);
             pictureBox2.Paint += drawTrackBar;
             pictureBox2.Invalidate();
-            using (var g = CreateGraphics())
-                if (MapImage != null)
-                {
-                    g.FillRectangle(Brushes.Snow, pictureBox1.Location.X, pictureBox1.Location.Y, pictureBox1.Size.Width, pictureBox1.Size.Height);
-                    g.DrawImage(MapImage, pictureBox1.Location.X, pictureBox1.Location.Y, pictureBox1.Size.Width, pictureBox1.Size.Height);
-                }
+            if (backgroundMap != null)
+            {
+                using (var g = CreateGraphics())
+                    backgroundMap.Draw(g);
+            }
             return true;
         }
 
@@ -275,7 +273,7 @@ namespace AmongUsReplayInWindow
                 logReader?.seek(trackBar1.Value);
                 e = logReader.ReadFrombFileMove();
             }
-            pictureBox1.Invalidate();
+            Invalidate();
 
         }
 
@@ -334,13 +332,6 @@ namespace AmongUsReplayInWindow
 
 
         #region Draw
-        private void DrawBackground(object sender, System.Windows.Forms.PaintEventArgs paint)
-        {
-            if (MapImage != null)
-                paint.Graphics.DrawImage(MapImage, pictureBox1.Location.X, pictureBox1.Location.Y, pictureBox1.Size.Width, pictureBox1.Size.Height);
-        }
-
-
         private void DrawBar(object sender, System.Windows.Forms.PaintEventArgs paint)
         {
             if (logReader?.reader == null) return;
@@ -353,7 +344,7 @@ namespace AmongUsReplayInWindow
                 g.FillRectangle(Brushes.Gray, wPerFrame * ij[0], 0, wPerFrame * (ij[1] - ij[0]), pictureBox2.ClientSize.Height);
             }
 
-            float circleSize = pictureBox1.Height / 39.0f;
+            float circleSize = mapSize.Height / 39.0f;
             float dsize = Math.Max(1.0f, circleSize / 5.0f) ;
             foreach (var ij in deadList)
             {
@@ -364,14 +355,15 @@ namespace AmongUsReplayInWindow
 
         private void Draw(object sender, PaintEventArgs paint)
         {
+            backgroundMap?.Draw(paint.Graphics);
             lock (lockObject)
             {
                 if (drawIcon && configWindow?.iconDict != null)
-                    DrawMove.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], configWindow.iconDict, pictureBox1.Width, pictureBox1.Height);
+                    DrawMove.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], configWindow.iconDict, mapLocation, mapSize);
                 else
-                    DrawMove.DrawMove_Simple(paint, e, deadOrderList, Map.Maps[mapId], pictureBox1.Width, pictureBox1.Height);
+                    DrawMove.DrawMove_Simple(paint, e, deadOrderList, Map.Maps[mapId], mapLocation, mapSize);
             }
-
+            
         }
 
         #endregion

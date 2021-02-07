@@ -39,6 +39,7 @@ namespace AmongUsReplayInWindow
             this.RenderingLabel = new System.Windows.Forms.Label();
             this.mapAlphaLabel = new System.Windows.Forms.Label();
             this.mapAlphaUpdown = new System.Windows.Forms.NumericUpDown();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             ((System.ComponentModel.ISupportInitialize)(this.replaySpeedTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.mapAlphaUpdown)).BeginInit();
             this.SuspendLayout();
@@ -119,9 +120,9 @@ namespace AmongUsReplayInWindow
             this.mapAlphaLabel.AutoSize = true;
             this.mapAlphaLabel.Location = new System.Drawing.Point(183, 153);
             this.mapAlphaLabel.Name = "mapAlphaLabel";
-            this.mapAlphaLabel.Size = new System.Drawing.Size(63, 15);
+            this.mapAlphaLabel.Size = new System.Drawing.Size(74, 15);
             this.mapAlphaLabel.TabIndex = 8;
-            this.mapAlphaLabel.Text = "Map alpha";
+            this.mapAlphaLabel.Text = "Replay alpha";
             // 
             // mapAlphaUpdown
             // 
@@ -176,5 +177,6 @@ namespace AmongUsReplayInWindow
         private System.Windows.Forms.Label RenderingLabel;
         private System.Windows.Forms.Label mapAlphaLabel;
         private System.Windows.Forms.NumericUpDown mapAlphaUpdown;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }

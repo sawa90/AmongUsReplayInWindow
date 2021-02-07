@@ -33,13 +33,14 @@ namespace AmongUsReplayInWindow
         AdjustToOwnerWindow sizeChange = null;
 
         PaintEventHandler drawTrackBar = null;
-        PaintEventHandler backgroundPaint = null;
 
         internal System.Windows.Forms.Timer drawTimer = new System.Windows.Forms.Timer();
 
-        string[] mapFilename = new string[3] { "skeld.png", "mira.png", "polus.png" };
-        Image MapImage;
+        Map.backgroundMap backgroundMap;
         public int mapId = 0;
+
+        public Point mapLocation;
+        public Size mapSize;
 
         public PlayerMoveArgs moveArg = null;
         string filename;
@@ -112,14 +113,12 @@ namespace AmongUsReplayInWindow
         {
             open = true;
             InitializeComponent();
-            pictureBox1.Width = ClientSize.Width;
-            pictureBox1.Height = ClientSize.Height;
-            pictureBox1.Paint += new PaintEventHandler(Draw);
+            mapSize = ClientSize;
+            mapLocation = Point.Empty;
+            Paint += new PaintEventHandler(Draw);
             FormClosing += new FormClosingEventHandler(overlay_FormClosing);
             trackwin = new TrackBarWin(this);
-            MapImage = Map.setMapImage(mapId);
-            backgroundPaint = new PaintEventHandler(DrawBackground);
-            Paint += backgroundPaint;
+            backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId);
             drawTimer = new System.Windows.Forms.Timer();
             drawTimer.Interval = configWindow.interval;
             drawTimer.Tick += new EventHandler(DrawTimerHandler);
@@ -137,13 +136,13 @@ namespace AmongUsReplayInWindow
             removeReader();
             drawTimer?.Dispose();
             writer?.Close();
-            MapImage?.Dispose();
+            backgroundMap?.Dispose();
             sizeChange?.Stop();
             trackwin?.Close();
 
             drawTimer = null;
             writer = null;
-            MapImage = null;
+            backgroundMap = null;
             cancelTokenSource = null;
             sizeChange = null;
             trackwin = null;
@@ -267,7 +266,7 @@ namespace AmongUsReplayInWindow
             writer?.Close();
             writer = new MoveLogFile.WriteMoveLogFile(startArgs);
             using (var g = CreateGraphics())
-                g.FillRectangle(Brushes.Snow, pictureBox1.Location.X, pictureBox1.Location.Y, pictureBox1.Size.Width, pictureBox1.Size.Height);
+                g.FillRectangle(Brushes.Snow, 0, 0, Width, Height);
 
             using (var g = pictureBox2.CreateGraphics())
                 g.FillRectangle(Brushes.Snow, 0, 0, pictureBox2.Size.Width, pictureBox2.Size.Height);
@@ -307,7 +306,7 @@ namespace AmongUsReplayInWindow
 
         public void DrawTimerHandler(object? sender, EventArgs eArgs)
         {
-            pictureBox1.Invalidate();
+            Invalidate();
         }
         public void PlayerPosHandler(object? sender, PlayerMoveArgs moveArgs)
         {
@@ -335,11 +334,7 @@ namespace AmongUsReplayInWindow
             sizeChange?.resize();
             sizeChange?.Start();
             using (var g = CreateGraphics())
-                if (MapImage != null)
-                {
-                    g.FillRectangle(Brushes.Snow, pictureBox1.Location.X, pictureBox1.Location.Y, pictureBox1.Size.Width, pictureBox1.Size.Height);
-                    g.DrawImage(MapImage, pictureBox1.Location.X, pictureBox1.Location.Y, pictureBox1.Size.Width, pictureBox1.Size.Height);
-                }
+                backgroundMap?.Draw(g);
             drawTimer.Interval = configWindow.interval;
             drawTimer?.Start();
             SetKeyboardEnable(Playing, true);
@@ -359,13 +354,6 @@ namespace AmongUsReplayInWindow
         #region Draw
 
 
-        private void DrawBackground(object sender, System.Windows.Forms.PaintEventArgs paint)
-        {
-            if (!Playing)
-                paint.Graphics.DrawImage(MapImage, pictureBox1.Location.X, pictureBox1.Location.Y, pictureBox1.Size.Width, pictureBox1.Size.Height);
-        }
-
-
         private void DrawBar(object sender, System.Windows.Forms.PaintEventArgs paint)
         {
             if (logReader?.reader == null) return;
@@ -378,7 +366,7 @@ namespace AmongUsReplayInWindow
                 g.FillRectangle(Brushes.Gray, wPerFrame * ij[0], 0, wPerFrame * (ij[1] - ij[0]), pictureBox2.ClientSize.Height);
             }
 
-            float circleSize = pictureBox1.Height / 39.0f;
+            float circleSize = mapSize.Height / 39.0f;
             float dsize = Math.Max(1.0f, circleSize / 5.0f);
             foreach (var ij in deadList)
             {
@@ -398,22 +386,23 @@ namespace AmongUsReplayInWindow
         {
             if (mapId == newMapId) return;
             mapId = newMapId;
-            MapImage.Dispose();
-            MapImage = Map.setMapImage(mapId);
             sizeChange.resize();
+            backgroundMap.ChangeMapId(mapId, ClientSize, mapLocation, mapSize);
             Invalidate();
         }
         private void Draw(object sender, PaintEventArgs paint)
         {
+            if (!Playing)
+                backgroundMap?.Draw(paint.Graphics);
             lock (lockObject)
             {
                 if (drawIcon && configWindow?.iconDict != null) 
                 {
-                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], configWindow.iconDict, pictureBox1.Width, pictureBox1.Height);
+                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], configWindow.iconDict, mapLocation, mapSize);
 
                 }
                 else
-                    DrawMove.DrawMove_Simple(paint, moveArg, deadOrderList, Map.Maps[mapId], pictureBox1.Width, pictureBox1.Height);
+                    DrawMove.DrawMove_Simple(paint, moveArg, deadOrderList, Map.Maps[mapId], mapLocation, mapSize);
             }
 
         }
@@ -538,27 +527,34 @@ namespace AmongUsReplayInWindow
                 RECT rect = new RECT();
                 NativeMethods.GetClientRect(hOwnerWnd, out rect);
 
-
-                float w = rect.right;
-                float h = rect.bottom;
-                float hw = Map.Maps[overlayform.mapId].hw;
-                if (h / w > hw)
+                Point formLocation = overlayform.Location;
+                if (formLocation.X != pos.X || formLocation.Y != pos.Y)
                 {
-                    h = w * hw;
-                    overlayform.pictureBox1.Location = new Point(0, (int)((rect.bottom - h) * 0.5));
+                    overlayform.Location = new Point(pos.X, pos.Y);
+                    overlayform.trackwin.Location = new Point(pos.X, pos.Y + rect.bottom - 30);
                 }
-                else
+
+                Size formSize = overlayform.Size;
+                if (rect.right != formSize.Width || rect.bottom != formSize.Height)
                 {
-                    w = h / hw;
-                    overlayform.pictureBox1.Location = new Point((int)((rect.right - w) * 0.5), 0);
+                    float w = rect.right;
+                    float h = rect.bottom;
+                    float hw = Map.Maps[overlayform.mapId].hw;
+                    if (h / w > hw)
+                    {
+                        h = w * hw;
+                        overlayform.mapLocation = new Point(0, (int)((rect.bottom - h) * 0.5));
+                    }
+                    else
+                    {
+                        w = h / hw;
+                        overlayform.mapLocation = new Point((int)((rect.right - w) * 0.5), 0);
+                    }
+                    overlayform.mapSize = new Size((int)w, (int)h);
+                    overlayform.Size = new Size(rect.right, rect.bottom);
+                    overlayform.backgroundMap.ChangeSize(overlayform.Size, overlayform.mapLocation, overlayform.mapSize);
+                    overlayform.trackwin.Size = new Size(rect.right, 30);
                 }
-                overlayform.pictureBox1.Size = new Size((int)w, (int)h);
-
-                overlayform.Location = new Point(pos.X, pos.Y);
-                overlayform.Size = new Size(rect.right, rect.bottom);
-
-                overlayform.trackwin.Location = new Point(pos.X, pos.Y + rect.bottom - 30);
-                overlayform.trackwin.Size = new Size(rect.right, 30);
             }
 
         }

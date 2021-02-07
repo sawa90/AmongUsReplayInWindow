@@ -93,14 +93,14 @@ namespace AmongUsReplayInWindow
             }
         }
 
-        static public void DrawMove_Icon(PaintEventArgs paint, PlayerMoveArgs move, List<int> deadOrderList, Map.MapScale map, IconDict icons, int width, int height)
+        static public void DrawMove_Icon(PaintEventArgs paint, PlayerMoveArgs move, List<int> deadOrderList, Map.MapScale map, IconDict icons, Point mapLocation, Size mapSize)
         {
             string fontName = "Times New Roman";
             if (move == null) return;
             int AllImpostorNum = 0;
 
-            float circleSize = height / 39.0f;
-            int dsize = Math.Max(1, (int)circleSize / 5);
+            float circleSize = mapSize.Height / 39.0f;
+            float dsize = Math.Max(1, circleSize / 5.0f);
             using (var fnt = new Font(fontName, circleSize))
             {
                 int minutes = move.time / 60000;
@@ -142,8 +142,8 @@ namespace AmongUsReplayInWindow
                     using (var brush = new SolidBrush(move.PlayerColors[i]))
                     {
 
-                        int pointX = (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * width);
-                        int pointY = (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * height);
+                        int pointX = mapLocation.X + (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * mapSize.Width);
+                        int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * mapSize.Height);
 
                         Image icon = icons.icons.GetValueOrDefault(move.PlayerColors[i]);
                         if (icon != null)
@@ -175,8 +175,8 @@ namespace AmongUsReplayInWindow
                     using (var brush = new SolidBrush(move.PlayerColors[id]))
                     using (Pen pen = new Pen(GetCColor(move.PlayerColors[id]), dsize))
                     {
-                        int pointX = (int)(((move.PlayerPoses[id].X) * map.xs + map.xp) * width);
-                        int pointY = (int)(((-move.PlayerPoses[id].Y) * map.ys + map.yp) * height);
+                        int pointX = mapLocation.X + (int)(((move.PlayerPoses[id].X) * map.xs + map.xp) * mapSize.Width);
+                        int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[id].Y) * map.ys + map.yp) * mapSize.Height);
                         Image icon = icons.icons.GetValueOrDefault(move.PlayerColors[id]);
                         if (move.InVent[i])
                         {
@@ -185,7 +185,7 @@ namespace AmongUsReplayInWindow
                                 float icon_w = circleSize * icon.Width / icon.Height;
                                 paint.Graphics.DrawImage(icons.vent, pointX - icon_w, pointY - circleSize, icon_w * 2, circleSize * 2);
                                 paint.Graphics.DrawImage(icon, pointX - icon_w * 0.8f, pointY - circleSize * 0.6f, icon_w * 1.6f, circleSize * 1.6f);
-                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 2.0f);
+                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 2.0f);
                             }
                             else
                             {
@@ -199,7 +199,7 @@ namespace AmongUsReplayInWindow
                                 };
                                 paint.Graphics.FillPolygon(brush, points);
                                 paint.Graphics.DrawPolygon(pen, points);
-                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
+                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
                             }
                         }
                         else
@@ -209,13 +209,13 @@ namespace AmongUsReplayInWindow
                                 float icon_w = circleSize * icon.Width / icon.Height;
                                 paint.Graphics.DrawImage(icons.impostor, pointX - icon_w, pointY - circleSize, icon_w * 2, circleSize * 2);
                                 paint.Graphics.DrawImage(icon, pointX - icon_w, pointY - circleSize, icon_w * 2, circleSize * 2);
-                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 2.0f);
+                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 2.0f);
                             }
                             else
                             {
                                 paint.Graphics.FillEllipse(brush, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
                                 paint.Graphics.DrawEllipse(pen, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
-                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
+                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
                             }
                         }
 
@@ -231,8 +231,8 @@ namespace AmongUsReplayInWindow
                         using (var brush = new SolidBrush(move.PlayerColors[i]))
                         {
 
-                            int pointX = (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * width);
-                            int pointY = (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * height);
+                            int pointX = mapLocation.X + (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * mapSize.Width);
+                            int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * mapSize.Height);
 
 
                             if (move.PlayerIsDead[i] == -10)
@@ -254,19 +254,19 @@ namespace AmongUsReplayInWindow
                                 killed++;
                             }
 
-
-                            Point[] points = {  new Point(pointX - dsize * 2, pointY - dsize * 4),
-                                            new Point(pointX, pointY - dsize * 2),
-                                            new Point(pointX + dsize * 2, pointY - dsize * 4),
-                                            new Point(pointX + dsize * 4, pointY - dsize * 2),
-                                            new Point(pointX + dsize * 2, pointY),
-                                            new Point(pointX + dsize * 4, pointY + dsize * 2),
-                                            new Point(pointX + dsize * 2, pointY + dsize * 4),
-                                            new Point(pointX, pointY + dsize * 2),
-                                            new Point(pointX - dsize * 2, pointY + dsize * 4),
-                                            new Point(pointX - dsize * 4, pointY + dsize * 2),
-                                            new Point(pointX - dsize * 2, pointY),
-                                            new Point(pointX - dsize * 4, pointY - dsize * 2),
+                            float d = dsize * 1.8f;
+                            PointF[] points = {  new PointF(pointX - d, pointY - d * 2),
+                                            new PointF(pointX, pointY - d),
+                                            new PointF(pointX + d, pointY - d * 2),
+                                            new PointF(pointX + d * 2, pointY - d),
+                                            new PointF(pointX + d, pointY),
+                                            new PointF(pointX + d * 2, pointY + d),
+                                            new PointF(pointX + d, pointY + d * 2),
+                                            new PointF(pointX, pointY + d),
+                                            new PointF(pointX - d, pointY + d * 2),
+                                            new PointF(pointX - d * 2, pointY + d),
+                                            new PointF(pointX - d, pointY),
+                                            new PointF(pointX - d * 2, pointY - d),
                                             };
                             paint.Graphics.FillPolygon(brush, points);
                             if (Math.Abs(move.PlayerIsDead[i]) >= 20)
@@ -297,15 +297,15 @@ namespace AmongUsReplayInWindow
 
         }
 
-        static public void DrawMove_Simple(PaintEventArgs paint, PlayerMoveArgs move, List<int> deadOrderList, Map.MapScale map, int width, int height)
+        static public void DrawMove_Simple(PaintEventArgs paint, PlayerMoveArgs move, List<int> deadOrderList, Map.MapScale map, Point mapLocation, Size mapSize)
         {
             paint.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             string fontName = "Times New Roman";
             if (move == null) return;
             int AllImpostorNum = 0;
 
-            float circleSize = height / 39.0f;
-            int dsize = Math.Max(1, (int)circleSize / 5);
+            float circleSize = mapSize.Height / 39.0f;
+            float dsize = Math.Max(1, circleSize / 5.0f);
             using (var fnt = new Font(fontName, circleSize))
             {
                 int minutes = move.time / 60000;
@@ -345,8 +345,8 @@ namespace AmongUsReplayInWindow
                         using (var brush = new SolidBrush(move.PlayerColors[i]))
                         {
 
-                            int pointX = (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * width);
-                            int pointY = (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * height);
+                            int pointX = mapLocation.X + (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * mapSize.Width);
+                            int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * mapSize.Height);
 
 
                             if (move.PlayerIsDead[i] == -10)
@@ -368,19 +368,19 @@ namespace AmongUsReplayInWindow
                                 killed++;
                             }
 
-
-                            Point[] points = {  new Point(pointX - dsize * 2, pointY - dsize * 4),
-                                            new Point(pointX, pointY - dsize * 2),
-                                            new Point(pointX + dsize * 2, pointY - dsize * 4),
-                                            new Point(pointX + dsize * 4, pointY - dsize * 2),
-                                            new Point(pointX + dsize * 2, pointY),
-                                            new Point(pointX + dsize * 4, pointY + dsize * 2),
-                                            new Point(pointX + dsize * 2, pointY + dsize * 4),
-                                            new Point(pointX, pointY + dsize * 2),
-                                            new Point(pointX - dsize * 2, pointY + dsize * 4),
-                                            new Point(pointX - dsize * 4, pointY + dsize * 2),
-                                            new Point(pointX - dsize * 2, pointY),
-                                            new Point(pointX - dsize * 4, pointY - dsize * 2),
+                            float d = dsize * 1.8f;
+                            PointF[] points = {  new PointF(pointX - d, pointY - d * 2),
+                                            new PointF(pointX, pointY - d),
+                                            new PointF(pointX + d, pointY - d * 2),
+                                            new PointF(pointX + d * 2, pointY - d),
+                                            new PointF(pointX + d, pointY),
+                                            new PointF(pointX + d * 2, pointY + d),
+                                            new PointF(pointX + d, pointY + d * 2),
+                                            new PointF(pointX, pointY + d),
+                                            new PointF(pointX - d, pointY + d * 2),
+                                            new PointF(pointX - d * 2, pointY + d),
+                                            new PointF(pointX - d, pointY),
+                                            new PointF(pointX - d * 2, pointY - d),
                                             };
                             paint.Graphics.FillPolygon(brush, points);
                             if (Math.Abs(move.PlayerIsDead[i]) >= 20)
@@ -419,8 +419,8 @@ namespace AmongUsReplayInWindow
                     using (var brush = new SolidBrush(move.PlayerColors[i]))
                     {
 
-                        int pointX = (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * width);
-                        int pointY = (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * height);
+                        int pointX = mapLocation.X + (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * mapSize.Width);
+                        int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * mapSize.Height);
 
 
                         paint.Graphics.FillEllipse(brush, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
@@ -443,8 +443,8 @@ namespace AmongUsReplayInWindow
                     using (var brush = new SolidBrush(move.PlayerColors[id]))
                     using (Pen pen = new Pen(GetCColor(move.PlayerColors[id]), dsize))
                     {
-                        int pointX = (int)(((move.PlayerPoses[id].X) * map.xs + map.xp) * width);
-                        int pointY = (int)(((-move.PlayerPoses[id].Y) * map.ys + map.yp) * height);
+                        int pointX = mapLocation.X + (int)(((move.PlayerPoses[id].X) * map.xs + map.xp) * mapSize.Width);
+                        int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[id].Y) * map.ys + map.yp) * mapSize.Height);
 
                         if (move.InVent[i])
                         {
@@ -466,7 +466,7 @@ namespace AmongUsReplayInWindow
                             paint.Graphics.DrawEllipse(pen, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
 
                         }
-                        paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
+                        paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
 
                     }
                 }
