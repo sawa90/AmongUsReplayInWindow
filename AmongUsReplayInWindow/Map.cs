@@ -20,7 +20,7 @@ namespace AmongUsReplayInWindow
                 hw = 0.58f,
                 xs = 0.022f,
                 ys = 0.038f,
-                xp = 0.548f,
+                xp = 0.554f,
                 yp = 0.292f,
             },
             new MapScale
@@ -28,16 +28,16 @@ namespace AmongUsReplayInWindow
                 hw = 0.73f,
                 xs = 0.0223f,
                 ys = 0.0305f,
-                xp = 0.305f,
-                yp = 0.84f,
+                xp = 0.30f,
+                yp = 0.83f,
             },
             new MapScale
             {
                 hw = 0.69f,
                 xs = 0.0232f,
                 ys = 0.0335f,
-                xp = 0.02275f,
-                yp = 0.0885f,
+                xp = 0.021f,
+                yp = 0.093f,
             }
         };
 
