@@ -1,7 +1,7 @@
 # AmongUsReplayInWindow
 ![screenshot](https://github.com/sawa90/AmongUsReplayInWindow/blob/images/scrnshot2.png)
 
-This project add a replay feature to Among Us. The replay will appear in the game window when you return to the lobby after the game.  
+This project add a simple replay feature to Among Us. The replay will appear in the game window when you return to the lobby after the game.  
 In the replay, you can see everyone's location, who killed them and when, the progress of the task, if they are in the vent, and sabotage.  
 
 # Requirement
@@ -30,4 +30,5 @@ MIT
 # References
 [amonguscapture](https://github.com/automuteus/amonguscapture) by Denver Quane  
 [among-us-replay-mod](https://github.com/Smertig/among-us-replay-mod) by Smertig  
+[AmongUsMemory](https://github.com/shlifedev/AmongUsMemory) by shlifedev  
 
