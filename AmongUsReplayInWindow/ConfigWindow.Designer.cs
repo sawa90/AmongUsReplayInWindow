@@ -136,7 +136,7 @@ namespace AmongUsReplayInWindow
             this.mapAlphaUpdown.Size = new System.Drawing.Size(120, 23);
             this.mapAlphaUpdown.TabIndex = 9;
             this.mapAlphaUpdown.Value = new decimal(new int[] {
-            225,
+            230,
             0,
             0,
             0});

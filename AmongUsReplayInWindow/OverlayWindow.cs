@@ -75,7 +75,7 @@ namespace AmongUsReplayInWindow
                 this.configWindow = configWindow;
                 Init();
                 cancelTokenSource = tokenSource;
-                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), 240, ULW_COLORKEY | ULW_ALPHA);
+                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), 230, ULW_COLORKEY | ULW_ALPHA);
 
                 if (ownerProcess != null)
                 {
@@ -449,42 +449,42 @@ namespace AmongUsReplayInWindow
 
         #region Keyboard hook
         [DllImport("KeyboardHook32.dll", EntryPoint = "SetKeyboardHook")]
-        static extern int SetKeyboardHook32(int threadId, IntPtr winhandle, IntPtr trackhandle);
+        static extern bool SetKeyboardHook32(int threadId, IntPtr winhandle, IntPtr trackhandle);
 
         [DllImport("KeyboardHook32.dll", EntryPoint = "ResetKeyboardHook")]
-        static extern int ResetKeyboardHook32();
+        static extern bool ResetKeyboardHook32();
         [DllImport("KeyboardHook32.dll", EntryPoint = "SetKeyboardEnable")]
-        static extern int SetKeyboardEnable32(bool gPlaying, bool gEnable);
+        static extern void SetKeyboardEnable32(bool gPlaying, bool gEnable);
 
         [DllImport("KeyboardHook64.dll", EntryPoint = "SetKeyboardHook")]
-        static extern int SetKeyboardHook64(int threadId, IntPtr winhandle, IntPtr trackhandle);
+        static extern bool SetKeyboardHook64(int threadId, IntPtr winhandle, IntPtr trackhandle);
 
         [DllImport("KeyboardHook64.dll", EntryPoint = "ResetKeyboardHook")]
-        static extern int ResetKeyboardHook64();
+        static extern bool ResetKeyboardHook64();
         [DllImport("KeyboardHook64.dll", EntryPoint = "SetKeyboardEnable")]
-        static extern int SetKeyboardEnable64(bool gPlaying, bool gEnable);
+        static extern void SetKeyboardEnable64(bool gPlaying, bool gEnable);
 
 
-        static int SetKeyboardHook(int threadId, IntPtr winhandle, IntPtr trackhandle)
+        static bool SetKeyboardHook(int threadId, IntPtr winhandle, IntPtr trackhandle)
         {
             if (Environment.Is64BitProcess)
                 return SetKeyboardHook64(threadId, winhandle, trackhandle);
             else
                 return SetKeyboardHook32(threadId, winhandle, trackhandle);
         }
-        static int ResetKeyboardHook()
+        static bool ResetKeyboardHook()
         {
             if (Environment.Is64BitProcess)
                 return ResetKeyboardHook64();
             else
                 return ResetKeyboardHook32();
         }
-        static int SetKeyboardEnable(bool gPlaying, bool gEnable)
+        static void SetKeyboardEnable(bool gPlaying, bool gEnable)
         {
             if (Environment.Is64BitProcess)
-                return SetKeyboardEnable64(gPlaying, gEnable);
+                SetKeyboardEnable64(gPlaying, gEnable);
             else
-                return SetKeyboardEnable32(gPlaying, gEnable);
+                SetKeyboardEnable32(gPlaying, gEnable);
         }
 
 
@@ -522,6 +522,7 @@ namespace AmongUsReplayInWindow
                     overlayform.Close();
                     return;
                 }
+
                 POINT pos = new POINT();
                 NativeMethods.ClientToScreen(hOwnerWnd, out pos);
                 RECT rect = new RECT();
@@ -568,7 +569,6 @@ namespace AmongUsReplayInWindow
             return SetWindowPos(ownerHandle, IntPtr.Zero, 0, 0, w, h, SWP_NOMOVE | SWP_NOZORDER);
         }
         [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
         #endregion
     }

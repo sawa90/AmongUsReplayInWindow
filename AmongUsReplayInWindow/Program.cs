@@ -5,13 +5,13 @@ using System.Drawing;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using AmongUsCapture;
+using System.Runtime.InteropServices;
 
 namespace AmongUsReplayInWindow
 {
     static class Program
     {
-        [System.Runtime.InteropServices.DllImport("kernel32.dll")] // Ç±ÇÃçsÇí«â¡
+        [DllImport("kernel32.dll")] 
         private static extern bool AllocConsole();
 
         static public string exePath;

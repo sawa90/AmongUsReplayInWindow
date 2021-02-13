@@ -28,28 +28,32 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD dwReason, LPVOID lpReserved)
     return TRUE;
 }
 
-DLLAPI int SetKeyboardHook(INT32 threadId, HWND winhandle, HWND trackhandle)
+DLLAPI BOOL SetKeyboardHook(INT32 threadId, HWND winhandle, HWND trackhandle)
 {
     if (hMyHook != NULL) ResetKeyboardHook();
 
     hwnd = winhandle;
     trackhwnd = trackhandle;
     hMyHook = SetWindowsHookEx(WH_KEYBOARD, MyHookProc, hInst, threadId);
-    if (hMyHook == NULL)MessageBox(NULL, L"Failed to hook keyboard", L"Error", MB_OK);
-    return 0;
+    if (hMyHook == NULL) {
+        MessageBox(NULL, L"Failed to hook keyboard", L"Error", MB_OK); 
+        return false;
+    }
+    return true;
 }
 
-DLLAPI int ResetKeyboardHook()
+DLLAPI BOOL ResetKeyboardHook()
 {
     if (hMyHook != 0) {
         if (UnhookWindowsHookEx(hMyHook) != 0) {
             hMyHook = 0;
         }
+        else return false;
     }
-    return 0;
+    return true;
 }
 
-DLLAPI void SetKeyboardEnable(bool gPlaying, bool gEnable) {
+DLLAPI void SetKeyboardEnable(BOOL gPlaying, BOOL gEnable) {
     playing = gPlaying;
     enable = gEnable;
 }
