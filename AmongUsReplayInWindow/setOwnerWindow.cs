@@ -39,59 +39,14 @@ namespace AmongUsReplayInWindow.setOwnerWindow
     {
         public IntPtr hOwnerWnd;
         Form form;
-        Timer timer = null;
         public AdjustToOwnerWindow(Form form, IntPtr hOwnerWnd)
         {
             this.form = form;
             this.hOwnerWnd = hOwnerWnd;
-            var owner = new AdjustToOwnerWindow.OwnerWindow(hOwnerWnd);
-            form.Show(owner);
+            form.Show();
 
         }
-        ~AdjustToOwnerWindow()
-        {
-            timer?.Stop();
-            timer?.Dispose();
-        }
 
-        public void Start(int interval = 1000)
-        {
-            timer?.Stop();
-            timer?.Dispose();
-            timer = new Timer();
-            timer.Interval = interval;
-            timer.Tick += new EventHandler(resize);
-            timer.Enabled = true;
-        }
-        public void Stop()
-        {
-            if (timer != null)
-            {
-                timer?.Stop();
-                timer.Dispose();
-                timer = null;
-            }
-        }
-
-        public void StopResize(int interval = 1000)
-        {
-            timer?.Stop();
-            timer?.Dispose();
-            timer = new Timer();
-            timer.Interval = interval;
-            timer.Tick += new EventHandler(CheckOwnerClose);
-            timer.Enabled = true;
-        }
-
-        virtual public void CheckOwnerClose(object sender = null, EventArgs e = null)
-        {
-            if (!NativeMethods.IsWindow(hOwnerWnd))
-            {
-                ((Timer)sender).Enabled = false;
-                Stop();
-                form.Close();
-            }
-        }
 
         virtual public void resize(object sender = null, EventArgs e = null)
         {
@@ -99,7 +54,6 @@ namespace AmongUsReplayInWindow.setOwnerWindow
             if (!NativeMethods.IsWindow(hOwnerWnd))
             {
                 ((Timer)sender).Enabled = false;
-                Stop();
                 form.Close();
                 return;
             }
@@ -132,23 +86,6 @@ namespace AmongUsReplayInWindow.setOwnerWindow
 
             [DllImport("user32.dll")]
             public static extern bool IsWindow(IntPtr hWnd);
-        }
-
-        internal class OwnerWindow : IWin32Window
-        {
-            IntPtr handle;
-
-            public OwnerWindow(IntPtr hwnd)
-            {
-                handle = hwnd;
-            }
-            public IntPtr Handle
-            {
-                get
-                {
-                    return handle;
-                }
-            }
         }
 
     }

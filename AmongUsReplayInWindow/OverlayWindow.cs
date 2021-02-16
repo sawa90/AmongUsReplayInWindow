@@ -43,7 +43,7 @@ namespace AmongUsReplayInWindow
         public Size mapSize;
 
         public PlayerMoveArgs moveArg = null;
-        string filename;
+        string filename = null;
         bool Playing = true;
         int discussionTime = -1000;
 
@@ -82,14 +82,14 @@ namespace AmongUsReplayInWindow
                     ownerHandle = ownerProcess.MainWindowHandle;
                     ownerProcessId = ownerProcess.Id;
                     sizeChange = new AdjustForm1ToOwnerWindow(this, ownerHandle);
-                    sizeChange.Start(1000);
                     sizeChange.resize();
+                    SizeChangedHandler(null, null);
                     int processId;
                     int threadId = GetWindowThreadProcessId(ownerHandle, out processId);
                     if (threadId != 0)
                     {
                         Console.WriteLine("Set Keyboad hook...");
-                        SetKeyboardHook(threadId, Handle, trackwin.Handle);
+                        SetKeyboardHook(threadId, Handle, trackwin.Handle, ownerHandle);
                         SetKeyboardEnable(Playing, false);
                         return;
 
@@ -124,6 +124,8 @@ namespace AmongUsReplayInWindow
             drawTimer.Tick += new EventHandler(DrawTimerHandler);
             Visible = false;
             drawIcon = configWindow.drawIcon;
+            SizeChanged += SizeChangedHandler;
+            Move += MoveHandler;
         }
 
   
@@ -147,8 +149,9 @@ namespace AmongUsReplayInWindow
             removeReader();
             drawTimer?.Dispose();
             writer?.Close();
+            SizeChanged -= SizeChangedHandler;
+            Move -= MoveHandler;
             backgroundMap?.Dispose();
-            sizeChange?.Stop();
             trackwin?.Close();
 
             drawTimer = null;
@@ -343,21 +346,19 @@ namespace AmongUsReplayInWindow
         void StartDraw()
         {
             sizeChange?.resize();
-            sizeChange?.Start();
             using (var g = CreateGraphics())
                 backgroundMap?.Draw(g);
             drawTimer.Interval = configWindow.interval;
             drawTimer?.Start();
             SetKeyboardEnable(Playing, true);
             ShowWindow(Handle, SW_SHOWNA);
-
+            SetZorder();
         }
 
         void StopDraw()
         {
             drawTimer?.Stop();
             SetKeyboardEnable(Playing, false);
-            sizeChange?.StopResize();
             ShowWindow(Handle, SW_HIDE);
         }
         #endregion
@@ -460,28 +461,32 @@ namespace AmongUsReplayInWindow
 
         #region Keyboard hook
         [DllImport("KeyboardHook32.dll", EntryPoint = "SetKeyboardHook")]
-        static extern bool SetKeyboardHook32(int threadId, IntPtr winhandle, IntPtr trackhandle);
+        static extern bool SetKeyboardHook32(int threadId, IntPtr winhandle, IntPtr trackhandle, IntPtr OwnerWndhandle);
 
         [DllImport("KeyboardHook32.dll", EntryPoint = "ResetKeyboardHook")]
         static extern bool ResetKeyboardHook32();
         [DllImport("KeyboardHook32.dll", EntryPoint = "SetKeyboardEnable")]
         static extern void SetKeyboardEnable32(bool gPlaying, bool gEnable);
+        [DllImport("KeyboardHook32.dll", EntryPoint = "SetZorder")]
+        static extern void SetZorder32();
 
         [DllImport("KeyboardHook64.dll", EntryPoint = "SetKeyboardHook")]
-        static extern bool SetKeyboardHook64(int threadId, IntPtr winhandle, IntPtr trackhandle);
+        static extern bool SetKeyboardHook64(int threadId, IntPtr winhandle, IntPtr trackhandle, IntPtr OwnerWndhandle);
 
         [DllImport("KeyboardHook64.dll", EntryPoint = "ResetKeyboardHook")]
         static extern bool ResetKeyboardHook64();
         [DllImport("KeyboardHook64.dll", EntryPoint = "SetKeyboardEnable")]
         static extern void SetKeyboardEnable64(bool gPlaying, bool gEnable);
+        [DllImport("KeyboardHook64.dll", EntryPoint = "SetZorder")]
+        static extern void SetZorder64();
 
 
-        static bool SetKeyboardHook(int threadId, IntPtr winhandle, IntPtr trackhandle)
+        static bool SetKeyboardHook(int threadId, IntPtr winhandle, IntPtr trackhandle, IntPtr OwnerWndhandle)
         {
             if (Environment.Is64BitProcess)
-                return SetKeyboardHook64(threadId, winhandle, trackhandle);
+                return SetKeyboardHook64(threadId, winhandle, trackhandle, OwnerWndhandle);
             else
-                return SetKeyboardHook32(threadId, winhandle, trackhandle);
+                return SetKeyboardHook32(threadId, winhandle, trackhandle, OwnerWndhandle);
         }
         static bool ResetKeyboardHook()
         {
@@ -497,7 +502,14 @@ namespace AmongUsReplayInWindow
             else
                 SetKeyboardEnable32(gPlaying, gEnable);
         }
-
+       
+        static void SetZorder()
+        {
+            if (Environment.Is64BitProcess)
+                SetZorder64();
+            else
+                SetZorder32();
+        }
 
 
         #endregion
@@ -512,7 +524,31 @@ namespace AmongUsReplayInWindow
         const int SW_HIDE = 0;
         const int SW_SHOWNA = 8;
         #endregion
+        public void SizeChangedHandler(object sender, EventArgs ev)
+        {
+            float h = Height;
+            float w = Width;
+            float hw = Map.Maps[mapId].hw;
+            if (h / w > hw)
+            {
+                h = w * hw;
+                mapLocation = new Point(0, (int)((Height - h) * 0.5));
+            }
+            else
+            {
+                w = h / hw;
+                mapLocation = new Point((int)((Width - w) * 0.5), 0);
+            }
+            mapSize = new Size((int)w, (int)h);
+            backgroundMap.ChangeSize(Size, mapLocation, mapSize);
+            trackwin.Size = new Size(Width, 30);
+            trackwin.Location = new Point(Location.X, Location.Y + Height - 30);
+        }
 
+        public void MoveHandler(object sender, EventArgs ev)
+        {
+            trackwin.Location = new Point(Location.X, Location.Y + Height - 30);
+        }
 
         class AdjustForm1ToOwnerWindow : AdjustToOwnerWindow
         {
@@ -529,7 +565,6 @@ namespace AmongUsReplayInWindow
                 {
                     if (sender != null)
                         ((System.Windows.Forms.Timer)sender).Enabled = false;
-                    Stop();
                     overlayform.Close();
                     return;
                 }
@@ -543,29 +578,12 @@ namespace AmongUsReplayInWindow
                 if (formLocation.X != pos.X || formLocation.Y != pos.Y)
                 {
                     overlayform.Location = new Point(pos.X, pos.Y);
-                    overlayform.trackwin.Location = new Point(pos.X, pos.Y + rect.bottom - 30);
                 }
 
                 Size formSize = overlayform.Size;
                 if (rect.right != formSize.Width || rect.bottom != formSize.Height)
                 {
-                    float w = rect.right;
-                    float h = rect.bottom;
-                    float hw = Map.Maps[overlayform.mapId].hw;
-                    if (h / w > hw)
-                    {
-                        h = w * hw;
-                        overlayform.mapLocation = new Point(0, (int)((rect.bottom - h) * 0.5));
-                    }
-                    else
-                    {
-                        w = h / hw;
-                        overlayform.mapLocation = new Point((int)((rect.right - w) * 0.5), 0);
-                    }
-                    overlayform.mapSize = new Size((int)w, (int)h);
                     overlayform.Size = new Size(rect.right, rect.bottom);
-                    overlayform.backgroundMap.ChangeSize(overlayform.Size, overlayform.mapLocation, overlayform.mapSize);
-                    overlayform.trackwin.Size = new Size(rect.right, 30);
                 }
             }
 

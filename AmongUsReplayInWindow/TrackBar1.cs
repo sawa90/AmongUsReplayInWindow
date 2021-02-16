@@ -15,12 +15,12 @@ namespace AmongUsReplayInWindow
             InitializeComponent();
             NativeMethods.SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), 0, ULW_COLORKEY);
             this.OwnerForm = OwnerForm;
-            var owner = new AdjustToOwnerWindow.OwnerWindow(OwnerForm.Handle);
-            this.Show(owner);
+            this.Show();
             this.Size = new Size(0, 0);
             step = OwnerForm.configWindow.step;
             KeyEventHandler = new KeyEventHandler(trackBar_KeyDown);
             trackBar0.KeyDown += KeyEventHandler;
+            Visible = false;
         }
 
         ~TrackBarWin()
