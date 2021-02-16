@@ -132,7 +132,18 @@ namespace AmongUsReplayInWindow
         private void overlay_FormClosing(Object sender, FormClosingEventArgs ev)
         {
             ResetKeyboardHook();
-            cancelTokenSource?.Cancel();
+
+            try
+            {
+                if (cancelTokenSource != null && !cancelTokenSource.IsCancellationRequested)
+                {
+                    GameMemReader.getInstance().PlayerMove -= PlayerPosHandler;
+                    GameMemReader.getInstance().GameStateChanged -= GameStateChangedEventHandler;
+                    GameMemReader.getInstance().GameStart -= GameStartHandler;
+                }
+                cancelTokenSource?.Cancel();
+            }
+            catch (ObjectDisposedException e) { }
             removeReader();
             drawTimer?.Dispose();
             writer?.Close();

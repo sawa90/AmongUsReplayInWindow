@@ -95,6 +95,7 @@ namespace AmongUsReplayInWindow
 
         static public void DrawMove_Icon(PaintEventArgs paint, PlayerMoveArgs move, List<int> deadOrderList, Map.MapScale map, IconDict icons, Point mapLocation, Size mapSize)
         {
+            if (mapSize.Width == 0 || mapSize.Height == 0) return;
             paint.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             string fontName = "Times New Roman";
             if (move == null) return;
@@ -301,6 +302,7 @@ namespace AmongUsReplayInWindow
 
         static public void DrawMove_Simple(PaintEventArgs paint, PlayerMoveArgs move, List<int> deadOrderList, Map.MapScale map, Point mapLocation, Size mapSize)
         {
+            if (mapSize.Width == 0 || mapSize.Height == 0) return;
             paint.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
             string fontName = "Times New Roman";
             if (move == null) return;

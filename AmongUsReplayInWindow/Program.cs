@@ -13,6 +13,8 @@ namespace AmongUsReplayInWindow
     {
         [DllImport("kernel32.dll")] 
         private static extern bool AllocConsole();
+        [DllImport("kernel32.dll")]
+        private static extern bool FreeConsole();
 
         static public string exePath;
         static public string exeFolder;
@@ -41,6 +43,7 @@ namespace AmongUsReplayInWindow
             }
             //Console.WriteLine("\n\nPress Key to exit");
             //Console.ReadKey();
+            //FreeConsole();
 
         }
 

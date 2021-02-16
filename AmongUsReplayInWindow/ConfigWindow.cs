@@ -37,11 +37,11 @@ namespace AmongUsReplayInWindow
             createWindowTask?.Wait();
             if (gameReaderTask!=null && !gameReaderTask.IsCompleted)
             {
-                tokenSource?.Cancel();
+                try { tokenSource?.Cancel(); } catch (ObjectDisposedException e) { }
                 gameReaderTask?.Wait(10000);
             }
             iconDict?.Dispose();
-            tokenSource?.Dispose();
+            try { tokenSource?.Dispose(); } catch (ObjectDisposedException e) { }
         }
 
         private void openFileDialogButton_Click(object sender, EventArgs ev)
@@ -77,14 +77,14 @@ namespace AmongUsReplayInWindow
             if (!OverlayWindow.open)
             {
                 OverlayWindow.open = true;
-                tokenSource?.Cancel();  
+                try { tokenSource?.Cancel(); } catch (ObjectDisposedException e) { }
                 try { gameReaderTask?.Wait(10000); }
                 catch(TimeoutException time_e)
                 {
                     Console.WriteLine(time_e.Message);
                     Console.WriteLine(time_e.StackTrace);
                     OverlayWindow.open = false;
-                    tokenSource?.Dispose();
+                    try { tokenSource?.Dispose(); } catch (ObjectDisposedException e) { }
                     tokenSource = null;
                     return;
                 }
@@ -130,7 +130,7 @@ namespace AmongUsReplayInWindow
                             }
                         }).ContinueWith(t =>
                         {
-                            tokenSource?.Dispose();
+                            try { tokenSource?.Dispose(); } catch (ObjectDisposedException e) { }
                             tokenSource = null;
                             Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Get Among Us Window");
                         });
