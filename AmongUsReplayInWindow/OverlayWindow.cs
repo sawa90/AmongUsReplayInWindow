@@ -460,56 +460,15 @@ namespace AmongUsReplayInWindow
         #endregion
 
         #region Keyboard hook
-        [DllImport("KeyboardHook32.dll", EntryPoint = "SetKeyboardHook")]
-        static extern bool SetKeyboardHook32(int threadId, IntPtr winhandle, IntPtr trackhandle, IntPtr OwnerWndhandle);
+        [DllImport("KeyboardHook.dll")]
+        static extern bool SetKeyboardHook(int threadId, IntPtr winhandle, IntPtr trackhandle, IntPtr OwnerWndhandle);
 
-        [DllImport("KeyboardHook32.dll", EntryPoint = "ResetKeyboardHook")]
-        static extern bool ResetKeyboardHook32();
-        [DllImport("KeyboardHook32.dll", EntryPoint = "SetKeyboardEnable")]
-        static extern void SetKeyboardEnable32(bool gPlaying, bool gEnable);
-        [DllImport("KeyboardHook32.dll", EntryPoint = "SetZorder")]
-        static extern void SetZorder32();
-
-        [DllImport("KeyboardHook64.dll", EntryPoint = "SetKeyboardHook")]
-        static extern bool SetKeyboardHook64(int threadId, IntPtr winhandle, IntPtr trackhandle, IntPtr OwnerWndhandle);
-
-        [DllImport("KeyboardHook64.dll", EntryPoint = "ResetKeyboardHook")]
-        static extern bool ResetKeyboardHook64();
-        [DllImport("KeyboardHook64.dll", EntryPoint = "SetKeyboardEnable")]
-        static extern void SetKeyboardEnable64(bool gPlaying, bool gEnable);
-        [DllImport("KeyboardHook64.dll", EntryPoint = "SetZorder")]
-        static extern void SetZorder64();
-
-
-        static bool SetKeyboardHook(int threadId, IntPtr winhandle, IntPtr trackhandle, IntPtr OwnerWndhandle)
-        {
-            if (Environment.Is64BitProcess)
-                return SetKeyboardHook64(threadId, winhandle, trackhandle, OwnerWndhandle);
-            else
-                return SetKeyboardHook32(threadId, winhandle, trackhandle, OwnerWndhandle);
-        }
-        static bool ResetKeyboardHook()
-        {
-            if (Environment.Is64BitProcess)
-                return ResetKeyboardHook64();
-            else
-                return ResetKeyboardHook32();
-        }
-        static void SetKeyboardEnable(bool gPlaying, bool gEnable)
-        {
-            if (Environment.Is64BitProcess)
-                SetKeyboardEnable64(gPlaying, gEnable);
-            else
-                SetKeyboardEnable32(gPlaying, gEnable);
-        }
-       
-        static void SetZorder()
-        {
-            if (Environment.Is64BitProcess)
-                SetZorder64();
-            else
-                SetZorder32();
-        }
+        [DllImport("KeyboardHook.dll")]
+        static extern bool ResetKeyboardHook();
+        [DllImport("KeyboardHook.dll")]
+        static extern void SetKeyboardEnable(bool gPlaying, bool gEnable);
+        [DllImport("KeyboardHook.dll")]
+        static extern void SetZorder();
 
 
         #endregion
