@@ -27,6 +27,7 @@ namespace AmongUsReplayInWindow
         internal DrawMove.IconDict iconDict;
         internal Configure config = null;
         string configPath;
+        bool closed = false;
 
         public ConfigWindow()
         {
@@ -50,6 +51,7 @@ namespace AmongUsReplayInWindow
 
         private void ConfigWindow_FormClosed(object sender, FormClosedEventArgs ev)
         {
+            closed = true;
             if (config != null)
             {
                 try
@@ -160,7 +162,12 @@ namespace AmongUsReplayInWindow
                         {
                             try { tokenSource?.Dispose(); } catch (ObjectDisposedException e) { }
                             tokenSource = null;
-                            Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Get Among Us Window");
+                            try
+                            {
+                                if (!closed)
+                                    Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Get Among Us Window");
+                            }
+                            catch (ObjectDisposedException e) { }
                         });
                     }
                 });
