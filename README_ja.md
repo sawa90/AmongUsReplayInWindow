@@ -1,5 +1,5 @@
 # AmongUsReplayInWindow
-![screenshot](https://github.com/sawa90/AmongUsReplayInWindow/blob/images/scrnshot2.png)
+![screenshot](https://github.com/sawa90/AmongUsReplayInWindow/blob/images/scrnshot3.png)
 
 Among Usに簡易的なリプレイ機能を追加するツールです。リプレイはゲーム終了後ゲームウィンドウ内に表示され、コントロールキーで開閉することができます。
 リプレイでは、全員の居場所、誰がインポスターか、いつ誰が殺したか、タスクの進行状況、ベント、サボタージュ（ドアの開閉除く）を見ることができます。  
@@ -22,11 +22,12 @@ Among Usに簡易的なリプレイ機能を追加するツールです。リプ
 - 「誰が殺したか」は死体を示すバツ印の縁取りの色で示されますが、単に殺害時一番近くにいたインポスターを示すだけなので間違っている可能性があります。
 - 左上の時間表記の上に現在の状況（タスク中、会議中、サボタージュ）が表示され、ゲーム終了時には「ImpostorsWinByVote」のように勝者と勝因が表示されますが、切断で決着がついた際などは誤って表示されることがあります。
 - マップ画像などは差し替えが可能です。map,iconフォルダ内に同名で画像を保存してください。マップ画像はマップの位置と画像の縦横比を元のファイルに合わせてください。
-- このツールは[amonguscapture](https://github.com/automuteus/amonguscapture)を基にしたものであり、メモリの読み取りとキーボードフック、元ウィンドウに重ねた半透明のウィンドウを使って実現させています。ゲーム自体の改変は行いませんが、ウィンドウの仕様上ツールが固まった場合Among Us自体への入力も効かなくなります。その場合はツールを強制終了していただければAmong Usは正常に動作するようになります。
+- このツールは[amonguscapture](https://github.com/automuteus/amonguscapture)を基にしたものであり、メモリの読み取りとキーボード・ウィンドウプロシージャフック、元ウィンドウに重ねた半透明のウィンドウを使って実現させています。ゲーム自体の改変やメモリの書き換えは行いません。
 - うまく動かない場合はエラー報告をしてくださると大変助かります。[latest release](https://github.com/sawa90/AmongUsReplayInWindow/releases/latest)から_withConsoleのついたバージョンをダウンロードしてコンソールウィンドウの出力を貼っていただけるとありがたいです。出力にはエラーと表示されない場合でも何かありましたらお気軽にどうぞ。
 
 # License
-MIT  
+ソースコードはMITライセンスです。  
+画像ファイルはAmong Usの規約に従って取り扱ってください。  
 
 # References
 [amonguscapture](https://github.com/automuteus/amonguscapture) by Denver Quane  

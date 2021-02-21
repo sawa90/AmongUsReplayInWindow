@@ -1,5 +1,5 @@
 # AmongUsReplayInWindow
-![screenshot](https://github.com/sawa90/AmongUsReplayInWindow/blob/images/scrnshot2.png)
+![screenshot](https://github.com/sawa90/AmongUsReplayInWindow/blob/images/scrnshot3.png)
 
 This project add a simple replay feature to Among Us. The replay will appear in the game window when you return to the lobby after the game.  
 In the replay, you can see everyone's location, who killed them and when, the progress of the task, if they are in the vent, and sabotage.  
@@ -25,7 +25,7 @@ The replays will be saved in "replay" folder under the folder containing the exe
 - If it doesn't work, please report an error. I would appreciate it if you could download the version with "withConsole" from [latest release](https://github.com/sawa90/AmongUsReplayInWindow/releases/latest) and post the output of the console window. If you don't see any errors in the output, please feel free to let me know.
 
 # License
-MIT  
+The source code is under the MIT license, but the image files are not, and must be handled according to the AMONG US policy.
 
 # References
 [amonguscapture](https://github.com/automuteus/amonguscapture) by Denver Quane  
