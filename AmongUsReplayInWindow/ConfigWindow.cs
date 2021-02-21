@@ -11,6 +11,8 @@ using System.Threading;
 using AmongUsCapture;
 using AmongUsReplayInWindow.setOwnerWindow;
 using System.Diagnostics;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace AmongUsReplayInWindow
 {
@@ -23,25 +25,51 @@ namespace AmongUsReplayInWindow
         delegate void void_stringDelegate(string str);
         delegate void void_ProcessDelegate(Process process);
         internal DrawMove.IconDict iconDict;
+        internal Configure config = null;
+        string configPath;
 
         public ConfigWindow()
         {
+            configPath = Program.exeFolder + "\\config.json";
+            try
+            {
+                if (File.Exists(configPath))
+                    config = JsonConvert.DeserializeObject<Configure>(File.ReadAllText(configPath));
+            } catch(Exception e) { }
+            if (config == null) config = new Configure();
             InitializeComponent();
             iconDict = new DrawMove.IconDict();
-            RenderingBox.SelectedIndex = 0;
-        }
+            setConfig();
 
+        }
 
         ~ConfigWindow()
         {
+            ConfigWindow_FormClosed(null, null);
+        }
+
+        private void ConfigWindow_FormClosed(object sender, FormClosedEventArgs ev)
+        {
+            if (config != null)
+            {
+                try
+                {
+                    using (StreamWriter sw = File.CreateText(configPath))
+                        sw.Write(JsonConvert.SerializeObject(config));
+                } catch(Exception e) { }
+            }
             createWindowTask?.Wait();
-            if (gameReaderTask!=null && !gameReaderTask.IsCompleted)
+            if (gameReaderTask != null && !gameReaderTask.IsCompleted)
             {
                 try { tokenSource?.Cancel(); } catch (ObjectDisposedException e) { }
                 gameReaderTask?.Wait(10000);
             }
             iconDict?.Dispose();
             try { tokenSource?.Dispose(); } catch (ObjectDisposedException e) { }
+
+            createWindowTask = null;
+            iconDict = null;
+            tokenSource = null;
         }
 
         private void openFileDialogButton_Click(object sender, EventArgs ev)
@@ -145,15 +173,17 @@ namespace AmongUsReplayInWindow
             GetAmongUsWindow.Text = text;
         }
 
-        internal int speed = 0;
+        #region config
+        internal bool drawIcon = true;
         internal int interval = 50;
         internal int step = 1;
         private void replaySpeedTrackBar_Scroll(object sender, EventArgs ev)
         {
-            speed = replaySpeedTrackBar.Value;
-            interval = 50 + Math.Max(0, -speed) * 25;
-            step = 1 + Math.Max(0, speed);
-            if (speed == replaySpeedTrackBar.Minimum) step = 0;
+            if (sender != null)
+                config.speed = replaySpeedTrackBar.Value;
+            interval = 50 + Math.Max(0, -config.speed) * 25;
+            step = 1 + Math.Max(0, config.speed);
+            if (config.speed == replaySpeedTrackBar.Minimum) step = 0;
             if (overlayForm?.drawTimer != null)
             {
                 overlayForm.drawTimer.Interval = interval;
@@ -173,13 +203,12 @@ namespace AmongUsReplayInWindow
             }
         }
 
-        #region Rendering
-        internal Rendering rendering = Rendering.Icon;
-        internal bool drawIcon = true;
+      
         private void RenderingBox_SelectedIndexChanged(object sender, EventArgs ev)
         {
-            rendering = (Rendering)RenderingBox.SelectedIndex;
-            drawIcon = rendering == Rendering.Icon;
+            if (sender != null)
+                config.rendering = (Rendering)RenderingBox.SelectedIndex;
+            drawIcon = config.rendering == Rendering.Icon;
             if (overlayForm != null)
             {
                 overlayForm.drawIcon = drawIcon;
@@ -196,12 +225,41 @@ namespace AmongUsReplayInWindow
             Icon,
             Simple
         }
-        #endregion
-
+        
 
         private void mapAlphaUpdown_ValueChanged(object sender, EventArgs e)
         {
-            overlayForm?.setAlpha((int)mapAlphaUpdown.Value);
+            if (sender != null)
+                config.mapAlpha = (int)mapAlphaUpdown.Value;
+            overlayForm?.setAlpha(config.mapAlpha);
         }
+
+        [JsonObject]
+        public class Configure
+        {
+            [DefaultValue(0)]
+            public int speed = 0;
+
+            [DefaultValue(230)]
+            public int mapAlpha = 230;
+
+            [DefaultValue(Rendering.Icon)]
+            public Rendering rendering = Rendering.Icon;
+        }
+
+        void setConfig()
+        {
+            replaySpeedTrackBar.Value = config.speed;
+            mapAlphaUpdown.Value = config.mapAlpha;
+            RenderingBox.SelectedIndex = (int)config.rendering;
+
+            replaySpeedTrackBar_Scroll(null, null);
+            mapAlphaUpdown_ValueChanged(null, null);
+            RenderingBox_SelectedIndexChanged(null, null);
+
+        }
+        #endregion
+
+       
     }
 }

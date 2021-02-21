@@ -125,6 +125,10 @@ DLLAPI LRESULT CALLBACK MyWndProc(int nCode, WPARAM wp, LPARAM lp) {
         if (pcwp->message == WM_SIZE) {
             int w = pcwp->lParam & 0xFFFF;
             int h = (pcwp->lParam >> 16) & 0xFFFF;
+            if (pcwp->wParam == SIZE_MINIMIZED) {
+                w = 0;
+                h = 0;
+            }
             bool r1 = SetWindowPos(hwnd, 0, 0, 0, w, h, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
         }else if (pcwp->message == WM_MOVE) {
             int x = pcwp->lParam & 0xFFFF;

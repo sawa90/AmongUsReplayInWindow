@@ -849,7 +849,7 @@ namespace AmongUsCapture
             var allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
             var playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
 
-            while (playerCount > 10 && repeatcount < 100)
+            while (playerCount > 10 && repeatcount < 50)
             {
                 Console.WriteLine($"Wrong data : Player count is {playerCount}. | Retrying in 100ms");
                 Thread.Sleep(100);
@@ -857,7 +857,7 @@ namespace AmongUsCapture
                 playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);     
                 repeatcount++;
             }
-            if (repeatcount > 100)
+            if (repeatcount > 50)
             {
                 Console.WriteLine($"Wrong data : Player count is {playerCount}. | Continue");
                 playerCount = 10;
@@ -920,7 +920,7 @@ namespace AmongUsCapture
                 if (!dataCompleted)
                 {
                     repeatcount++;
-                    if (repeatcount > 100) break;
+                    if (repeatcount > 50) break;
                     Console.WriteLine($"Wrong data : Empty player color | Retrying in 100ms");
                     Thread.Sleep(100);
                     allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
@@ -930,7 +930,7 @@ namespace AmongUsCapture
                 }
             }
 
-            if (repeatcount > 100) Console.WriteLine($"Wrong data : Empty player color | Continue");
+            if (repeatcount > 50) Console.WriteLine($"Wrong data : Empty player color | Continue");
 
             var s = "";
             for (int i = 0; i < playerCount; i++)

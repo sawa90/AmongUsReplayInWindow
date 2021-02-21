@@ -355,6 +355,7 @@ namespace AmongUsReplayInWindow
 
         private void Draw(object sender, PaintEventArgs paint)
         {
+            if (Width <= 0 || Height <= 0) return;
             backgroundMap?.Draw(paint.Graphics);
             lock (lockObject)
             {

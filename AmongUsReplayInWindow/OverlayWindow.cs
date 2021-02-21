@@ -75,7 +75,7 @@ namespace AmongUsReplayInWindow
                 this.configWindow = configWindow;
                 Init();
                 cancelTokenSource = tokenSource;
-                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), 230, ULW_COLORKEY | ULW_ALPHA);
+                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), (byte)configWindow.config.mapAlpha, ULW_COLORKEY | ULW_ALPHA);
 
                 if (ownerProcess != null)
                 {
@@ -398,12 +398,26 @@ namespace AmongUsReplayInWindow
         {
             if (mapId == newMapId) return;
             mapId = newMapId;
-            sizeChange.resize();
+            float h = Height;
+            float w = Width;
+            float hw = Map.Maps[mapId].hw;
+            if (h / w > hw)
+            {
+                h = w * hw;
+                mapLocation = new Point(0, (int)((Height - h) * 0.5));
+            }
+            else
+            {
+                w = h / hw;
+                mapLocation = new Point((int)((Width - w) * 0.5), 0);
+            }
+            mapSize = new Size((int)w, (int)h);
             backgroundMap.ChangeMapId(mapId, ClientSize, mapLocation, mapSize);
             Invalidate();
         }
         private void Draw(object sender, PaintEventArgs paint)
         {
+            if (Width <= 0 || Height <= 0) return;
             if (!Playing)
                 backgroundMap?.Draw(paint.Graphics);
             lock (lockObject)

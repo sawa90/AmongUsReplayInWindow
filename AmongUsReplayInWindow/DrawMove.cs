@@ -127,7 +127,7 @@ namespace AmongUsReplayInWindow
 
 
 
-            using (var fnt = new Font(fontName, circleSize * 0.8f))
+            using (var fnt = new Font(fontName, circleSize * 0.8f, FontStyle.Bold))
             {
                 //set dead order
                 for (int i = 0; i < move.PlayerNum; i++)
@@ -153,7 +153,7 @@ namespace AmongUsReplayInWindow
                         {
                             float icon_w = iconSize * icon.Width / icon.Height;
                             paint.Graphics.DrawImage(icon, pointX - icon_w, pointY - iconSize, icon_w * 2, iconSize * 2);
-                            paint.Graphics.DrawString(move.PlayerNames[i], fnt, Brushes.Black, pointX - circleSize * 1.5f, pointY - circleSize * 2.0f);
+                            paint.Graphics.DrawString(move.PlayerNames[i], fnt, Brushes.Black, pointX - circleSize * 1.5f, pointY - circleSize * 1.8f);
                         }
                         else
                         {
@@ -188,7 +188,7 @@ namespace AmongUsReplayInWindow
                                 float icon_w = iconSize * icon.Width / icon.Height;
                                 paint.Graphics.DrawImage(icons.vent, pointX - icon_w, pointY - iconSize, icon_w * 2, iconSize * 2);
                                 paint.Graphics.DrawImage(icon, pointX - icon_w * 0.8f, pointY - iconSize * 0.6f, icon_w * 1.6f, iconSize * 1.6f);
-                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 2.0f);
+                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 2.0f);
                             }
                             else
                             {
@@ -202,7 +202,7 @@ namespace AmongUsReplayInWindow
                                 };
                                 paint.Graphics.FillPolygon(brush, points);
                                 paint.Graphics.DrawPolygon(pen, points);
-                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
+                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
                             }
                         }
                         else
@@ -212,13 +212,13 @@ namespace AmongUsReplayInWindow
                                 float icon_w = iconSize * icon.Width / icon.Height;
                                 paint.Graphics.DrawImage(icons.impostor, pointX - icon_w, pointY - iconSize, icon_w * 2, iconSize * 2);
                                 paint.Graphics.DrawImage(icon, pointX - icon_w, pointY - iconSize, icon_w * 2, iconSize * 2);
-                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 2.0f);
+                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 1.8f);
                             }
                             else
                             {
                                 paint.Graphics.FillEllipse(brush, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
                                 paint.Graphics.DrawEllipse(pen, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
-                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
+                                paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
                             }
                         }
 
@@ -279,7 +279,7 @@ namespace AmongUsReplayInWindow
                             }
 
                             if (move.PlayerIsDead[i] > 0)
-                                paint.Graphics.DrawString(move.PlayerNames[i], fnt, move.IsImpostor[i] ? Brushes.Red : Brushes.Black, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
+                                paint.Graphics.DrawString(move.PlayerNames[i], fnt, move.IsImpostor[i] ? Brushes.Red : Brushes.Black, pointX - circleSize * 1.5f, pointY - circleSize * 1.8f);
                             else if (move.IsImpostor[i])
                                 paint.Graphics.DrawString("imp", fnt, (move.PlayerColors[i].ToArgb() == Color.Red.ToArgb() || move.PlayerColors[i].ToArgb() == Color.HotPink.ToArgb()) ? Brushes.Black : Brushes.Red, pointX - circleSize * 1.0f, pointY - circleSize * 0.7f);
                             if (move.PlayerIsDead[i] == 11)
@@ -333,7 +333,7 @@ namespace AmongUsReplayInWindow
 
 
 
-            using (var fnt = new Font(fontName, circleSize * 0.8f))
+            using (var fnt = new Font(fontName, circleSize * 0.8f, FontStyle.Bold))
             {
                 //set dead order
                 for (int i = 0; i < move.PlayerNum; i++)
@@ -428,6 +428,7 @@ namespace AmongUsReplayInWindow
 
 
                         paint.Graphics.FillEllipse(brush, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
+
                         paint.Graphics.DrawString(move.PlayerNames[i], fnt, Brushes.Black, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
 
                         paint.Graphics.FillRectangle(Brushes.Gray, pointX - circleSize, pointY + circleSize * 0.6f, circleSize * 2, circleSize * 0.3f);
@@ -470,7 +471,7 @@ namespace AmongUsReplayInWindow
                             paint.Graphics.DrawEllipse(pen, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
 
                         }
-                        paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.DarkRed, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
+                        paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
 
                     }
                 }

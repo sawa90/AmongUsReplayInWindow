@@ -143,13 +143,20 @@ namespace AmongUsReplayInWindow
 
             public void ChangeSize(Size formClientSize, Point location, Size size)
             {
+                if (size.Width <= 0 || size.Width <= 0) return;
                 DisposeBitmap();
                 w = formClientSize.Width;
                 h = formClientSize.Height;
                 bitmap = new Bitmap(w, h);
                 Graphics mapGraphics = Graphics.FromImage(bitmap);
+                var smoothing = mapGraphics.SmoothingMode;
+                var interpolation = mapGraphics.InterpolationMode;
+                mapGraphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+                mapGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                 mapGraphics.FillRectangle(Brushes.Snow, 0, 0, w, h);
                 mapGraphics.DrawImage(MapImage, location.X, location.Y, size.Width, size.Height);
+                mapGraphics.SmoothingMode = smoothing;
+                mapGraphics.InterpolationMode = interpolation;
                 mapGraphics.Dispose();
 
                 mapGDI = bitmap.GetHbitmap();
