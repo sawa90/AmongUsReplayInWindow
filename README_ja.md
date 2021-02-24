@@ -5,7 +5,7 @@ Among Usに簡易的なリプレイ機能を追加するツールです。リプ
 リプレイでは、全員の居場所、誰がインポスターか、いつ誰が殺したか、タスクの進行状況、ベント、サボタージュ（ドアの開閉除く）を見ることができます。  
 
 # Requirement
-[.NET 5 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/5.0)  
+[.NET 5 Desktop Runtime x86](https://dotnet.microsoft.com/download/dotnet/thank-you/runtime-desktop-5.0.3-windows-x86-installer)  
 [Visual Studio 2015 Visual C++ 再頒布可能パッケージ](https://www.microsoft.com/ja-jp/download/details.aspx?id=48145)  
 # Usage
 - [latest release](https://github.com/sawa90/AmongUsReplayInWindow/releases/latest)からzipファイルをダウンロードして解凍してください。
