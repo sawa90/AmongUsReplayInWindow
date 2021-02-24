@@ -5,7 +5,7 @@ This project add a simple replay feature to Among Us. The replay will appear in 
 In the replay, you can see everyone's location, who killed them and when, the progress of the task, if they are in the vent, and sabotage.  
 
 # Requirement
-[.NET 5 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/5.0)  
+[.NET 5 Desktop Runtime x86](https://dotnet.microsoft.com/download/dotnet/thank-you/runtime-desktop-5.0.3-windows-x86-installer)  
 [Visual C++ Redistributable for Visual Studio 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48145)  
 # Usage
 - Download zip from [latest release](https://github.com/sawa90/AmongUsReplayInWindow/releases/latest) page and unpack it
