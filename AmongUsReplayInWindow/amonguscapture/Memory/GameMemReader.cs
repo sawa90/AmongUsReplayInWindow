@@ -66,7 +66,7 @@ namespace AmongUsCapture
             return instance;
         }
 
-        public OffsetManager offMan = new OffsetManager("https://raw.githubusercontent.com/denverquane/amonguscapture/master/Offsets.json");
+        public OffsetManager offMan = new OffsetManager();
         public GameOffsets CurrentOffsets;
         public string GameHash = "";
 
@@ -132,9 +132,12 @@ namespace AmongUsCapture
         GameOverReason gameOverReason = GameOverReason.Unknown;
         GameState exileCausesEndState = GameState.Unknown;
 
-        PlayMap playMap;
+        PlayMap playMap = PlayMap.Skeld;
         public string filename = null;
         int myId = 0;
+
+        Door[] doors;
+        UInt32 doorsUint = 0;
 
         public GameMemReader()
         {
@@ -161,6 +164,7 @@ namespace AmongUsCapture
             DeadLogList.Clear();
             PlayerName2IDdict.Clear();
             gameOverReason = GameOverReason.Unknown;
+            doorsUint = 0;
         }
 
 
@@ -672,7 +676,21 @@ namespace AmongUsCapture
                     }
 
 
-
+                    if (CurrentOffsets.ShipStatusPtr != null)
+                    {
+                        var shipStatus = ProcessMemory.getInstance().Read<ShipStatus>(GameAssemblyPtr, CurrentOffsets.ShipStatusPtr);
+                        var doorsPtr = (IntPtr)(shipStatus.AllDoors + 0x10);
+                        int doorNum = ProcessMemory.getInstance().Read<Int32>((IntPtr)shipStatus.AllDoors, 0xC);
+                        if (doors==null || doors.Length != doorNum) doors = new Door[doorNum];
+                        for(int i = 0; i < doorNum; i++)
+                        {
+                            doors[i] = ProcessMemory.getInstance().Read<Door>(doorsPtr, 4*i, 0);
+                        }
+                        if (playMap == PlayMap.Skeld)
+                            doorsUint = Doors.skeld.Doors2Uint(doors);
+                        else if (playMap == PlayMap.Polus)
+                            doorsUint = Doors.polus.Doors2Uint(doors);
+                    }
 
 
                     #region amonguscapture
@@ -816,7 +834,8 @@ namespace AmongUsCapture
                         InVent = InVent,
                         TaskProgress = TaskProgress,
                         Sabotage = Sabotage,
-                        myId = myId
+                        myId = myId,
+                        doorsUint = doorsUint
                     };
                     int frame_now = (int)Math.Round(gametimeMili / 100.0);
                     if (frame_now - frame < 5)
@@ -955,7 +974,8 @@ namespace AmongUsCapture
                 InVent = InVent,
                 TaskProgress = TaskProgress,
                 Sabotage = Sabotage,
-                myId = myId
+                myId = myId,
+                doorsUint = doorsUint
             };
 
 
@@ -1120,6 +1140,8 @@ namespace AmongUsCapture
         public TaskInfo Sabotage;
 
         public int myId;
+
+        public UInt32 doorsUint;
 
     }
    

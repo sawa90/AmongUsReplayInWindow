@@ -16,11 +16,10 @@ namespace AUOffsetManager
         public string indexURL;
         private string StorageLocation = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsCapture\\index.json");
         private string StorageLocationCache = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsCapture\\indexCache.json");
-
+        string hash;
         public Task indexTask;
-        public OffsetManager(string indexURL = "")
+        public OffsetManager()
         {
-            this.indexURL = indexURL;
             if (File.Exists(StorageLocation))
             {
                  LocalOffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(File.ReadAllText(StorageLocation));
@@ -29,8 +28,16 @@ namespace AUOffsetManager
                      LocalOffsetIndex = new Dictionary<string, GameOffsets>();
                  }
             }
+            
+            if (File.Exists(StorageLocationCache))
+            {
+                OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(File.ReadAllText(StorageLocationCache));
+            }
+            else
+            {
+                OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
+            }
 
-            indexTask = RefreshIndex();
         }
         public async Task RefreshIndex()
         {
@@ -40,17 +47,30 @@ namespace AUOffsetManager
                 return;
             }
 
+            using var httpClient = new HttpClient();
             try
             {
-                using var httpClient = new HttpClient();
+                this.indexURL = "https://raw.githubusercontent.com/sawa90/AmongUsReplayInWindow/master/AmongUsReplayInWindow/amonguscapture/Offsets.txt";
+                var json = await httpClient.GetStringAsync(indexURL);
+                OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(json);
+                await using StreamWriter sw = File.CreateText(StorageLocationCache);
+                await sw.WriteAsync(JsonConvert.SerializeObject(OffsetIndex, Formatting.Indented));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
                 try
                 {
-                    var json = await httpClient.GetStringAsync(indexURL);
-                    OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(json);
-                    await using StreamWriter sw = File.CreateText(StorageLocationCache);
-                    await sw.WriteAsync(JsonConvert.SerializeObject(OffsetIndex, Formatting.Indented));
+                    OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
                 }
-                catch (Exception e)
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+            if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash))
+            {
+                try
                 {
                     indexURL = "https://raw.githubusercontent.com/denverquane/amonguscapture/master/Offsets.json";
                     var json = await httpClient.GetStringAsync(indexURL);
@@ -58,26 +78,22 @@ namespace AUOffsetManager
                     await using StreamWriter sw = File.CreateText(StorageLocationCache);
                     await sw.WriteAsync(JsonConvert.SerializeObject(OffsetIndex, Formatting.Indented));
                 }
-                
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                if (File.Exists(StorageLocationCache))
+                catch (Exception e)
                 {
-                    OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(await File.ReadAllTextAsync(StorageLocationCache));
+                    Console.WriteLine(e);
+                    Console.WriteLine("If you are reading this that means that the site is down. If github still exists in the future, try again in 30 minutes.");
                 }
-                else
+
+                if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash))
                 {
                     OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
                 }
-                Console.WriteLine("If you are reading this that means that the site is down, and you have never used our program before. If github still exists in the future, try again in 30 minutes. - Carbon ");
             }
-    }
+        }
 
         public GameOffsets FetchForHash(string sha256Hash)
         {
-            indexTask.Wait();
+            hash = sha256Hash;
             if (LocalOffsetIndex.ContainsKey(sha256Hash))
             {
                 Console.WriteLine($"Loaded offsets: {LocalOffsetIndex[sha256Hash].Description}");
@@ -85,6 +101,11 @@ namespace AUOffsetManager
             }
             else
             {
+                if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash) || OffsetIndex[hash].ShipStatusPtr == null) 
+                {
+                    indexTask = RefreshIndex();
+                    indexTask.Wait();
+                }
                 var offsets = OffsetIndex.ContainsKey(sha256Hash) ? OffsetIndex[sha256Hash] : null;
                 if (offsets is not null)
                 {
@@ -148,7 +169,9 @@ namespace AUOffsetManager
         public int[] PlayRegionOffsets { get; set; }
         public int[] PlayMapOffsets { get; set; }
         public int[] StringOffsets { get; set; }
-        
+        public int[] ShipStatusPtr { get; set; }
+
+
     }
 
 }

@@ -11,12 +11,14 @@ namespace AmongUsReplayInWindow
         static string[] mapFilename = new string[3] { "skeld.png", "mira.png", "polus.png" };
         public struct MapScale
         {
+            public int Id;
             public float hw, xs, ys, xp, yp;
         }
 
         static public MapScale[] Maps = new MapScale[3]
         { new MapScale
             {
+                Id = 0,
                 hw = 0.58f,
                 xs = 0.022f,
                 ys = 0.038f,
@@ -25,6 +27,7 @@ namespace AmongUsReplayInWindow
             },
             new MapScale
             {
+                Id = 1,
                 hw = 0.73f,
                 xs = 0.0223f,
                 ys = 0.0305f,
@@ -33,6 +36,7 @@ namespace AmongUsReplayInWindow
             },
             new MapScale
             {
+                Id = 2,
                 hw = 0.69f,
                 xs = 0.0232f,
                 ys = 0.0335f,

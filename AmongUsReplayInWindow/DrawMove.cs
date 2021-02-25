@@ -125,6 +125,30 @@ namespace AmongUsReplayInWindow
             }
             int killed = 0, ejjected = 0, disconnected = 0;
 
+            if (map.Id == 0 || map.Id == 2)
+            {
+                using (Pen pen = new Pen(Color.Black, dsize * 3))
+                using (Pen pen2 = new Pen(Color.White, dsize * 2))
+                {
+                    float[][] doors;
+                    if (map.Id == 0) doors = Doors.skeld.Doors;
+                    else doors = Doors.polus.Doors;
+                    uint doorsUint = move.doorsUint;
+                    int doorNum = doors.Length;
+                    for (int i = 0; i < doorNum; i++)
+                    {
+                        if ((doorsUint >> i & 1) != 0)
+                        {
+                            float[] point = doors[i];
+                            
+                            paint.Graphics.DrawLine(pen, mapLocation.X + (point[0] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[1] * map.ys + map.yp) * mapSize.Height, mapLocation.X + (point[2] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[3] * map.ys + map.yp) * mapSize.Height);
+                            paint.Graphics.DrawLine(pen2, mapLocation.X + (point[0] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[1] * map.ys + map.yp) * mapSize.Height, mapLocation.X + (point[2] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[3] * map.ys + map.yp) * mapSize.Height);
+
+                        }
+                    }
+                }
+            }
+
 
 
             using (var fnt = new Font(fontName, circleSize * 0.8f, FontStyle.Bold))

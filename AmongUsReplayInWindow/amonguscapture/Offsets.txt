@@ -98,7 +98,8 @@
     "StringOffsets": [0x8, 0xC],
     "isEpic": false,
     "AddPlayerPtr": 4,
-    "PlayerListPtr": 0x10
+    "PlayerListPtr": 0x10,
+    "ShipStatusPtr": [0x1c57cac,0x5c,0x0,0x0]
   },
   "4BFEB19A37634C94017824F0D71B1C4651173C4B9242FF4EF6FAFFA593DFD91D": {
     "Description": "v2020.12.9 (Epic Games)",

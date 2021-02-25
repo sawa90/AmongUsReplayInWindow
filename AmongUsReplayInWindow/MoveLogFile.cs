@@ -106,7 +106,7 @@ namespace AmongUsReplayInWindow
         }
         public class WriteMoveLogFile
         {
-            static int version = 0;
+            static int version = 1;
             string folderPass;
             private Stream stream;
             private BinaryWriter writer;
@@ -216,8 +216,7 @@ namespace AmongUsReplayInWindow
                         writer.Write((Int32)e.time);
                         writer.Write((byte)e.state);
                         writer.Write((byte)e.Sabotage.TaskType);
-                        writer.Write((byte)e.Sabotage.TaskStep);
-                        writer.Write((byte)e.Sabotage.AllStepNum);
+                        writer.Write((UInt32)e.doorsUint);
                         for (int i = 0; i < AllImposorNum; i++) writer.Write((bool)e.InVent[i]);
 
                         for (int i = 0; i < e.PlayerNum; i++)
@@ -303,8 +302,10 @@ namespace AmongUsReplayInWindow
                         startArgs.SkinIds[i] = (uint)reader.ReadInt32();
 
                     }
-
-                    bytePerMove = 8 + AllImposorNum + 10 * PlayerNum;
+                    if (version == 0)
+                        bytePerMove = 8 + AllImposorNum + 10 * PlayerNum;
+                    else
+                        bytePerMove = 10 + AllImposorNum + 10 * PlayerNum;
                     PlayerDataByte = stream.Position;
                     maxMoveNum = (stream.Length - PlayerDataByte) / bytePerMove - 1;
 
@@ -341,8 +342,14 @@ namespace AmongUsReplayInWindow
                         e.time = reader.ReadInt32();
                         e.state = (GameState)reader.ReadByte();
                         e.Sabotage.TaskType = (TaskTypes)reader.ReadByte();
-                        e.Sabotage.TaskStep = reader.ReadByte();
-                        e.Sabotage.AllStepNum = reader.ReadByte();
+                        if (version == 0)
+                        {
+                            e.Sabotage.TaskStep = reader.ReadByte();
+                            e.Sabotage.AllStepNum = reader.ReadByte();
+                        } else
+                        {
+                            e.doorsUint = reader.ReadUInt32();
+                        }
                         for (int i = 0; i < AllImposorNum; i++) e.InVent[i] = reader.ReadBoolean();
                         for (int i = 0; i < PlayerNum; i++)
                         {
