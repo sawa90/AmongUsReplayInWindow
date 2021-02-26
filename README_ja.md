@@ -6,7 +6,7 @@ Among Usに簡易的なリプレイ機能を追加するツールです。リプ
 
 # Requirement
 [.NET 5 Desktop Runtime x86](https://dotnet.microsoft.com/download/dotnet/thank-you/runtime-desktop-5.0.3-windows-x86-installer)  
-[Visual Studio 2015 Visual C++ 再頒布可能パッケージ](https://www.microsoft.com/ja-jp/download/details.aspx?id=48145)  
+[Visual Studio 2015 Visual C++ 再頒布可能パッケージ x86](https://www.microsoft.com/ja-jp/download/details.aspx?id=48145)  
 # Usage
 - [latest release](https://github.com/sawa90/AmongUsReplayInWindow/releases/latest)からzipファイルをダウンロードして解凍してください。
 - Among Usを起動してください。
