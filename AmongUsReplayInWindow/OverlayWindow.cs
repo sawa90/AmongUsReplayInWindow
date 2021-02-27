@@ -61,21 +61,21 @@ namespace AmongUsReplayInWindow
         public const int WS_EX_TRANSPARENT = 0x00000020;
         public const int WS_EX_LAYERED = 0x00080000;
         public const int WS_EX_TOPMOST = 0x00000008;
-        internal ConfigWindow configWindow;
+        internal StartWindow startWindow;
         internal bool drawIcon;
 
         #endregion
 
         #region Initialize
-        public OverlayWindow(ConfigWindow configWindow, CancellationTokenSource tokenSource, System.Diagnostics.Process ownerProcess)
+        public OverlayWindow(StartWindow startWindow, CancellationTokenSource tokenSource, System.Diagnostics.Process ownerProcess)
         {
             Console.WriteLine("Init Overlay Window...");
             try
             {
-                this.configWindow = configWindow;
+                this.startWindow = startWindow;
                 Init();
                 cancelTokenSource = tokenSource;
-                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), (byte)configWindow.config.mapAlpha, ULW_COLORKEY | ULW_ALPHA);
+                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), (byte)startWindow.settings.mapAlpha, ULW_COLORKEY | ULW_ALPHA);
 
                 if (ownerProcess != null)
                 {
@@ -120,10 +120,10 @@ namespace AmongUsReplayInWindow
             trackwin = new TrackBarWin(this);
             backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId);
             drawTimer = new System.Windows.Forms.Timer();
-            drawTimer.Interval = configWindow.interval;
+            drawTimer.Interval = startWindow.interval;
             drawTimer.Tick += new EventHandler(DrawTimerHandler);
             Visible = false;
-            drawIcon = configWindow.drawIcon;
+            drawIcon = startWindow.drawIcon;
             SizeChanged += SizeChangedHandler;
             Move += MoveHandler;
         }
@@ -306,7 +306,11 @@ namespace AmongUsReplayInWindow
                     finishWriter();
                     Playing = false;
                     Invoke(new voidDelegate(removeReader));
-                    if (filename != null) Invoke(new bool_stringDelegate(setReader), filename);
+                    if (filename != null)
+                    {
+                        Invoke(new bool_stringDelegate(setReader), filename);
+                        SetZorder();
+                    }
                 }
                 else if (!Playing)
                 {
@@ -348,7 +352,7 @@ namespace AmongUsReplayInWindow
             sizeChange?.resize();
             using (var g = CreateGraphics())
                 backgroundMap?.Draw(g);
-            drawTimer.Interval = configWindow.interval;
+            drawTimer.Interval = startWindow.interval;
             drawTimer?.Start();
             SetKeyboardEnable(Playing, true);
             ShowWindow(Handle, SW_SHOWNA);
@@ -422,9 +426,9 @@ namespace AmongUsReplayInWindow
                 backgroundMap?.Draw(paint.Graphics);
             lock (lockObject)
             {
-                if (drawIcon && configWindow?.iconDict != null) 
+                if (drawIcon && startWindow?.iconDict != null) 
                 {
-                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], configWindow.iconDict, mapLocation, mapSize);
+                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
 
                 }
                 else

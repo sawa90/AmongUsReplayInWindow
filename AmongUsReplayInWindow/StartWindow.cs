@@ -16,48 +16,48 @@ using System.IO;
 
 namespace AmongUsReplayInWindow
 {
-    public partial class ConfigWindow : Form
+    public partial class StartWindow : Form
     {
         CancellationTokenSource tokenSource = null;
         Task createWindowTask = null;
         Task gameReaderTask = null;
-        OverlayWindow overlayForm = null;
+        internal OverlayWindow overlayForm = null;
         delegate void void_stringDelegate(string str);
         delegate void void_ProcessDelegate(Process process);
         internal DrawMove.IconDict iconDict;
-        internal Configure config = null;
-        string configPath;
+        internal Settings settings = null;
+        string settingPath;
         bool closed = false;
 
-        public ConfigWindow()
+        public StartWindow()
         {
-            configPath = Program.exeFolder + "\\config.json";
+            settingPath = Program.exeFolder + "\\setting.json";
             try
             {
-                if (File.Exists(configPath))
-                    config = JsonConvert.DeserializeObject<Configure>(File.ReadAllText(configPath));
+                if (File.Exists(settingPath))
+                    settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(settingPath));
             } catch(Exception e) { }
-            if (config == null) config = new Configure();
+            if (settings == null) settings = new Settings();
             InitializeComponent();
             iconDict = new DrawMove.IconDict();
-            setConfig();
+            applySettings();
 
         }
 
-        ~ConfigWindow()
+        ~StartWindow()
         {
-            ConfigWindow_FormClosed(null, null);
+            StartWindow_FormClosed(null, null);
         }
 
-        private void ConfigWindow_FormClosed(object sender, FormClosedEventArgs ev)
+        private void StartWindow_FormClosed(object sender, FormClosedEventArgs ev)
         {
             closed = true;
-            if (config != null)
+            if (settings != null)
             {
                 try
                 {
-                    using (StreamWriter sw = File.CreateText(configPath))
-                        sw.Write(JsonConvert.SerializeObject(config));
+                    using (StreamWriter sw = File.CreateText(settingPath))
+                        sw.Write(JsonConvert.SerializeObject(settings));
                 } catch(Exception e) { }
             }
             createWindowTask?.Wait();
@@ -77,7 +77,10 @@ namespace AmongUsReplayInWindow
         private void openFileDialogButton_Click(object sender, EventArgs ev)
         {
             if (filenameTextBox.Text != "")
+            {
                 openFileDialog1.InitialDirectory = filenameTextBox.Text;
+                openFileDialog1.FileName = Path.GetFileName(filenameTextBox.Text);
+            }
             else
                 openFileDialog1.InitialDirectory = Program.exeFolder + "\\replay";
             DialogResult dr = openFileDialog1.ShowDialog();
@@ -180,17 +183,17 @@ namespace AmongUsReplayInWindow
             GetAmongUsWindow.Text = text;
         }
 
-        #region config
+        #region setting
         internal bool drawIcon = true;
         internal int interval = 50;
         internal int step = 1;
         private void replaySpeedTrackBar_Scroll(object sender, EventArgs ev)
         {
             if (sender != null)
-                config.speed = replaySpeedTrackBar.Value;
-            interval = 50 + Math.Max(0, -config.speed) * 25;
-            step = 1 + Math.Max(0, config.speed);
-            if (config.speed == replaySpeedTrackBar.Minimum) step = 0;
+                settings.speed = replaySpeedTrackBar.Value;
+            interval = 50 + Math.Max(0, -settings.speed) * 25;
+            step = 1 + Math.Max(0, settings.speed);
+            if (settings.speed == replaySpeedTrackBar.Minimum) step = 0;
             if (overlayForm?.drawTimer != null)
             {
                 overlayForm.drawTimer.Interval = interval;
@@ -211,23 +214,9 @@ namespace AmongUsReplayInWindow
         }
 
       
-        private void RenderingBox_SelectedIndexChanged(object sender, EventArgs ev)
-        {
-            if (sender != null)
-                config.rendering = (Rendering)RenderingBox.SelectedIndex;
-            drawIcon = config.rendering == Rendering.Icon;
-            if (overlayForm != null)
-            {
-                overlayForm.drawIcon = drawIcon;
-            }
+       
 
-            foreach (var formF in fromFile.fromFileList)
-            {
-                formF.drawIcon = drawIcon;
-            }
-        }
-
-        public enum Rendering
+        public enum PlayerIconRendering
         {
             Icon,
             Simple
@@ -237,12 +226,12 @@ namespace AmongUsReplayInWindow
         private void mapAlphaUpdown_ValueChanged(object sender, EventArgs e)
         {
             if (sender != null)
-                config.mapAlpha = (int)mapAlphaUpdown.Value;
-            overlayForm?.setAlpha(config.mapAlpha);
+                settings.mapAlpha = (int)mapAlphaUpdown.Value;
+            overlayForm?.setAlpha(settings.mapAlpha);
         }
 
         [JsonObject]
-        public class Configure
+        public class Settings
         {
             [DefaultValue(0)]
             public int speed = 0;
@@ -250,23 +239,56 @@ namespace AmongUsReplayInWindow
             [DefaultValue(230)]
             public int mapAlpha = 230;
 
-            [DefaultValue(Rendering.Icon)]
-            public Rendering rendering = Rendering.Icon;
+            [DefaultValue(PlayerIconRendering.Icon)]
+            public PlayerIconRendering playerIcon = PlayerIconRendering.Icon;
+
+            [DefaultValue("color")]
+            public string MapImageFolder = "color";
+
+            [DefaultValue(true)]
+            public bool PlayerNameVisible = true;
+
+            [DefaultValue(true)]
+            public bool TaskBarVisible = true;
+
+            [DefaultValue(1.0f)]
+            public float PlayerSize = 1.0f;
         }
 
-        void setConfig()
+        void applySettings()
         {
-            replaySpeedTrackBar.Value = config.speed;
-            mapAlphaUpdown.Value = config.mapAlpha;
-            RenderingBox.SelectedIndex = (int)config.rendering;
+            replaySpeedTrackBar.Value = settings.speed;
+            mapAlphaUpdown.Value = settings.mapAlpha;
 
             replaySpeedTrackBar_Scroll(null, null);
             mapAlphaUpdown_ValueChanged(null, null);
-            RenderingBox_SelectedIndexChanged(null, null);
+
+            drawIcon = settings.playerIcon == StartWindow.PlayerIconRendering.Icon;
+            if (overlayForm != null)
+            {
+                overlayForm.drawIcon = drawIcon;
+            }
+            foreach (var formF in fromFile.fromFileList)
+            {
+                formF.drawIcon = drawIcon;
+            }
+
+            DrawMove.TaskBarVisible = settings.TaskBarVisible;
+            DrawMove.PlayerNameVisible = settings.PlayerNameVisible;
+
+            Map.mapFolder = settings.MapImageFolder;
+
+            DrawMove.playerSize = settings.PlayerSize;
 
         }
+
         #endregion
 
-       
+
+        private void SettingButton_Click(object sender, EventArgs e)
+        {
+            SettingDialog settingDialog = new SettingDialog(this);
+            settingDialog.ShowDialog();
+        }
     }
 }

@@ -43,7 +43,7 @@ namespace AmongUsReplayInWindow
         public const int WS_EX_TRANSPARENT = 0x00000020;
         public const int WS_EX_LAYERED = 0x00080000;
         public const int WS_EX_TOPMOST = 0x00000008;
-        ConfigWindow configWindow;
+        StartWindow startWindow;
         internal int step = 1;
         internal bool drawIcon;
 
@@ -51,9 +51,9 @@ namespace AmongUsReplayInWindow
 
         #region Initialize
 
-        public fromFile(ConfigWindow configWindow, string filename)
+        public fromFile(StartWindow startWindow, string filename)
         {
-            this.configWindow = configWindow;
+            this.startWindow = startWindow;
             Init();
             this.filename = filename;
             if (!setReader(filename))
@@ -81,8 +81,8 @@ namespace AmongUsReplayInWindow
             FormClosing += new FormClosingEventHandler(Form1_FormClosing);
 
             SizeChanged += new EventHandler(SizeChangedHandler);
-            step = configWindow.step;
-            drawIcon = configWindow.drawIcon;
+            step = startWindow.step;
+            drawIcon = startWindow.drawIcon;
         }
         #endregion
 
@@ -238,7 +238,7 @@ namespace AmongUsReplayInWindow
                 KeyEventHandler = new KeyEventHandler(trackBar_KeyDown);
                 trackBar1.KeyDown += KeyEventHandler;
                 timer = new System.Windows.Forms.Timer();
-                timer.Interval = configWindow.interval;
+                timer.Interval = startWindow.interval;
                 timer.Tick += new EventHandler(Update);
                 timer.Start();
             }
@@ -359,8 +359,8 @@ namespace AmongUsReplayInWindow
             backgroundMap?.Draw(paint.Graphics);
             lock (lockObject)
             {
-                if (drawIcon && configWindow?.iconDict != null)
-                    DrawMove.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], configWindow.iconDict, mapLocation, mapSize);
+                if (drawIcon && startWindow?.iconDict != null)
+                    DrawMove.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
                 else
                     DrawMove.DrawMove_Simple(paint, e, deadOrderList, Map.Maps[mapId], mapLocation, mapSize);
             }

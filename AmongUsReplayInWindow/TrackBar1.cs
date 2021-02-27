@@ -17,7 +17,7 @@ namespace AmongUsReplayInWindow
             this.OwnerForm = OwnerForm;
             this.Show();
             this.Size = new Size(0, 0);
-            step = OwnerForm.configWindow.step;
+            step = OwnerForm.startWindow.step;
             KeyEventHandler = new KeyEventHandler(trackBar_KeyDown);
             trackBar0.KeyDown += KeyEventHandler;
             Visible = false;
@@ -49,7 +49,7 @@ namespace AmongUsReplayInWindow
                 trackBar0.Scroll += scrollEventHandler;
 
                 timer = new System.Windows.Forms.Timer();
-                timer.Interval = OwnerForm.configWindow.interval;
+                timer.Interval = OwnerForm.startWindow.interval;
                 timer.Tick += new EventHandler(Update);
                 timer.Start();
                 setFocus();
@@ -154,7 +154,8 @@ namespace AmongUsReplayInWindow
 
         public void giveFocus()
         {
-            if (trackBar0.Focused)
+            IntPtr hfgwnd = NativeMethods.GetForegroundWindow();
+            if (hfgwnd == Handle || hfgwnd == trackBar0.Handle)
                 if (NativeMethods.IsWindow(OwnerForm.ownerHandle))
                     Microsoft.VisualBasic.Interaction.AppActivate(OwnerForm.ownerProcessId);
         }

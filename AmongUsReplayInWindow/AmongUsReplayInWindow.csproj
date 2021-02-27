@@ -51,7 +51,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="mkdir $(TargetDir)\map&#xD;&#xA;mkdir $(TargetDir)\icon&#xD;&#xA;robocopy $(ProjectDir)map\ $(TargetDir)\map  *.png&#xD;&#xA;robocopy $(ProjectDir)icon\ $(TargetDir)\icon  *.png&#xD;&#xA;robocopy $(SolutionDir)KeyboardHook\$(ConfigurationName) $(TargetDir) KeyboardHook*.dll&#xD;&#xA;IF %25ERRORLEVEL%25 LSS 8 EXIT 0" />
+    <Exec Command="mkdir $(TargetDir)\map&#xD;&#xA;mkdir $(TargetDir)\icon&#xD;&#xA;robocopy $(ProjectDir)map\ $(TargetDir)\map  *.png /s&#xD;&#xA;robocopy $(ProjectDir)icon\ $(TargetDir)\icon  *.png&#xD;&#xA;robocopy $(SolutionDir)KeyboardHook\$(ConfigurationName) $(TargetDir) KeyboardHook*.dll&#xD;&#xA;IF %25ERRORLEVEL%25 LSS 8 EXIT 0" />
   </Target>
 
 </Project>

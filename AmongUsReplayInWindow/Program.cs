@@ -34,7 +34,7 @@ namespace AmongUsReplayInWindow
             //AllocConsole();
             try
             {
-                var form = new ConfigWindow();
+                var form = new StartWindow();
                 Application.Run(form);
             } catch (Exception e)
             {

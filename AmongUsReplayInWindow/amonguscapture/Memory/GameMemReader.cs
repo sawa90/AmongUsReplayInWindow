@@ -126,7 +126,7 @@ namespace AmongUsCapture
        List<DeadBodyPos> DeadBodyPosList = new List<DeadBodyPos>();
         List<DeadLog> DeadLogList = new List<DeadLog>();
 
-        Vector2[] centerOfTable = new Vector2[3] { new Vector2(-0.85f, 1.1f), new Vector2(24.03f,2.625f), new Vector2(19.5f,-16.876f)
+        Vector2[] centerOfTable = new Vector2[3] { new Vector2(-1.0f, 1.1f), new Vector2(24.03f,2.625f), new Vector2(19.5f,-16.876f)
  };
 
         GameOverReason gameOverReason = GameOverReason.Unknown;
@@ -565,7 +565,7 @@ namespace AmongUsCapture
 
 
 
-                        if (state != GameState.DISCUSSION && !pi.GetIsDisconnected() && !pi.GetIsDead())
+                        if (state != GameState.DISCUSSION && !pi.GetIsDisconnected() && (playerIsDead[id]==0 || playerIsDead[id]<-10))
                         {
                             int offset = 0x3C;
                             if (pcontrol.myLight_ != 0) offset = 0x50;

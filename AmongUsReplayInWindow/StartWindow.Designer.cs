@@ -1,7 +1,7 @@
 ﻿
 namespace AmongUsReplayInWindow
 {
-    partial class ConfigWindow
+    partial class StartWindow
     {
         /// <summary>
         /// Required designer variable.
@@ -35,11 +35,10 @@ namespace AmongUsReplayInWindow
             this.filenameTextBox = new System.Windows.Forms.TextBox();
             this.replaySpeedTrackBar = new System.Windows.Forms.TrackBar();
             this.speedLabel = new System.Windows.Forms.Label();
-            this.RenderingBox = new System.Windows.Forms.ComboBox();
-            this.RenderingLabel = new System.Windows.Forms.Label();
             this.mapAlphaLabel = new System.Windows.Forms.Label();
             this.mapAlphaUpdown = new System.Windows.Forms.NumericUpDown();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            this.SettingButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.replaySpeedTrackBar)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.mapAlphaUpdown)).BeginInit();
             this.SuspendLayout();
@@ -94,31 +93,10 @@ namespace AmongUsReplayInWindow
             this.speedLabel.TabIndex = 5;
             this.speedLabel.Text = "Replay speed";
             // 
-            // RenderingBox
-            // 
-            this.RenderingBox.FormattingEnabled = true;
-            this.RenderingBox.Items.AddRange(new object[] {
-            "Icon",
-            "Simple"});
-            this.RenderingBox.Location = new System.Drawing.Point(12, 174);
-            this.RenderingBox.Name = "RenderingBox";
-            this.RenderingBox.Size = new System.Drawing.Size(121, 23);
-            this.RenderingBox.TabIndex = 6;
-            this.RenderingBox.SelectedIndexChanged += new System.EventHandler(this.RenderingBox_SelectedIndexChanged);
-            // 
-            // RenderingLabel
-            // 
-            this.RenderingLabel.AutoSize = true;
-            this.RenderingLabel.Location = new System.Drawing.Point(12, 153);
-            this.RenderingLabel.Name = "RenderingLabel";
-            this.RenderingLabel.Size = new System.Drawing.Size(61, 15);
-            this.RenderingLabel.TabIndex = 7;
-            this.RenderingLabel.Text = "Rendering";
-            // 
             // mapAlphaLabel
             // 
             this.mapAlphaLabel.AutoSize = true;
-            this.mapAlphaLabel.Location = new System.Drawing.Point(183, 153);
+            this.mapAlphaLabel.Location = new System.Drawing.Point(14, 153);
             this.mapAlphaLabel.Name = "mapAlphaLabel";
             this.mapAlphaLabel.Size = new System.Drawing.Size(74, 15);
             this.mapAlphaLabel.TabIndex = 8;
@@ -126,7 +104,7 @@ namespace AmongUsReplayInWindow
             // 
             // mapAlphaUpdown
             // 
-            this.mapAlphaUpdown.Location = new System.Drawing.Point(183, 172);
+            this.mapAlphaUpdown.Location = new System.Drawing.Point(14, 172);
             this.mapAlphaUpdown.Maximum = new decimal(new int[] {
             255,
             0,
@@ -142,23 +120,32 @@ namespace AmongUsReplayInWindow
             0});
             this.mapAlphaUpdown.ValueChanged += new System.EventHandler(this.mapAlphaUpdown_ValueChanged);
             // 
-            // ConfigWindow
+            // SettingButton
+            // 
+            this.SettingButton.Location = new System.Drawing.Point(185, 170);
+            this.SettingButton.Name = "SettingButton";
+            this.SettingButton.Size = new System.Drawing.Size(117, 23);
+            this.SettingButton.TabIndex = 10;
+            this.SettingButton.Text = "Setting...";
+            this.SettingButton.UseVisualStyleBackColor = true;
+            this.SettingButton.Click += new System.EventHandler(this.SettingButton_Click);
+            // 
+            // StartWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(340, 207);
+            this.Controls.Add(this.SettingButton);
             this.Controls.Add(this.mapAlphaUpdown);
             this.Controls.Add(this.mapAlphaLabel);
-            this.Controls.Add(this.RenderingLabel);
-            this.Controls.Add(this.RenderingBox);
             this.Controls.Add(this.speedLabel);
             this.Controls.Add(this.replaySpeedTrackBar);
             this.Controls.Add(this.filenameTextBox);
             this.Controls.Add(this.openFileDialogButton);
             this.Controls.Add(this.GetAmongUsWindow);
-            this.Name = "ConfigWindow";
+            this.Name = "StartWindow";
             this.Text = "AmongUsReplayInWindow";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.ConfigWindow_FormClosed);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.StartWindow_FormClosed);
             ((System.ComponentModel.ISupportInitialize)(this.replaySpeedTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.mapAlphaUpdown)).EndInit();
             this.ResumeLayout(false);
@@ -174,10 +161,9 @@ namespace AmongUsReplayInWindow
         private System.Windows.Forms.TextBox filenameTextBox;
         private System.Windows.Forms.TrackBar replaySpeedTrackBar;
         private System.Windows.Forms.Label speedLabel;
-        private System.Windows.Forms.ComboBox RenderingBox;
-        private System.Windows.Forms.Label RenderingLabel;
         private System.Windows.Forms.Label mapAlphaLabel;
         private System.Windows.Forms.NumericUpDown mapAlphaUpdown;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
+        private System.Windows.Forms.Button SettingButton;
     }
 }

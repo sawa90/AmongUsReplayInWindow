@@ -3,12 +3,14 @@ using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 namespace AmongUsReplayInWindow
 {
     public static class Map
     {
         static string[] mapFilename = new string[3] { "skeld.png", "mira.png", "polus.png" };
+        static public string mapFolder = "color";
         public struct MapScale
         {
             public int Id;
@@ -48,11 +50,11 @@ namespace AmongUsReplayInWindow
         static public Image setMapImage(int mapId)
         {
             Image MapImage = null;
-            if (File.Exists(Program.exeFolder + "\\map\\" + mapFilename[mapId]))
+            if (File.Exists(Program.exeFolder + "\\map\\" + mapFolder + "\\" + mapFilename[mapId]))
             {
                 try
                 {
-                    using (FileStream stream = File.OpenRead(Program.exeFolder + "\\map\\" + mapFilename[mapId]))
+                    using (FileStream stream = File.OpenRead(Program.exeFolder + "\\map\\"+mapFolder +"\\" + mapFilename[mapId]))
                         MapImage = Image.FromStream(stream, false, false);
                     return MapImage;
                 }
@@ -83,16 +85,22 @@ namespace AmongUsReplayInWindow
 
         public class backgroundMap
         {
+            static List<backgroundMap> instanceList = new List<backgroundMap>();
+
             int mapId;
             Image MapImage;
             Bitmap bitmap;
             IntPtr mapGDI;
             int w, h;
+            Size formClientSize;
+            Point location;
+            Size size;
 
             const int SRCCOPY = 0x00CC0020;
 
             public backgroundMap(Size formClientSize, Point location, Size size, int mapId)
             {
+                instanceList.Add(this);
                 this.mapId = mapId;
                 MapImage = setMapImage(mapId);
                 ChangeSize(formClientSize, location, size);
@@ -105,6 +113,8 @@ namespace AmongUsReplayInWindow
 
             public void Dispose()
             {
+                if (instanceList.Contains(this))
+                    instanceList.Remove(this);
                 DisposeBitmap();
                 MapImage?.Dispose();
             }
@@ -148,6 +158,9 @@ namespace AmongUsReplayInWindow
             public void ChangeSize(Size formClientSize, Point location, Size size)
             {
                 if (size.Width <= 0 || size.Width <= 0) return;
+                this.formClientSize = formClientSize;
+                this.location = location;
+                this.size = size;
                 DisposeBitmap();
                 w = formClientSize.Width;
                 h = formClientSize.Height;
@@ -164,6 +177,16 @@ namespace AmongUsReplayInWindow
                 mapGraphics.Dispose();
 
                 mapGDI = bitmap.GetHbitmap();
+            }
+
+            public static void resetImage()
+            {
+                foreach(var bgmap in instanceList)
+                {
+                    bgmap.MapImage?.Dispose();
+                    bgmap.MapImage = setMapImage(bgmap.mapId);
+                    bgmap.ChangeSize(bgmap.formClientSize, bgmap.location, bgmap.size);
+                }
             }
 
             [DllImport("gdi32.dll", SetLastError = true)]
