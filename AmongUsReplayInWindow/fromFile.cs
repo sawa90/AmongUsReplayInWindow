@@ -45,7 +45,6 @@ namespace AmongUsReplayInWindow
         public const int WS_EX_TOPMOST = 0x00000008;
         StartWindow startWindow;
         internal int step = 1;
-        internal bool drawIcon;
 
         #endregion
 
@@ -82,7 +81,6 @@ namespace AmongUsReplayInWindow
 
             SizeChanged += new EventHandler(SizeChangedHandler);
             step = startWindow.step;
-            drawIcon = startWindow.drawIcon;
         }
         #endregion
 
@@ -359,10 +357,8 @@ namespace AmongUsReplayInWindow
             backgroundMap?.Draw(paint.Graphics);
             lock (lockObject)
             {
-                if (drawIcon && startWindow?.iconDict != null)
-                    DrawMove.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
-                else
-                    DrawMove.DrawMove_Simple(paint, e, deadOrderList, Map.Maps[mapId], mapLocation, mapSize);
+                DrawMove.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
+
             }
             
         }

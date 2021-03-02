@@ -29,7 +29,8 @@ namespace AmongUsCapture
         HumansDisconnect,
         Unknown,
         HumansWinByDisconnect,
-        ImpostorWinByDisconnect
+        ImpostorWinByDisconnect,
+        VotingResult
     }
 
     public class GameMemReader
@@ -126,8 +127,7 @@ namespace AmongUsCapture
        List<DeadBodyPos> DeadBodyPosList = new List<DeadBodyPos>();
         List<DeadLog> DeadLogList = new List<DeadLog>();
 
-        Vector2[] centerOfTable = new Vector2[3] { new Vector2(-1.0f, 1.1f), new Vector2(24.03f,2.625f), new Vector2(19.5f,-16.876f)
- };
+        Vector2[] centerOfTable = new Vector2[3] { new Vector2(-1.0f, 1.1f), new Vector2(24.03f,2.625f), new Vector2(19.5f,-16.876f)};
 
         GameOverReason gameOverReason = GameOverReason.Unknown;
         GameState exileCausesEndState = GameState.Unknown;
@@ -138,6 +138,9 @@ namespace AmongUsCapture
 
         Door[] doors;
         UInt32 doorsUint = 0;
+
+        Int32 discussionEndTime = -10000;
+        sbyte[] voteList = new sbyte[10];
 
         public GameMemReader()
         {
@@ -158,6 +161,8 @@ namespace AmongUsCapture
                 Taskcompleted[i] = false;
                 TaskNum[i] = 0;
                 PlayerNames[i] = "";
+                voteList[i] = -3;
+                discussionEndTime = -10000;
             }
             Sabotage = new TaskInfo();
             DeadBodyPosList.Clear();
@@ -351,11 +356,68 @@ namespace AmongUsCapture
 
                     var playerAddrPtr = allPlayers + 0x10;
 
+                    Int32 gametimeMili = (Int32)((DateTime.Now.Ticks - gameStartTime) / TimeSpan.TicksPerMillisecond);
+
+                    //get voting state
+                    if (state == GameState.DISCUSSION || (state == GameState.TASKS && (gametimeMili - discussionEndTime) < 7000))
+                    {
+
+                        if (state == GameState.DISCUSSION) discussionEndTime = gametimeMili;
+                        else state = GameState.VotingResult;
+                        if (meetingHud != IntPtr.Zero)
+                        {
+                            var meetingHudstruct = ProcessMemory.getInstance().Read<MeetingHud>(meetingHud, 0);
+                            var voteInfoPtr = (IntPtr)meetingHudstruct.VoteInfoList;
+                            if (voteInfoPtr != IntPtr.Zero)
+                            {
+                                var votePlayerCount = ProcessMemory.getInstance().Read<int>((IntPtr)voteInfoPtr, 0xC);
+                                voteInfoPtr += 0x10;
+                                VoteInfo voteInfo;
+                                for (int i = 0; i < votePlayerCount; i++)
+                                {
+                                    voteInfo = ProcessMemory.getInstance().Read<VoteInfo>(voteInfoPtr, 4 * i, 0);
+
+                                    int id = voteInfo.Id_;
+                                    //if (id != i)
+                                    //    Console.Write($"{id}!={ i}   ");
+                                    if (voteInfo.didVote) voteList[id] = voteInfo.votedFor;
+                                    else voteList[id] = -3;
+                                    if (voteInfo.didReport) voteList[id] += 32;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < 10; i++) voteList[i] = -3;
+                        }
+                    }
+
                     // check if exile causes end
                     if (oldState == GameState.DISCUSSION && state != GameState.DISCUSSION)
                     {
+                        /*
+                        for (int i = 0; i < playerCount; i++)
+                        {
+                            int votedId = voteList[i];
+                            if (votedId > 20) votedId -= 32;
+                            if (playerIsDead[i] == 0)
+                            {
+                                if (votedId == 14 || votedId == -2)
+                                    Console.WriteLine($"{PlayerNames[i]}/{PlayerColors[i]}->Not Vote {votedId}");
+                                
+                                else if (votedId > 9)
+                                    Console.WriteLine($"{PlayerNames[i]}/{PlayerColors[i]}->Error ID:{votedId}");
+                                else if (votedId >= 0)
+                                    Console.WriteLine($"{PlayerNames[i]}/{PlayerColors[i]}->{PlayerNames[votedId]}/{PlayerColorsInt[votedId]}");
+                                else if (votedId == -1)
+                                    Console.WriteLine($"{PlayerNames[i]}/{PlayerColors[i]}->Skip");
+                                else
+                                    Console.WriteLine($"{PlayerNames[i]}/{PlayerColors[i]}->Error ID:{votedId}");
+                            }
+                        }*/
+
                         var exiledPlayerId = -1;
-                        if (state == GameState.TASKS) 
+                        //if (state == GameState.TASKS) 
                             exiledPlayerId = ProcessMemory.getInstance().ReadWithDefault<byte>(GameAssemblyPtr, 255,
                                 CurrentOffsets.ExiledPlayerIdOffsets);
                         int impostorCount = 0, innocentCount = 0;
@@ -379,7 +441,6 @@ namespace AmongUsCapture
                                 {
                                     disconnect = false;
                                     playerIsDead[pi.PlayerId] = 11;
-                                    PlayerPoses[pi.PlayerId] = centerOfTable[(int)playMap];
                                     DeadLogList.Add(new DeadLog(gameStartTime, pi.PlayerId, centerOfTable[(int)playMap]));
                                 }
                                 else playerIsDead[exiledPlayerId] = -11;
@@ -497,9 +558,10 @@ namespace AmongUsCapture
                     newPlayerInfos.Clear();
 #endregion
                     playerAddrPtr = allPlayers + 0x10;
-                    Int32 gametimeMili = (Int32)((DateTime.Now.Ticks - gameStartTime) / TimeSpan.TicksPerMillisecond);
                     AllImposterNum = 0;
                     var moveable = false;
+
+
 
 
 
@@ -523,7 +585,7 @@ namespace AmongUsCapture
                         if ((!pi.GetIsDisconnected() && pi.IsImpostor != 1) || pcontrol.myLight_ != 0)
                         {
                             IntPtr tasklist = (IntPtr)ProcessMemory.getInstance().Read<Int32>((IntPtr)pcontrol.myTasks, 8);
-
+                            
                             TaskNum[id] = ProcessMemory.getInstance().Read<Int32>((IntPtr)pi.Tasks, 12);
                             if (TaskNum[id] != 0)
                             {
@@ -565,7 +627,7 @@ namespace AmongUsCapture
 
 
 
-                        if (state != GameState.DISCUSSION && !pi.GetIsDisconnected() && (playerIsDead[id]==0 || playerIsDead[id]<-10))
+                        if (state != GameState.DISCUSSION && !pi.GetIsDisconnected() && (playerIsDead[id]==0 || playerIsDead[id]<-10 || playerIsDead[id] == 11 ))
                         {
                             int offset = 0x3C;
                             if (pcontrol.myLight_ != 0) offset = 0x50;
@@ -574,7 +636,6 @@ namespace AmongUsCapture
                             moveable = pcontrol.moveable;
                             //IsImpostorLis[pi.PlayerId] = pi.IsImpostor == 1;
                         }
-                        if (playerIsDead[id] == 11) PlayerPoses[id] = centerOfTable[(int)playMap];
                         if (pi.IsImpostor == 1) AllImposterNum++;
                         #region amonguscapture
                         newPlayerInfos[playerName] = pi; // add to new playerinfos for comparison later
@@ -835,7 +896,8 @@ namespace AmongUsCapture
                         TaskProgress = TaskProgress,
                         Sabotage = Sabotage,
                         myId = myId,
-                        doorsUint = doorsUint
+                        doorsUint = doorsUint,
+                        voteList = voteList
                     };
                     int frame_now = (int)Math.Round(gametimeMili / 100.0);
                     if (frame_now - frame < 5)
@@ -975,7 +1037,8 @@ namespace AmongUsCapture
                 TaskProgress = TaskProgress,
                 Sabotage = Sabotage,
                 myId = myId,
-                doorsUint = doorsUint
+                doorsUint = doorsUint,
+                voteList = voteList
             };
 
 
@@ -1142,6 +1205,8 @@ namespace AmongUsCapture
         public int myId;
 
         public UInt32 doorsUint;
+
+        public sbyte[] voteList;
 
     }
    

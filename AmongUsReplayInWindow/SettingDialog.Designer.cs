@@ -37,13 +37,16 @@ namespace AmongUsReplayInWindow
             this.PlayerSizeLabel = new System.Windows.Forms.Label();
             this.PlayerNameCheckBox = new System.Windows.Forms.CheckBox();
             this.TaskBarCheckBox = new System.Windows.Forms.CheckBox();
+            this.HotKeyBox = new System.Windows.Forms.ComboBox();
+            this.HotKeyLabel = new System.Windows.Forms.Label();
+            this.VoteCheckBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.PlayerSizeBar)).BeginInit();
             this.SuspendLayout();
             // 
             // RenderingLabel
             // 
             this.RenderingLabel.AutoSize = true;
-            this.RenderingLabel.Location = new System.Drawing.Point(12, 9);
+            this.RenderingLabel.Location = new System.Drawing.Point(17, 78);
             this.RenderingLabel.Name = "RenderingLabel";
             this.RenderingLabel.Size = new System.Drawing.Size(39, 15);
             this.RenderingLabel.TabIndex = 9;
@@ -55,7 +58,7 @@ namespace AmongUsReplayInWindow
             this.PlayerIcon.Items.AddRange(new object[] {
             "Icon",
             "Simple"});
-            this.PlayerIcon.Location = new System.Drawing.Point(12, 30);
+            this.PlayerIcon.Location = new System.Drawing.Point(17, 99);
             this.PlayerIcon.Name = "PlayerIcon";
             this.PlayerIcon.Size = new System.Drawing.Size(121, 23);
             this.PlayerIcon.TabIndex = 8;
@@ -64,7 +67,7 @@ namespace AmongUsReplayInWindow
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(176, 9);
+            this.label1.Location = new System.Drawing.Point(181, 78);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(31, 15);
             this.label1.TabIndex = 11;
@@ -73,7 +76,7 @@ namespace AmongUsReplayInWindow
             // MapImageBox
             // 
             this.MapImageBox.FormattingEnabled = true;
-            this.MapImageBox.Location = new System.Drawing.Point(176, 30);
+            this.MapImageBox.Location = new System.Drawing.Point(181, 99);
             this.MapImageBox.Name = "MapImageBox";
             this.MapImageBox.Size = new System.Drawing.Size(121, 23);
             this.MapImageBox.TabIndex = 10;
@@ -81,7 +84,7 @@ namespace AmongUsReplayInWindow
             // 
             // PlayerSizeBar
             // 
-            this.PlayerSizeBar.Location = new System.Drawing.Point(12, 99);
+            this.PlayerSizeBar.Location = new System.Drawing.Point(17, 168);
             this.PlayerSizeBar.Maximum = 200;
             this.PlayerSizeBar.Minimum = 10;
             this.PlayerSizeBar.Name = "PlayerSizeBar";
@@ -95,7 +98,7 @@ namespace AmongUsReplayInWindow
             // PlayerSizeLabel
             // 
             this.PlayerSizeLabel.AutoSize = true;
-            this.PlayerSizeLabel.Location = new System.Drawing.Point(12, 70);
+            this.PlayerSizeLabel.Location = new System.Drawing.Point(17, 139);
             this.PlayerSizeLabel.Name = "PlayerSizeLabel";
             this.PlayerSizeLabel.Size = new System.Drawing.Size(62, 15);
             this.PlayerSizeLabel.TabIndex = 13;
@@ -104,7 +107,7 @@ namespace AmongUsReplayInWindow
             // PlayerNameCheckBox
             // 
             this.PlayerNameCheckBox.AutoSize = true;
-            this.PlayerNameCheckBox.Location = new System.Drawing.Point(23, 155);
+            this.PlayerNameCheckBox.Location = new System.Drawing.Point(28, 224);
             this.PlayerNameCheckBox.Name = "PlayerNameCheckBox";
             this.PlayerNameCheckBox.Size = new System.Drawing.Size(92, 19);
             this.PlayerNameCheckBox.TabIndex = 14;
@@ -115,7 +118,7 @@ namespace AmongUsReplayInWindow
             // TaskBarCheckBox
             // 
             this.TaskBarCheckBox.AutoSize = true;
-            this.TaskBarCheckBox.Location = new System.Drawing.Point(159, 155);
+            this.TaskBarCheckBox.Location = new System.Drawing.Point(164, 224);
             this.TaskBarCheckBox.Name = "TaskBarCheckBox";
             this.TaskBarCheckBox.Size = new System.Drawing.Size(68, 19);
             this.TaskBarCheckBox.TabIndex = 15;
@@ -123,11 +126,43 @@ namespace AmongUsReplayInWindow
             this.TaskBarCheckBox.UseVisualStyleBackColor = true;
             this.TaskBarCheckBox.CheckedChanged += new System.EventHandler(this.TaskBarCheckBox_CheckedChanged);
             // 
+            // HotKeyBox
+            // 
+            this.HotKeyBox.FormattingEnabled = true;
+            this.HotKeyBox.Location = new System.Drawing.Point(17, 41);
+            this.HotKeyBox.Name = "HotKeyBox";
+            this.HotKeyBox.Size = new System.Drawing.Size(121, 23);
+            this.HotKeyBox.TabIndex = 16;
+            this.HotKeyBox.SelectedIndexChanged += new System.EventHandler(this.HotKeyBox_SelectedIndexChanged);
+            // 
+            // HotKeyLabel
+            // 
+            this.HotKeyLabel.AutoSize = true;
+            this.HotKeyLabel.Location = new System.Drawing.Point(17, 23);
+            this.HotKeyLabel.Name = "HotKeyLabel";
+            this.HotKeyLabel.Size = new System.Drawing.Size(49, 15);
+            this.HotKeyLabel.TabIndex = 17;
+            this.HotKeyLabel.Text = "Hot Key";
+            // 
+            // VoteCheckBox
+            // 
+            this.VoteCheckBox.AutoSize = true;
+            this.VoteCheckBox.Location = new System.Drawing.Point(28, 258);
+            this.VoteCheckBox.Name = "VoteCheckBox";
+            this.VoteCheckBox.Size = new System.Drawing.Size(49, 19);
+            this.VoteCheckBox.TabIndex = 18;
+            this.VoteCheckBox.Text = "Vote";
+            this.VoteCheckBox.UseVisualStyleBackColor = true;
+            this.VoteCheckBox.CheckedChanged += new System.EventHandler(this.VoteCheckBox_CheckedChanged);
+            // 
             // SettingDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(327, 189);
+            this.ClientSize = new System.Drawing.Size(327, 300);
+            this.Controls.Add(this.VoteCheckBox);
+            this.Controls.Add(this.HotKeyLabel);
+            this.Controls.Add(this.HotKeyBox);
             this.Controls.Add(this.TaskBarCheckBox);
             this.Controls.Add(this.PlayerNameCheckBox);
             this.Controls.Add(this.PlayerSizeLabel);
@@ -154,5 +189,8 @@ namespace AmongUsReplayInWindow
         private System.Windows.Forms.Label PlayerSizeLabel;
         private System.Windows.Forms.CheckBox PlayerNameCheckBox;
         private System.Windows.Forms.CheckBox TaskBarCheckBox;
+        private System.Windows.Forms.ComboBox HotKeyBox;
+        private System.Windows.Forms.Label HotKeyLabel;
+        private System.Windows.Forms.CheckBox VoteCheckBox;
     }
 }

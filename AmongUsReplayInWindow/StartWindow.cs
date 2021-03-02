@@ -13,6 +13,7 @@ using AmongUsReplayInWindow.setOwnerWindow;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using System.IO;
+using System.Runtime.InteropServices;
 
 namespace AmongUsReplayInWindow
 {
@@ -60,10 +61,22 @@ namespace AmongUsReplayInWindow
                         sw.Write(JsonConvert.SerializeObject(settings));
                 } catch(Exception e) { }
             }
-            createWindowTask?.Wait();
+            try { tokenSource?.Cancel(); } catch (ObjectDisposedException e) { }
+            try { createWindowTask?.Wait(); }
+            catch (System.AggregateException exc)
+            {
+                exc.Handle((e) =>
+                {
+                    if (e.GetType() != typeof(TaskCanceledException))
+                    {
+                        Console.WriteLine(e.Message);
+                        return false;
+                    }
+                    return true;
+                });
+            }
             if (gameReaderTask != null && !gameReaderTask.IsCompleted)
             {
-                try { tokenSource?.Cancel(); } catch (ObjectDisposedException e) { }
                 gameReaderTask?.Wait(10000);
             }
             iconDict?.Dispose();
@@ -127,17 +140,20 @@ namespace AmongUsReplayInWindow
                 GetAmongUsWindow.Text = "Looking for Among Us window";
                 createWindowTask = Task.Factory.StartNew(() =>
                 {
-                    Process ownerProcess = getOwnerWindow.findWindow("Among Us");
+                    Process ownerProcess = getOwnerWindow.findWindow(cancelToken, "Among Us");
                     if (ownerProcess == null)
                     {
                         OverlayWindow.open = false;
-                        Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Get Among Us Window");
+                        if (!closed)
+                            Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Get Among Us Window");
                         return;
                     }
-                    Invoke(new void_ProcessDelegate(createOverlayWindow), ownerProcess);
+                    if (!closed)
+                        Invoke(new void_ProcessDelegate(createOverlayWindow), ownerProcess);
                     if (overlayForm.ownerHandle != IntPtr.Zero)
                     {
-                        Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Running...");
+                        if (!closed)
+                            Invoke(new void_stringDelegate(ChangeGetAmongUsWindowButton), "Running...");
                         gameReaderTask = Task.Factory.StartNew(() =>
                         {
                             var gameReader = Task.Factory.StartNew(() =>
@@ -173,7 +189,7 @@ namespace AmongUsReplayInWindow
                             catch (ObjectDisposedException e) { }
                         });
                     }
-                });
+                }, cancelToken);
 
             }
         }
@@ -184,9 +200,9 @@ namespace AmongUsReplayInWindow
         }
 
         #region setting
-        internal bool drawIcon = true;
         internal int interval = 50;
         internal int step = 1;
+        internal uint hotkey = 0x11;
         private void replaySpeedTrackBar_Scroll(object sender, EventArgs ev)
         {
             if (sender != null)
@@ -251,8 +267,14 @@ namespace AmongUsReplayInWindow
             [DefaultValue(true)]
             public bool TaskBarVisible = true;
 
+            [DefaultValue(true)]
+            public bool VoteVisible = true;
+
             [DefaultValue(1.0f)]
             public float PlayerSize = 1.0f;
+
+            [DefaultValue("Control")]
+            public string hotkey = "Control";
         }
 
         void applySettings()
@@ -263,25 +285,34 @@ namespace AmongUsReplayInWindow
             replaySpeedTrackBar_Scroll(null, null);
             mapAlphaUpdown_ValueChanged(null, null);
 
-            drawIcon = settings.playerIcon == StartWindow.PlayerIconRendering.Icon;
-            if (overlayForm != null)
-            {
-                overlayForm.drawIcon = drawIcon;
-            }
-            foreach (var formF in fromFile.fromFileList)
-            {
-                formF.drawIcon = drawIcon;
-            }
+            DrawMove.drawIcon = settings.playerIcon == StartWindow.PlayerIconRendering.Icon;
+
 
             DrawMove.TaskBarVisible = settings.TaskBarVisible;
             DrawMove.PlayerNameVisible = settings.PlayerNameVisible;
+            DrawMove.VoteVisible = settings.VoteVisible;
 
             Map.mapFolder = settings.MapImageFolder;
 
             DrawMove.playerSize = settings.PlayerSize;
 
+            if (!StartWindow.hotKeyDict.TryGetValue(settings.hotkey, out hotkey))
+            {
+                settings.hotkey = "Control";
+                hotkey = 0x11;
+            }
+            StartWindow.SetHotKey(hotkey);
         }
 
+        public static Dictionary<string, UInt32> hotKeyDict = new Dictionary<string, uint>()
+        {
+            {"Control", (UInt32)0x11 },
+            {"Tab",  (UInt32)0x09 },
+            {"Shift", (UInt32)0x10 }
+        };
+
+        [DllImport("KeyboardHook.dll")]
+        public static extern void SetHotKey(UInt32 key);
         #endregion
 
 

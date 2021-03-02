@@ -4,20 +4,25 @@ using System.Drawing;
 using System.IO;
 using AmongUsCapture;
 using System.Windows.Forms;
+using System.Numerics;
 
 namespace AmongUsReplayInWindow
 {
-    class DrawMove
+    static class DrawMove
     {
         public static bool PlayerNameVisible = true;
         public static bool TaskBarVisible = true;
+        public static bool VoteVisible = true;
         public static float playerSize = 1.0f;
+        public static bool drawIcon = true;
 
         public class IconDict
         {
             public Dictionary<Color, Image> icons = null;
             public Image impostor = null;
             public Image vent = null;
+            public Image dead = null;
+            public Image megaphone = null;
             public IconDict()
             {
                 try
@@ -29,7 +34,7 @@ namespace AmongUsReplayInWindow
                 }
                 catch (Exception e)
                 {
-                    Console.Write(e.Message + "\n" + e.StackTrace + "\n");
+                    Console.WriteLine(e);
                     impostor = Properties.Resources.impostor;
                 }
 
@@ -42,8 +47,32 @@ namespace AmongUsReplayInWindow
                 }
                 catch (Exception e)
                 {
-                    Console.Write(e.Message + "\n" + e.StackTrace + "\n");
+                    Console.WriteLine(e);
                     vent = Properties.Resources.vent;
+                }
+                try
+                {
+                    using (FileStream stream = File.OpenRead(Program.exeFolder + "\\icon\\dead.png"))
+                    {
+                        dead = Image.FromStream(stream, false, false);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    dead = Properties.Resources.dead;
+                }
+                try
+                {
+                    using (FileStream stream = File.OpenRead(Program.exeFolder + "\\icon\\megaphone.png"))
+                    {
+                        megaphone = Image.FromStream(stream, false, false);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    megaphone = Properties.Resources.megaphone;
                 }
 
                 icons = new Dictionary<Color, Image>();
@@ -66,6 +95,19 @@ namespace AmongUsReplayInWindow
                             Console.Write(e.Message + "\n" + e.StackTrace + "\n");
                         }
                     }
+                    try
+                    {
+                        Color color = Color.FromArgb(Color.Empty.ToArgb());
+                        string iconName = Program.exeFolder + "\\icon\\Empty.png";
+                        using (FileStream stream = File.OpenRead(iconName))
+                        {
+                            icons.Add(color, Image.FromStream(stream, false, false));
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.Write(e.Message + "\n" + e.StackTrace + "\n");
+                    }
                 }
             }
             ~IconDict()
@@ -74,16 +116,19 @@ namespace AmongUsReplayInWindow
             }
             public void Dispose()
             {
-                if (impostor != null)
-                {
-                    impostor.Dispose();
-                    impostor = null;
-                }
-                if (vent != null)
-                {
-                    vent.Dispose();
-                    vent = null;
-                }
+
+                impostor?.Dispose();
+                impostor = null;
+
+                vent?.Dispose();
+                vent = null;
+
+                dead.Dispose();
+                dead = null;
+
+                megaphone?.Dispose();
+                megaphone = null;
+
                 if (icons != null)
                 {
                     foreach (var icon in icons.Values)
@@ -95,6 +140,152 @@ namespace AmongUsReplayInWindow
                 }
             }
         }
+
+        static public void DrawVoting(Graphics g, PlayerMoveArgs move, List<int> deadOrderList, Map.MapScale map, IconDict icons, Point mapLocation, Size mapSize)
+        {
+            if (mapSize.Width == 0 || mapSize.Height == 0 || move == null || move.voteList == null) return;
+            if (move.state == GameState.DISCUSSION)
+            {
+                bool voted = false;
+                for (int i=0;i<move.PlayerNum;i++)
+                {
+                    sbyte vote = move.voteList[i];
+                    if (move.PlayerIsDead[i]==0 && vote >= -1 && (vote < 10 || vote >= 31)) voted = true;
+                }
+                if (!voted) return;
+            }
+
+            string fontName = "Times New Roman";
+
+
+            float centerX = mapLocation.X + mapSize.Width / 2;
+            float centerY = mapLocation.Y + mapSize.Height / 2;
+            float voteWidth = mapSize.Height / 1.5f;
+            float voteHeight = mapSize.Height / 3;
+            float dvoteHeight = voteHeight * 2 / 5.7f;
+            float mainIconSize = dvoteHeight * 0.9f;
+            float iconSize = mainIconSize * 0.5f;
+            float dsize = Math.Max(1, mainIconSize / 8.0f);
+
+            Color backcolor;
+            if (move.state != GameState.DISCUSSION) backcolor = Color.FromArgb(180, 100, 100, 150);
+            else backcolor = Color.FromArgb(180, 100, 100, 100);
+            using (var brush = new SolidBrush(backcolor))
+                g.FillRectangle(brush, centerX - voteWidth, centerY - voteHeight, voteWidth * 2.05f, voteHeight * 2);
+            Color frontcolor = Color.FromArgb(230, 255, 255, 255);
+            using (var brush = new SolidBrush(frontcolor))
+                for (int i = 0; i < move.PlayerNum; i++)
+                {
+                    bool dead = false;
+                    if (!(move.PlayerIsDead[i] == 0 || (move.PlayerIsDead[i] == 11 && move.state != GameState.DISCUSSION)))
+                    {
+                        if (move.voteList[i] > 20) dead = true;
+                        else continue;
+                    }
+                    float x = centerX - voteWidth * (((i + 1) % 2) - 0.05f);
+                    float y = centerY - voteHeight * 0.95f + dvoteHeight * (int)(i / 2);
+                    if (!dead)
+                        g.FillRectangle(brush, x, y, voteWidth * 0.95f, mainIconSize);
+                    if (move.voteList[i] > 20 && icons?.megaphone != null)
+                    {
+                        float megaphone_w = icons.megaphone.Width / icons.megaphone.Height * mainIconSize;
+                        g.DrawImage(icons.megaphone, x + voteWidth * 0.95f - megaphone_w, y, megaphone_w, mainIconSize);
+                    }
+                }
+            int[] voteNum = new int[11];
+
+            using (var fnt = new Font(fontName, mainIconSize * 0.4f))
+                for (int i = 0; i < move.PlayerNum; i++)
+                {
+                    bool dead = false;
+                    if (!(move.PlayerIsDead[i] == 0 || (move.PlayerIsDead[i] == 11 && move.state != GameState.DISCUSSION)))
+                    {
+                        if (move.voteList[i] > 20) dead = true;
+                        else continue;
+                    }
+                    using (var pColorBrush = new SolidBrush(move.PlayerColors[i]))
+                    {
+                        Image icon = null;
+                        if (drawIcon) icon = icons?.icons?.GetValueOrDefault(move.PlayerColors[i]);
+
+
+                        float icon_w = 1;
+                        float icon_h = 1;
+                        if (icon != null)
+                        {
+                            icon_w = icon.Width;
+                            icon_h = icon.Height;
+                            if (icon_w > icon_h)
+                            {
+                                icon_h = icon_h / icon_w;
+                                icon_w = 1;
+                            }
+                            else
+                            {
+                                icon_w = icon_w / icon_h;
+                                icon_h = 1;
+                            }
+                        }
+                        float x = centerX - voteWidth * (((i + 1) % 2) - 0.05f);
+                        float y = centerY - voteHeight * 0.95f + dvoteHeight * (int)(i / 2);
+                        int voteId = move.voteList[i];
+                        if (voteId > 20) voteId -= 32;
+
+                        if (move.IsImpostor[i])
+                        {
+                            if (icon != null)
+                            {
+                                g.DrawImage(icons.impostor, x, y, icon_w * mainIconSize, icon_h * mainIconSize);
+                                g.DrawImage(icon, x, y, icon_w * mainIconSize, icon_h * mainIconSize);
+                            }
+                            else
+                                g.FillRectangle(pColorBrush, x, y, icon_w * mainIconSize, icon_h * mainIconSize);
+                            g.DrawString(move.PlayerNames[i], fnt, Brushes.Red, x + mainIconSize, y);
+                        }
+                        else
+                        {
+                            if (icon != null)
+                                g.DrawImage(icon, x, y, icon_w * mainIconSize, icon_h * mainIconSize);
+                            else
+                                g.FillRectangle(pColorBrush, x, y, icon_w * mainIconSize, icon_h * mainIconSize);
+                            g.DrawString(move.PlayerNames[i], fnt, Brushes.Black, x + mainIconSize, y);
+                        }
+                        if (dead) continue;
+                        if (move.PlayerIsDead[i] == 11 && icons?.dead != null) g.DrawImage(icons.dead, x, y, icon_w * mainIconSize, icon_h * mainIconSize);
+                        if (voteId > 9)
+                        {
+                            if (voteId != 14)
+                                Console.WriteLine($"{move.PlayerNames[i]}/{move.PlayerColors[i]}->Error ID:{voteId}");
+                        }
+                        else if (voteId >= 0)
+                        {
+                            if (icon != null)
+                            {
+                                if (move.IsImpostor[i])
+                                    g.DrawImage(icons.impostor, centerX - voteWidth * (((voteId + 1) % 2) - 0.05f) + iconSize * voteNum[voteId] + mainIconSize, centerY - voteHeight * 0.95f + dvoteHeight * (int)(voteId / 2) + iconSize, icon_w * iconSize, icon_h * iconSize);
+                                g.DrawImage(icon, centerX - voteWidth * (((voteId + 1) % 2) - 0.05f) + iconSize * voteNum[voteId] + mainIconSize, centerY - voteHeight * 0.95f + dvoteHeight * (int)(voteId / 2) + iconSize, icon_w * iconSize, icon_h * iconSize);
+                            }
+                            else
+                                g.FillRectangle(pColorBrush, centerX - voteWidth * (((voteId + 1) % 2) - 0.05f) + iconSize * voteNum[voteId] + mainIconSize, centerY - voteHeight * 0.95f + dvoteHeight * (int)(voteId / 2) + iconSize, icon_w * iconSize, icon_h * iconSize);
+
+                            voteNum[voteId]++;
+                        }
+                        else if (voteId == -1)
+                        {
+                            if (icon != null)
+                            {
+                                if (move.IsImpostor[i])
+                                    g.DrawImage(icons.impostor, centerX - voteWidth * 0.95f + iconSize * voteNum[10], centerY - voteHeight * 0.95f + dvoteHeight * 5.05f, icon_w * iconSize, icon_h * iconSize);
+                                g.DrawImage(icon, centerX - voteWidth * 0.95f + iconSize * voteNum[10], centerY - voteHeight * 0.95f + dvoteHeight * 5.05f, icon_w * iconSize, icon_h * iconSize);
+                            }
+                            else
+                                g.FillRectangle(pColorBrush, centerX - voteWidth * 0.95f + iconSize * voteNum[10], centerY - voteHeight * 0.95f + dvoteHeight * 5.05f, icon_w * iconSize, icon_h * iconSize);
+                            voteNum[10]++;
+                        }
+                    }
+                }
+        }
+
 
         static public void DrawMove_Icon(PaintEventArgs paint, PlayerMoveArgs move, List<int> deadOrderList, Map.MapScale map, IconDict icons, Point mapLocation, Size mapSize)
         {
@@ -143,7 +334,7 @@ namespace AmongUsReplayInWindow
                         if ((doorsUint >> i & 1) != 0)
                         {
                             float[] point = doors[i];
-                            
+
                             paint.Graphics.DrawLine(pen, mapLocation.X + (point[0] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[1] * map.ys + map.yp) * mapSize.Height, mapLocation.X + (point[2] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[3] * map.ys + map.yp) * mapSize.Height);
                             paint.Graphics.DrawLine(pen2, mapLocation.X + (point[0] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[1] * map.ys + map.yp) * mapSize.Height, mapLocation.X + (point[2] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[3] * map.ys + map.yp) * mapSize.Height);
 
@@ -175,7 +366,8 @@ namespace AmongUsReplayInWindow
                         int pointX = mapLocation.X + (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * mapSize.Width);
                         int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * mapSize.Height);
 
-                        Image icon = icons.icons.GetValueOrDefault(move.PlayerColors[i]);
+                        Image icon = null;
+                        if(drawIcon)icon = icons?.icons?.GetValueOrDefault(move.PlayerColors[i]);
                         if (icon != null)
                         {
                             float icon_w = iconSize * icon.Width / icon.Height;
@@ -211,7 +403,8 @@ namespace AmongUsReplayInWindow
                     {
                         int pointX = mapLocation.X + (int)(((move.PlayerPoses[id].X) * map.xs + map.xp) * mapSize.Width);
                         int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[id].Y) * map.ys + map.yp) * mapSize.Height);
-                        Image icon = icons.icons.GetValueOrDefault(move.PlayerColors[id]);
+                        Image icon = null;
+                        if (drawIcon) icon = icons?.icons?.GetValueOrDefault(move.PlayerColors[id]);
                         if (move.InVent[i])
                         {
                             if (icon != null)
@@ -272,8 +465,12 @@ namespace AmongUsReplayInWindow
                             int pointX = mapLocation.X + (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * mapSize.Width);
                             int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * mapSize.Height);
 
-
-                            if (move.PlayerIsDead[i] == -10)
+                            if (move.PlayerIsDead[i] == 11)
+                            {
+                                pointX = mapLocation.X + (int)(((map.centerOfTable.X) * map.xs + map.xp) * mapSize.Width);
+                                pointY = mapLocation.Y + (int)(((-map.centerOfTable.Y) * map.ys + map.yp) * mapSize.Height);
+                            }
+                            else if (move.PlayerIsDead[i] == -10)
                             {
                                 pointX = (int)(circleSize * (2.0 * disconnected + 10.5));
                                 pointY = (int)(circleSize * 3.7);
@@ -331,189 +528,10 @@ namespace AmongUsReplayInWindow
                 }
 
             }
-
-
+            if (VoteVisible &&(move.state == GameState.DISCUSSION || move.state == GameState.VotingResult || move.state == GameState.HumansWinByVote || move.state == GameState.ImpostorWinByVote))
+                DrawVoting(paint.Graphics, move, deadOrderList, map, icons, mapLocation, mapSize);
         }
 
-        static public void DrawMove_Simple(PaintEventArgs paint, PlayerMoveArgs move, List<int> deadOrderList, Map.MapScale map, Point mapLocation, Size mapSize)
-        {
-            if (mapSize.Width == 0 || mapSize.Height == 0) return;
-            paint.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-            string fontName = "Times New Roman";
-            if (move == null) return;
-            int AllImpostorNum = 0;
-
-            float circleSize = mapSize.Height / 39.0f * playerSize;
-            float dsize = Math.Max(1, circleSize / 5.0f);
-            using (var fnt = new Font(fontName, circleSize))
-            {
-                int minutes = move.time / 60000;
-                int seconds = move.time / 1000 - minutes * 60;
-
-                paint.Graphics.FillRectangle(Brushes.White, 0, circleSize * 4.5f, circleSize * 18, circleSize * 1.2f);
-                paint.Graphics.FillRectangle(Brushes.White, 0, circleSize * 5.7f, circleSize * 8, circleSize * 1.2f);
-                if (move.Sabotage.TaskType != TaskTypes.SubmitScan && move.state == GameState.TASKS)
-                    using (var fnt2 = new Font(fontName, circleSize, FontStyle.Bold))
-                        paint.Graphics.DrawString(move.Sabotage.TaskType.ToString(), fnt2, Brushes.Red, 0, circleSize * 4.5f);
-                else
-                    paint.Graphics.DrawString(move.state.ToString(), fnt, Brushes.Black, 0, circleSize * 4.5f);
-                paint.Graphics.DrawString($"{minutes:00}:{seconds:00}", fnt, Brushes.Black, 0, circleSize * 5.7f);
-
-                paint.Graphics.FillRectangle(Brushes.LightGray, 0, 0, circleSize * 25, circleSize * 4.5f);
-                paint.Graphics.DrawString("KILLED\t          :", fnt, Brushes.Black, 0, circleSize * 0.0f);
-                paint.Graphics.DrawString("EJECTED        :", fnt, Brushes.Black, 0, circleSize * 1.5f);
-                paint.Graphics.DrawString("DISCONNECT :", fnt, Brushes.Black, 0, circleSize * 3.0f);
-            }
-            int killed = 0, ejjected = 0, disconnected = 0;
-
-
-
-            using (var fnt = new Font(fontName, circleSize * 0.8f, FontStyle.Bold))
-            {
-                //set dead order
-                for (int i = 0; i < move.PlayerNum; i++)
-                {
-                    if (move.PlayerIsDead[i] != 0 && !deadOrderList.Contains(i)) deadOrderList.Add(i);
-                }
-
-                //draw dead
-                foreach (int i in deadOrderList)
-                {
-                    if (move.PlayerIsDead[i] != 0)
-                    {
-                        using (var brush = new SolidBrush(move.PlayerColors[i]))
-                        {
-
-                            int pointX = mapLocation.X + (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * mapSize.Width);
-                            int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * mapSize.Height);
-
-
-                            if (move.PlayerIsDead[i] == -10)
-                            {
-                                pointX = (int)(circleSize * (2.0 * disconnected + 10.5));
-                                pointY = (int)(circleSize * 3.7);
-                                disconnected++;
-                            }
-                            else if (move.PlayerIsDead[i] == -11)
-                            {
-                                pointX = (int)(circleSize * (2.0 * ejjected + 10.5));
-                                pointY = (int)(circleSize * 2.2);
-                                ejjected++;
-                            }
-                            else if (move.PlayerIsDead[i] <= -20)
-                            {
-                                pointX = (int)(circleSize * (2.0 * killed + 10.5));
-                                pointY = (int)(circleSize * 0.7);
-                                killed++;
-                            }
-
-                            float d = dsize * 1.8f;
-                            PointF[] points = {  new PointF(pointX - d, pointY - d * 2),
-                                            new PointF(pointX, pointY - d),
-                                            new PointF(pointX + d, pointY - d * 2),
-                                            new PointF(pointX + d * 2, pointY - d),
-                                            new PointF(pointX + d, pointY),
-                                            new PointF(pointX + d * 2, pointY + d),
-                                            new PointF(pointX + d, pointY + d * 2),
-                                            new PointF(pointX, pointY + d),
-                                            new PointF(pointX - d, pointY + d * 2),
-                                            new PointF(pointX - d * 2, pointY + d),
-                                            new PointF(pointX - d, pointY),
-                                            new PointF(pointX - d * 2, pointY - d),
-                                            };
-                            paint.Graphics.FillPolygon(brush, points);
-                            if (Math.Abs(move.PlayerIsDead[i]) >= 20)
-                            {
-                                using (var pen = new Pen(move.PlayerColors[Math.Abs(move.PlayerIsDead[i]) - 20], dsize))
-                                    paint.Graphics.DrawPolygon(pen, points);
-                            }
-
-                            if (move.PlayerIsDead[i] > 0)
-                                paint.Graphics.DrawString(move.PlayerNames[i], fnt, move.IsImpostor[i] ? Brushes.Red : Brushes.Black, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
-                            else if (move.IsImpostor[i])
-                                paint.Graphics.DrawString("imp", fnt, (move.PlayerColors[i].ToArgb() == Color.Red.ToArgb() || move.PlayerColors[i].ToArgb() == Color.HotPink.ToArgb()) ? Brushes.Black : Brushes.Red, pointX - circleSize * 1.0f, pointY - circleSize * 0.7f);
-                            if (move.PlayerIsDead[i] == 11)
-                                paint.Graphics.DrawString("ejected", fnt, move.PlayerColors[i].ToArgb() == Color.Black.ToArgb() ? Brushes.Red : Brushes.Black, pointX - circleSize * 2.0f, pointY - circleSize * 0.7f);
-
-                            if (!move.IsImpostor[i])
-                            {
-                                paint.Graphics.FillRectangle(Brushes.Gray, pointX - circleSize, pointY + circleSize * 0.6f, circleSize * 2, circleSize * 0.3f);
-                                paint.Graphics.FillRectangle(Brushes.Lime, pointX - circleSize, pointY + circleSize * 0.6f, circleSize * 2 * move.TaskProgress[i], circleSize * 0.3f);
-                            }
-
-                        }
-                    }
-                }
-
-                //draw living crew
-                for (int i = 0; i < move.PlayerNum; i++)
-                {
-                    if (move.IsImpostor[i])
-                    {
-                        AllImpostorNum++;
-                        continue;
-                    }
-                    if (move.PlayerColors == null || move.PlayerIsDead[i] != 0) continue;
-
-                    using (var brush = new SolidBrush(move.PlayerColors[i]))
-                    {
-
-                        int pointX = mapLocation.X + (int)(((move.PlayerPoses[i].X) * map.xs + map.xp) * mapSize.Width);
-                        int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[i].Y) * map.ys + map.yp) * mapSize.Height);
-
-
-                        paint.Graphics.FillEllipse(brush, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
-
-                        paint.Graphics.DrawString(move.PlayerNames[i], fnt, Brushes.Black, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
-
-                        paint.Graphics.FillRectangle(Brushes.Gray, pointX - circleSize, pointY + circleSize * 0.6f, circleSize * 2, circleSize * 0.3f);
-                        paint.Graphics.FillRectangle(Brushes.Lime, pointX - circleSize, pointY + circleSize * 0.6f, circleSize * 2 * move.TaskProgress[i], circleSize * 0.3f);
-                    }
-                }
-
-
-
-                //DrawImp
-                for (int i = 0; i < AllImpostorNum; i++)
-                {
-                    int id = move.ImpostorId[i];
-                    if (move.PlayerColors == null || move.PlayerIsDead[id] != 0) continue;
-
-
-                    using (var brush = new SolidBrush(move.PlayerColors[id]))
-                    using (Pen pen = new Pen(GetCColor(move.PlayerColors[id]), dsize))
-                    {
-                        int pointX = mapLocation.X + (int)(((move.PlayerPoses[id].X) * map.xs + map.xp) * mapSize.Width);
-                        int pointY = mapLocation.Y + (int)(((-move.PlayerPoses[id].Y) * map.ys + map.yp) * mapSize.Height);
-
-                        if (move.InVent[i])
-                        {
-                            int s = (int)(circleSize * 0.8);
-                            int cos = (int)(Math.Cos(Math.PI / 3) * s);
-                            int sin = (int)(Math.Sin(Math.PI / 3) * s);
-                            Point[] points = {
-                                         new Point(pointX, pointY - s),
-                                         new Point(pointX + sin, pointY + cos),
-                                         new Point(pointX - sin, pointY + cos )
-                                };
-                            paint.Graphics.FillPolygon(brush, points);
-                            paint.Graphics.DrawPolygon(pen, points);
-
-                        }
-                        else
-                        {
-                            paint.Graphics.FillEllipse(brush, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
-                            paint.Graphics.DrawEllipse(pen, pointX - circleSize / 2, pointY - circleSize / 2, circleSize, circleSize);
-
-                        }
-                        paint.Graphics.DrawString(move.PlayerNames[id], fnt, Brushes.Red, pointX - circleSize * 1.5f, pointY - circleSize * 1.5f);
-
-                    }
-                }
-            }
-
-
-        }
         static private Color GetCColor(Color color)
         {
             byte r = (byte)~color.R;

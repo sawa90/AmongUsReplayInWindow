@@ -14,6 +14,7 @@ bool enable = false;
 HWND hwnd = NULL;
 HWND trackhwnd = NULL;
 HWND hOwnerWnd = NULL;
+UINT32 keycode = VK_CONTROL;
 #pragma data_seg()
 
 HINSTANCE hInst;
@@ -26,6 +27,8 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD dwReason, LPVOID lpReserved)
         break;
     case DLL_PROCESS_DETACH:
         ResetKeyboardHook();
+        if(IsWindow(hwnd))
+            PostMessage(hwnd, WM_CLOSE, 0, 0);
         break;
     }
     return TRUE;
@@ -78,13 +81,17 @@ DLLAPI void SetKeyboardEnable(BOOL gPlaying, BOOL gEnable) {
     enable = gEnable;
 }
 
+DLLAPI void SetHotKey(UINT32 key) {
+    keycode = key;
+}
+
 DLLAPI LRESULT CALLBACK MyHookProc(int nCode, WPARAM wp, LPARAM lp)
 {
 
     if (nCode < 0 || !enable)
         return CallNextHookEx(hMyKeyboardHook, nCode, wp, lp);
 
-    if (wp == VK_CONTROL && (((UINT32)lp >> 30) == 0)) {
+    if (wp == keycode && (((UINT32)lp >> 30) == 0)) {
         if (IsWindowVisible(hwnd)) {
             ShowWindow(hwnd, SW_HIDE);
             ShowWindow(trackhwnd, SW_HIDE);

@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Collections.Generic;
+using System.Numerics;
 
 namespace AmongUsReplayInWindow
 {
@@ -15,6 +16,7 @@ namespace AmongUsReplayInWindow
         {
             public int Id;
             public float hw, xs, ys, xp, yp;
+            public Vector2 centerOfTable;
         }
 
         static public MapScale[] Maps = new MapScale[3]
@@ -26,6 +28,7 @@ namespace AmongUsReplayInWindow
                 ys = 0.038f,
                 xp = 0.554f,
                 yp = 0.292f,
+                centerOfTable = new Vector2(-1.0f, 1.1f)
             },
             new MapScale
             {
@@ -35,6 +38,7 @@ namespace AmongUsReplayInWindow
                 ys = 0.0305f,
                 xp = 0.30f,
                 yp = 0.83f,
+                centerOfTable = new Vector2(24.03f,2.625f)
             },
             new MapScale
             {
@@ -44,6 +48,7 @@ namespace AmongUsReplayInWindow
                 ys = 0.0335f,
                 xp = 0.021f,
                 yp = 0.093f,
+                centerOfTable = new Vector2(19.5f,-16.876f)
             }
         };
 

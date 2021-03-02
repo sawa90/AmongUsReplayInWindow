@@ -10,3 +10,4 @@ DLLAPI BOOL SetKeyboardHook(INT32 threadId, HWND winhandle, HWND trackhandle, HW
 DLLAPI BOOL ResetKeyboardHook();
 DLLAPI void SetKeyboardEnable(BOOL gPlaying, BOOL gEnable);
 DLLAPI void SetZorder();
+DLLAPI void SetHotKey(UINT32 key);

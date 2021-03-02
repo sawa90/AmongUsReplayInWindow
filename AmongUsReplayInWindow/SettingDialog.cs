@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
-using System.IO; 
+using System.IO;
 
 namespace AmongUsReplayInWindow
 {
@@ -32,23 +32,19 @@ namespace AmongUsReplayInWindow
 
             PlayerNameCheckBox.Checked = setting.PlayerNameVisible;
             TaskBarCheckBox.Checked = setting.TaskBarVisible;
+            VoteCheckBox.Checked = setting.VoteVisible;
 
+            foreach (var key in StartWindow.hotKeyDict.Keys)
+                HotKeyBox.Items.Add(key);
+            HotKeyBox.SelectedItem = setting.hotkey;
         }
 
         private void PlayerIcon_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (sender != null)
                 startWindow.settings.playerIcon = (StartWindow.PlayerIconRendering)PlayerIcon.SelectedIndex;
-            startWindow.drawIcon = startWindow.settings.playerIcon == StartWindow.PlayerIconRendering.Icon;
-            if (startWindow.overlayForm != null)
-            {
-                startWindow.overlayForm.drawIcon = startWindow.drawIcon;
-            }
+            DrawMove.drawIcon = startWindow.settings.playerIcon == StartWindow.PlayerIconRendering.Icon;
 
-            foreach (var formF in fromFile.fromFileList)
-            {
-                formF.drawIcon = startWindow.drawIcon;
-            }
         }
 
         private void MapImageBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -80,5 +76,23 @@ namespace AmongUsReplayInWindow
             startWindow.settings.TaskBarVisible = TaskBarCheckBox.Checked;
             DrawMove.TaskBarVisible = TaskBarCheckBox.Checked;
         }
+
+        private void VoteCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            startWindow.settings.VoteVisible = VoteCheckBox.Checked;
+            DrawMove.VoteVisible = VoteCheckBox.Checked;
+        }
+
+        private void HotKeyBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            UInt32 key;
+            if(StartWindow.hotKeyDict.TryGetValue((string)HotKeyBox.SelectedItem,out key))
+            {
+                startWindow.settings.hotkey = (string)HotKeyBox.SelectedItem;
+                startWindow.hotkey = key;
+                StartWindow.SetHotKey(key);
+            }
+        }
+
     }
 }

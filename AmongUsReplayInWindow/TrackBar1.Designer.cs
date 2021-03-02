@@ -43,6 +43,7 @@ namespace AmongUsReplayInWindow
             this.trackBar0.Size = new System.Drawing.Size(360, 45);
             this.trackBar0.SmallChange = 5;
             this.trackBar0.TabIndex = 0;
+            this.trackBar0.TabStop = false;
             this.trackBar0.TickStyle = System.Windows.Forms.TickStyle.None;
             // 
             // TrackBarWin

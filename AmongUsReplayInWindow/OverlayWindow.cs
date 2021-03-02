@@ -62,7 +62,6 @@ namespace AmongUsReplayInWindow
         public const int WS_EX_LAYERED = 0x00080000;
         public const int WS_EX_TOPMOST = 0x00000008;
         internal StartWindow startWindow;
-        internal bool drawIcon;
 
         #endregion
 
@@ -123,7 +122,6 @@ namespace AmongUsReplayInWindow
             drawTimer.Interval = startWindow.interval;
             drawTimer.Tick += new EventHandler(DrawTimerHandler);
             Visible = false;
-            drawIcon = startWindow.drawIcon;
             SizeChanged += SizeChangedHandler;
             Move += MoveHandler;
         }
@@ -338,7 +336,7 @@ namespace AmongUsReplayInWindow
                     discussionTime = moveArg.time;
                 }
 
-                if (moveArg.state >= GameState.ENDED) finishWriter();
+                if (moveArg.state >= GameState.ENDED && moveArg.state < GameState.VotingResult) finishWriter();
             }
 
         }
@@ -426,13 +424,7 @@ namespace AmongUsReplayInWindow
                 backgroundMap?.Draw(paint.Graphics);
             lock (lockObject)
             {
-                if (drawIcon && startWindow?.iconDict != null) 
-                {
-                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
-
-                }
-                else
-                    DrawMove.DrawMove_Simple(paint, moveArg, deadOrderList, Map.Maps[mapId], mapLocation, mapSize);
+                DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
             }
 
         }

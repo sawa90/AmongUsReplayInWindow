@@ -12,98 +12,7 @@ namespace AmongUsReplayInWindow
 {
     static public class MoveLogFile
     {
-        public class Handler_WriteMoveLogFile
-        {
-            MoveLogFile.WriteMoveLogFile writer = null;
-            public PlayerMoveArgs e = null;
-            string filename;
-            bool Playing = true;
-            int discussionTime = -1000;
-            GameMemReader instance;
 
-
-            public Handler_WriteMoveLogFile(GameMemReader instance)
-            {
-                this.instance = instance;
-                instance.PlayerMove += PlayerPosHandler;
-                instance.GameStateChanged += GameStateChangedEventHandler;
-                instance.GameStart += GameStartHandler;
-            }
-
-            ~Handler_WriteMoveLogFile()
-            {
-                Close();
-            }
-
-            public void Close()
-            {
-                if (instance!=null)
-                {
-                    instance.PlayerMove -= PlayerPosHandler;
-                    instance.GameStateChanged -= GameStateChangedEventHandler;
-                    instance.GameStart -= GameStartHandler;
-                    instance = null;
-                }
-            }
-
-            public void GameStartHandler(object? sender, GameStartEventArgs startArgs)
-            {
-                Playing = true;
-                discussionTime = -1000;
-                writer?.Close();
-                writer = new MoveLogFile.WriteMoveLogFile(startArgs);
-            }
-
-            void finishWriter()
-            {
-                if (writer != null)
-                {
-                    writer.Close();
-                    filename = writer.filename;
-                    writer = null;
-                }
-            }
-            public void GameStateChangedEventHandler(object? sender, GameStateChangedEventArgs stateArgs)
-            {
-                if (stateArgs != null)
-                {
-                    var newState = stateArgs.NewState;
-                    if (newState == GameState.MENU || newState == GameState.LOBBY)
-                    {
-                        finishWriter();
-                        Playing = false;
-                    }
-                    else if (!Playing)
-                    {
-                        Playing = true;
-                    }
-
-                }
-
-            }
-
-
-
-            public void PlayerPosHandler(object? sender, PlayerMoveArgs moveArgs)
-            {
-
-                if (Playing)
-                {
-                    e = moveArgs;
-                    if (e.state != GameState.DISCUSSION) writer?.writeMove2bFile(moveArgs);
-                    else if (e.time - discussionTime > 1000)
-                    {
-                        writer?.writeMove2bFile(moveArgs);
-                        discussionTime = e.time;
-                    }
-
-                    if (e.state >= GameState.ENDED) finishWriter();
-                }
-
-            }
-
-
-        }
         public class WriteMoveLogFile
         {
             static int version = 1;
@@ -224,7 +133,10 @@ namespace AmongUsReplayInWindow
                             writer.Write(e.PlayerPoses[i].X);
                             writer.Write(e.PlayerPoses[i].Y);
                             writer.Write((sbyte)(e.PlayerIsDead[i]));
-                            writer.Write((byte)(e.TaskProgress[i] * 255));
+                            if(e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote)
+                                writer.Write((sbyte)e.voteList[i]);
+                            else
+                                writer.Write((byte)(e.TaskProgress[i] * 255));
                         }
                         return true;
                     }
@@ -289,6 +201,7 @@ namespace AmongUsReplayInWindow
                     e.InVent = new bool[3];
                     e.TaskProgress = new float[10];
                     e.Sabotage = new TaskInfo();
+                    if (version > 0) e.voteList = new sbyte[10];
 
                     for (int i = 0; i < AllImposorNum; i++) e.ImpostorId[i] = reader.ReadInt32();
                     for (int i = 0; i < PlayerNum; i++)
@@ -356,7 +269,10 @@ namespace AmongUsReplayInWindow
                             e.PlayerPoses[i].X = reader.ReadSingle();
                             e.PlayerPoses[i].Y = reader.ReadSingle();
                             e.PlayerIsDead[i] = reader.ReadSByte();
-                            e.TaskProgress[i] = reader.ReadByte() / 255.0f;
+                            if (version > 0 && (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote))
+                                e.voteList[i] = reader.ReadSByte();
+                            else
+                                e.TaskProgress[i] = reader.ReadByte() / 255.0f;
                         }
                     }
                     catch (EndOfStreamException er)

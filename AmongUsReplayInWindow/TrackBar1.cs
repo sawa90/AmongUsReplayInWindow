@@ -121,13 +121,31 @@ namespace AmongUsReplayInWindow
                 
                 trackBar_Scroll(null, null);
                 e.Handled = true;
-            } else if(e.KeyCode == Keys.ControlKey || e.KeyCode == Keys.LControlKey || e.KeyCode == Keys.RControlKey)
+            } else if(checkKey(e.KeyCode))
             {
                 giveFocus();
                 OwnerForm.Visible = false;
                 Visible = false;
             }
 
+        }
+        const uint VK_CONTROL = 0x11;
+        const uint VK_TAB = 0x09;
+        const uint VK_SHIFT = 0x10;
+        
+        bool checkKey(Keys key)
+        {
+            uint hotkey = OwnerForm.startWindow.hotkey;
+            switch (hotkey)
+            {
+                case VK_TAB:
+                    return key == Keys.Tab;
+                case VK_SHIFT:
+                    return (key == Keys.ShiftKey || key == Keys.LShiftKey || key == Keys.RShiftKey);
+                case VK_CONTROL:
+                default:
+                    return (key == Keys.ControlKey || key == Keys.LControlKey || key == Keys.RControlKey);
+            }
         }
 
         internal int step = 1;

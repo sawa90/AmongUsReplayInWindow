@@ -6,15 +6,18 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Threading;
 
 namespace AmongUsReplayInWindow.setOwnerWindow
 {
     class getOwnerWindow
     {
-        public static Process findWindow(string processName = "Among Us")
+        public static Process findWindow(CancellationToken cancellation, string processName = "Among Us")
         {
             for (int i = 0; i < 50; i++)
             {
+                if (cancellation.IsCancellationRequested) 
+                    return null;
                 foreach (System.Diagnostics.Process p in
                     System.Diagnostics.Process.GetProcesses())
                 {
@@ -53,7 +56,7 @@ namespace AmongUsReplayInWindow.setOwnerWindow
 
             if (!NativeMethods.IsWindow(hOwnerWnd))
             {
-                ((Timer)sender).Enabled = false;
+                ((System.Windows.Forms.Timer)sender).Enabled = false;
                 form.Close();
                 return;
             }
