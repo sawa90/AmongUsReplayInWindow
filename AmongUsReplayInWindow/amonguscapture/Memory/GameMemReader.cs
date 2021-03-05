@@ -135,6 +135,7 @@ namespace AmongUsCapture
         PlayMap playMap = PlayMap.Skeld;
         public string filename = null;
         int myId = 0;
+        int[] IdList = new int[10];
 
         Door[] doors;
         UInt32 doorsUint = 0;
@@ -163,6 +164,7 @@ namespace AmongUsCapture
                 PlayerNames[i] = "";
                 voteList[i] = -3;
                 discussionEndTime = -10000;
+                IdList[i] = i;
             }
             Sabotage = new TaskInfo();
             DeadBodyPosList.Clear();
@@ -377,10 +379,15 @@ namespace AmongUsCapture
                                 {
                                     voteInfo = ProcessMemory.getInstance().Read<VoteInfo>(voteInfoPtr, 4 * i, 0);
 
-                                    int id = voteInfo.Id_;
+                                    int id = IdList[voteInfo.Id_];
                                     //if (id != i)
                                     //    Console.Write($"{id}!={ i}   ");
-                                    if (voteInfo.didVote) voteList[id] = voteInfo.votedFor;
+                                    if (voteInfo.didVote)
+                                    {
+                                        sbyte votedId = voteInfo.votedFor;
+                                        if (votedId >= 0 && votedId < 10) votedId = (sbyte)IdList[votedId];
+                                        voteList[id] = votedId;
+                                    }
                                     else voteList[id] = -3;
                                     if (voteInfo.didReport) voteList[id] += 32;
                                 }
@@ -426,7 +433,7 @@ namespace AmongUsCapture
                         {
                             var pi = ProcessMemory.getInstance().Read<PlayerInfo>(playerAddrPtr, 0, 0);
                             playerAddrPtr += 4;
-
+                            var id = IdList[pi.PlayerId];
                             if (pi.PlayerId == exiledPlayerId)
                             {
                                 PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
@@ -437,16 +444,16 @@ namespace AmongUsCapture
                                     Disconnected = pi.GetIsDisconnected(),
                                     Color = pi.GetPlayerColor()
                                 });
-                                if (playerIsDead[exiledPlayerId] != 11 && playerIsDead[exiledPlayerId] != -11)
+                                if (playerIsDead[id] != 11 && playerIsDead[id] != -11)
                                 {
                                     disconnect = false;
-                                    playerIsDead[pi.PlayerId] = 11;
-                                    DeadLogList.Add(new DeadLog(gameStartTime, pi.PlayerId, centerOfTable[(int)playMap]));
+                                    playerIsDead[id] = 11;
+                                    DeadLogList.Add(new DeadLog(gameStartTime, id, centerOfTable[(int)playMap]));
                                 }
-                                else playerIsDead[exiledPlayerId] = -11;
+                                else playerIsDead[id] = -11;
 
                             }
-                            else if (playerIsDead[pi.PlayerId] > 0) playerIsDead[pi.PlayerId] = -playerIsDead[pi.PlayerId];
+                            else if (playerIsDead[id] > 0) playerIsDead[id] = -playerIsDead[id];
 
                             // skip invalid, dead and exiled players
                             if (pi.PlayerName == 0 || pi.PlayerId == exiledPlayerId || pi.IsDead == 1 ||
@@ -572,7 +579,7 @@ namespace AmongUsCapture
                         string playerName = pi.GetPlayerName();
                         if (playerName == null) playerName = "";
                         //if (playerName.Length == 0) continue;
-                        int id = pi.PlayerId;
+                        int id = IdList[pi.PlayerId];
                         if (Math.Abs(playerIsDead[id]) < 10)
                         {
                             if (pi.GetIsDead()) playerIsDead[id] = 1;
@@ -593,8 +600,13 @@ namespace AmongUsCapture
                                 
                                 if (pcontrol.myLight_ != 0)
                                 {
-                                    if (pi.GetIsDead()) tasklist += 4;
-                                    IntPtr p = (IntPtr)ProcessMemory.getInstance().Read<Int32>(tasklist, 0x10 + 4 * (pi.IsImpostor + TaskNum[id]));
+                                    if (pi.GetIsDead())
+                                         tasklist += 4;
+                                    IntPtr p;
+                                    if (pi.GetIsDead() && pi.IsImpostor == 1)
+                                        p = (IntPtr)ProcessMemory.getInstance().Read<Int32>(tasklist, 0x10);
+                                    else
+                                        p = (IntPtr)ProcessMemory.getInstance().Read<Int32>(tasklist, 0x10 + 4 * (pi.IsImpostor + TaskNum[id]));
                                     Sabotage = ProcessMemory.getInstance().Read<TaskInfo>(p);
                                     if (Sabotage.TaskType != TaskTypes.SubmitScan && TaskNum[id] != 0 && Sabotage.TaskType == taskInfos[id][TaskNum[id] - 1].TaskType)
                                     {
@@ -634,7 +646,7 @@ namespace AmongUsCapture
                             PlayerPoses[id] = ProcessMemory.getInstance().Read<Vector2>((IntPtr)(pcontrol.NetTransform + offset));
                             newPlayerCon[id] = pcontrol;
                             moveable = pcontrol.moveable;
-                            //IsImpostorLis[pi.PlayerId] = pi.IsImpostor == 1;
+                            //IsImpostorLis[id] = pi.IsImpostor == 1;
                         }
                         if (pi.IsImpostor == 1) AllImposterNum++;
                         #region amonguscapture
@@ -732,7 +744,7 @@ namespace AmongUsCapture
                                 playerIsDead[i] = 15;
                                 DeadBodyPosList.RemoveAt(0);
                             }
-                            else playerIsDead[i] = DeadBodyPosList[0].ImpostorDists[0].PlayerId + 20;
+                            else playerIsDead[i] = DeadBodyPosList[0].ImpostorDists[0].Id + 20;
                         }
                     }
 
@@ -960,35 +972,35 @@ namespace AmongUsCapture
                 {
                     var pi = ProcessMemory.getInstance().Read<PlayerInfo>(playerAddrPtr, 0, 0);
                     playerAddrPtr += 4;
-                    int id = pi.PlayerId;
-                    PlayerNames[id] = pi.GetPlayerName();
-                    if (PlayerNames[id] == null) PlayerNames[id] = "";
-                    PlayerName2IDdict[PlayerNames[id]] = pi.PlayerId;
-                    IsImpostorLis[id] = pi.IsImpostor == 1;
+                    IdList[pi.PlayerId] = i;
+                    PlayerNames[i] = pi.GetPlayerName();
+                    if (PlayerNames[i] == null) PlayerNames[i] = "";
+                    PlayerName2IDdict[PlayerNames[i]] = i;
+                    IsImpostorLis[i] = pi.IsImpostor == 1;
                     var col = (int)pi.GetPlayerColor();
                     if (col >= 0 && col < 12)
                     {
-                        PlayerColors[id] = ColorList[col];
-                        PlayerColorsInt[id] = (PlayerColor)col;
+                        PlayerColors[i] = ColorList[col];
+                        PlayerColorsInt[i] = (PlayerColor)col;
                     }
-                    else PlayerColors[id] = Color.Empty;
+                    else PlayerColors[i] = Color.Empty;
                     if (pi.IsImpostor == 1)
                     {
-                        filename += "_" + PlayerNames[id];
-                        ImpostorId[ImposterNum] = id;
+                        filename += "_" + PlayerNames[i];
+                        ImpostorId[ImposterNum] = i;
                         ImposterNum++;
                     }
-                    HatIds[id] = pi.HatId;
-                    PetIds[id] = pi.PetId;
-                    SkinIds[id] = pi.SkinId;
+                    HatIds[i] = pi.HatId;
+                    PetIds[i] = pi.PetId;
+                    SkinIds[i] = pi.SkinId;
 
                     var pcontrol = ProcessMemory.getInstance().Read<PlayerControl>((IntPtr)pi._object);
 
                     int offset = 0x3C;
                     if (pcontrol.myLight_ != 0) offset = 0x50;
-                    PlayerPoses[id] = ProcessMemory.getInstance().Read<Vector2>((IntPtr)(pcontrol.NetTransform + offset));
-                    newPlayerCon[id] = pcontrol;
-                    if (pcontrol.myLight_ != 0) myId = id;
+                    PlayerPoses[i] = ProcessMemory.getInstance().Read<Vector2>((IntPtr)(pcontrol.NetTransform + offset));
+                    newPlayerCon[i] = pcontrol;
+                    if (pcontrol.myLight_ != 0) myId = i;
                 }
 
                 playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
@@ -1218,7 +1230,7 @@ namespace AmongUsCapture
         public static GameMemReader memReader;
 
         public int time;
-        public int DeadPlayerID;
+        public int DeadID;
         public string DeadPlayerName;
         public string DeadPlayerColor;
         public Vector2 DeadPos;
@@ -1226,7 +1238,7 @@ namespace AmongUsCapture
         public DeadLog(long startTime, int deadId, Vector2 pos)
         {
             time = (Int32)((DateTime.Now.Ticks - startTime) / TimeSpan.TicksPerMillisecond);
-            DeadPlayerID = deadId;
+            DeadID = deadId;
             DeadPlayerName = memReader.PlayerNames[deadId];
             DeadPlayerColor = memReader.PlayerColorsInt[deadId].ToString();
             DeadPos = memReader.PlayerPoses[deadId];
@@ -1237,7 +1249,7 @@ namespace AmongUsCapture
             int m = (int)(time / 60000);
             int s = (int)(time / 1000) - m * 60;
             string st = $"{m,2}:{s,2}: {DeadPlayerName}/{DeadPlayerColor} ";
-            int cause = Math.Abs(memReader.playerIsDead[DeadPlayerID]);
+            int cause = Math.Abs(memReader.playerIsDead[DeadID]);
 
             if (cause == 11) st += "was ejected";
             else if (cause >= 20) st += $"was killed by {memReader.PlayerNames[cause - 20]}/{memReader.PlayerColorsInt[cause - 20]}";
@@ -1250,7 +1262,7 @@ namespace AmongUsCapture
     }
     public class DeadBodyPos
     {
-        public int KilledPlayerId;
+        public int KilledId;
         public int NearestImpostorId;
         public Vector2 BodyPos;
         public List<ImpostorDist> ImpostorDists = new List<ImpostorDist>();
@@ -1260,23 +1272,23 @@ namespace AmongUsCapture
 
         public struct ImpostorDist
         {
-            public int PlayerId;
+            public int Id;
             public float distance;
         }
 
-        public DeadBodyPos(int gKilledPlayerId, Vector2[] PosList,int[] ImpostorId,int[] IsDead, int AllImpNum)
+        public DeadBodyPos(int gKilledId, Vector2[] PosList,int[] ImpostorId,int[] IsDead, int AllImpNum)
         {
-            KilledPlayerId = gKilledPlayerId;
-            BodyPos = PosList[KilledPlayerId];
+            KilledId = gKilledId;
+            BodyPos = PosList[KilledId];
             for (int i = 0; i < AllImpNum; i++)
             {
                 var imDist = new ImpostorDist();
-                imDist.PlayerId = ImpostorId[i];
+                imDist.Id = ImpostorId[i];
                 imDist.distance = (PosList[ImpostorId[i]] - BodyPos).LengthSquared();
                 if (imDist.distance < 25.0f && IsDead[ImpostorId[i]] == 0 ) ImpostorDists.Add(imDist);
             }
             ImpostorDists.Sort((a, b) => (a.distance > b.distance) ? 1 : (a.distance < b.distance) ? -1 : 0);
-            if (ImpostorDists.Count != 0) NearestImpostorId = ImpostorDists[0].PlayerId;
+            if (ImpostorDists.Count != 0) NearestImpostorId = ImpostorDists[0].Id;
         }
     }
 
