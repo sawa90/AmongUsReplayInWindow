@@ -99,7 +99,9 @@
     "isEpic": false,
     "AddPlayerPtr": 4,
     "PlayerListPtr": 0x10,
-    "ShipStatusPtr": [0x1c57cac,0x5c,0x0,0x0]
+    "ShipStatusPtr": [0x1c57cac,0x5c,0x0],
+    "DoorsPtr": 0x7c,
+    "PlayerVoteAreaListPtr": 0x60
   },
   "4BFEB19A37634C94017824F0D71B1C4651173C4B9242FF4EF6FAFFA593DFD91D": {
     "Description": "v2020.12.9 (Epic Games)",
@@ -165,6 +167,41 @@
     "PlayMapOffsets": [0x21E82C8,0xB8,0x8,0x18],
     "StringOffsets": [0x10, 0x14],
     "isEpic": true
+  },
+  "31E1F0C1D7370071F96514B8A76DE72FF0EE130F870A1BC157D63E0FBDA979D1": {
+    "Description": "v2021.3.5s",
+    "AmongUsClientOffset": 0x2C6C278,
+    "GameDataOffset": 0x2C6C07C,
+    "MeetingHudOffset": 0x2C6B78C,
+    "GameStartManagerOffset": 0x2B27F38,
+    "HudManagerOffset": 0x1AE16EC,
+    "ServerManagerOffset": 0x2B206E8,
+    "TempDataOffset": 0x2C6BFA4,
+    "GameOptionsOffset": 0x2C6C310,
+
+    "MeetingHudPtr": [0x2C6B78C, 0x5C, 0],
+    "MeetingHudCachePtrOffsets": [8],
+    "MeetingHudStateOffsets": [0x84],
+    "GameStateOffsets": [0x2C6C278, 0x5C, 0, 0x6C],
+    "AllPlayerPtrOffsets": [0x2C6C07C, 0x5C, 0, 0x24],
+    "AllPlayersOffsets": [8],
+    "PlayerCountOffsets": [0x0C],
+    "ExiledPlayerIdOffsets": [0x2C6B78C, 0x5C, 0, 0x94, 8],
+    "RawGameOverReasonOffsets": [0x2C6BFA4, 0x5C, 4],
+    "WinningPlayersPtrOffsets": [0x2C6BFA4, 0x5C, 0xC],
+    "WinningPlayersOffsets": [8],
+    "WinningPlayerCountOffsets": [0xC],
+    "GameCodeOffsets": [0x2B27F38, 0x5C, 0, 0x20, 0x28],
+    "PlayRegionOffsets": [0x2B206E8, 0x5C, 0, 0x10, 8, 8],
+    "PlayMapOffsets": [0x2C6C310, 0x5C, 4, 0x10],
+    "StringOffsets": [8, 0xC],
+    "isEpic": false,
+    "AddPlayerPtr": 4,
+    "PlayerListPtr": 0x10,
+    "ShipStatusPtr": [0x2c6c3e8,0x5c,0x0],
+    "DoorsPtr": 0x84,
+    "PlayerVoteAreaListPtr": 0x60,
+    "before20201209s":false
   }
 }
 

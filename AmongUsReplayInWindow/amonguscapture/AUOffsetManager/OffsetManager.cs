@@ -110,6 +110,16 @@ namespace AUOffsetManager
                 if (offsets is not null)
                 {
                     Console.WriteLine($"Loaded offsets: {OffsetIndex[sha256Hash].Description}");
+                    OffsetIndex[sha256Hash].before20201209s = HashList_until20201209s.Contains(sha256Hash);
+                    if (OffsetIndex[sha256Hash].PlayerVoteAreaListPtr == 0) OffsetIndex[sha256Hash].PlayerVoteAreaListPtr = 0x60;
+                    if (OffsetIndex[sha256Hash].before20201209s)
+                    {
+                        if (OffsetIndex[sha256Hash].DoorsPtr == 0) OffsetIndex[sha256Hash].DoorsPtr = 0x7c;
+                    }
+                    else
+                    {
+                        if (OffsetIndex[sha256Hash].DoorsPtr == 0) OffsetIndex[sha256Hash].DoorsPtr = 0x84;  
+                    }
                 }
                 return offsets;
             }
@@ -130,6 +140,18 @@ namespace AUOffsetManager
             var serialized = JsonConvert.SerializeObject(LocalOffsetIndex, Formatting.Indented);
             sw.Write(serialized);
         }
+
+        public static List<string> HashList_until20201209s = new List<string>()
+        {
+            "FF1DAE62454312FCE09A39061999C26FD26440FDA5F36C1E6424290A34D05B08",
+            "38119B8551718D9016BAFEEDC105610D5B3AED5B0036D1A6060B8E2ABE523C02",
+            "5AB7B3419ED29AF0728E66AE8F1A207AEDD6456280128060FEDF74621B287BE6",
+            "9BD96553424D3313700E4CB06F0FFECA346B96F731DA57C00F6B78BC3CE81902",
+            "1393240B74D9E27741E7FBA13D67C843E5CE0C3D0EF7ABBEE24179CB97C29918",
+            "0B010BD3195D39C089DC018D834B2EBD26BA67D2F49C4EBEA608A804FC0975B7",
+            "4BFEB19A37634C94017824F0D71B1C4651173C4B9242FF4EF6FAFFA593DFD91D",
+            "windows_store"
+        };
     }
 
     public class GameOffsets
@@ -170,8 +192,9 @@ namespace AUOffsetManager
         public int[] PlayMapOffsets { get; set; }
         public int[] StringOffsets { get; set; }
         public int[] ShipStatusPtr { get; set; }
-
-
+        public bool before20201209s { get; set; }
+        public int DoorsPtr { get; set; }
+        public int PlayerVoteAreaListPtr { get; set; }
     }
 
 }

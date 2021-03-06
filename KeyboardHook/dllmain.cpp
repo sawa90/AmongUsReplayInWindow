@@ -128,22 +128,28 @@ DLLAPI LRESULT CALLBACK MyWndProc(int nCode, WPARAM wp, LPARAM lp) {
                 bool r3 = SetWindowPos(hwnd, trackhwnd, 0, 0, 0, 0, SWP_Z);
             }
         }
-        
-        if (pcwp->message == WM_SIZE) {
-            int w = pcwp->lParam & 0xFFFF;
-            int h = (pcwp->lParam >> 16) & 0xFFFF;
-            if (pcwp->wParam == SIZE_MINIMIZED) {
-                w = 0;
-                h = 0;
-            }
-            bool r1 = SetWindowPos(hwnd, 0, 0, 0, w, h, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
-        }else if (pcwp->message == WM_MOVE) {
-            int x = pcwp->lParam & 0xFFFF;
-            int y = (pcwp->lParam >> 16) & 0xFFFF;
-            bool r1 = SetWindowPos(hwnd, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
-        }
-        else if (pcwp->message == WM_CLOSE) {
-            PostMessage(hwnd, WM_CLOSE, 0, 0);
+        int x, y;
+        switch (pcwp->message) {
+        case WM_SIZE:
+                x = pcwp->lParam & 0xFFFF;
+                y = (pcwp->lParam >> 16) & 0xFFFF;
+                if (pcwp->wParam == SIZE_MINIMIZED) {
+                    x = 0;
+                    y = 0;
+                }
+                SetWindowPos(hwnd, 0, 0, 0, x, y, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+                break;
+        case WM_MOVE:
+                x = pcwp->lParam & 0xFFFF;
+                y = (pcwp->lParam >> 16) & 0xFFFF;
+                SetWindowPos(hwnd, 0, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS);
+                break;
+        case WM_CLOSE:
+        case WM_DESTROY:
+                PostMessage(hwnd, WM_CLOSE, 0, 0);
+                break;
+        default:
+            break;
         }
             
     }

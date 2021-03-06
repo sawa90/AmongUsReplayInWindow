@@ -9,54 +9,111 @@ using System.Drawing;
 
 namespace AmongUsCapture
 {
-    [StructLayout(LayoutKind.Explicit)]
-    public struct ShipStatus
+    static partial class Struct_2020_12_9s
     {
-        // FMDGHKGPBPP in 2020.10.8i
-        // DAFPFFMKPJJ in 2020.10.22s
-        // OLEKJGCEKAM in 2020.11.4s
-        // EIEMHBCHLNI in 2020.11.17s
-        // HLBNNHFCNAJ in 2020.12.9s
+        [StructLayout(LayoutKind.Explicit)]
+        public struct v_ShipStatus
+        {
+            // FMDGHKGPBPP in 2020.10.8i
+            // DAFPFFMKPJJ in 2020.10.22s
+            // OLEKJGCEKAM in 2020.11.4s
+            // EIEMHBCHLNI in 2020.11.17s
+            // HLBNNHFCNAJ in 2020.12.9s
 
-        [FieldOffset(0x24)] public UInt32 CameraColor;
-        [FieldOffset(0x34)] public float MaxLightRadius; // [marker]
-        [FieldOffset(0x38)] public float MinLightRadius;
-        [FieldOffset(0x3c)] public float MapScale;
-        [FieldOffset(0x40)] public UInt32 MapPrefab;
-        [FieldOffset(0x44)] public UInt32 ExileCutscenePrefab;
-        [FieldOffset(0x48)] public Vector2 InitialSpawnCenter;
-        [FieldOffset(0x50)] public Vector2 MeetingSpawnCenter;
-        [FieldOffset(0x58)] public Vector2 MeetingSpawnCenter2;
-        [FieldOffset(0x60)] public float SpawnRadius;
-        [FieldOffset(0x64)] public UInt32 CommonTasks;
-        [FieldOffset(0x68)] public UInt32 LongTasks;
-        [FieldOffset(0x6c)] public UInt32 NormalTasks;
-        [FieldOffset(0x70)] public UInt32 SpecialTasks;
-        [FieldOffset(0x74)] public UInt32 DummyLocations;
-        [FieldOffset(0x78)] public UInt32 AllCameras;
-        [FieldOffset(0x7c)] public UInt32 AllDoors;
-        [FieldOffset(0x80)] public UInt32 AllConsoles;
-        [FieldOffset(0x84)] public UInt32 Systems;
-        [FieldOffset(0x88)] public UInt32 _DJLENIPKKGM_k__BackingField;
-        [FieldOffset(0x8c)] public UInt32 _GCGACPGKENC_k__BackingField;
-        [FieldOffset(0x90)] public UInt32 _dic_LJFDDJHBOGF_GCGACPGKENC_k__BackingField;
-        [FieldOffset(0x94)] public UInt32 _OPPMFCFACJB_k__BackingField;
-        [FieldOffset(0x98)] public UInt32 WeaponFires;
-        [FieldOffset(0x9c)] public UInt32 WeaponsImage;
-        [FieldOffset(0xa0)] public UInt32 VentMoveSounds;
-        [FieldOffset(0xa4)] public UInt32 VentEnterSound;
-        [FieldOffset(0xa8)] public UInt32 HatchActive;
-        [FieldOffset(0xac)] public UInt32 Hatch;
-        [FieldOffset(0xb0)] public UInt32 HatchParticles;
-        [FieldOffset(0xb4)] public UInt32 ShieldsActive;
-        [FieldOffset(0xb8)] public UInt32 ShieldsImages;
-        [FieldOffset(0xbc)] public UInt32 ShieldBorder;
-        [FieldOffset(0xc0)] public UInt32 ShieldBorderOn;
-        [FieldOffset(0xc4)] public UInt32 MedScanner;
-        [FieldOffset(0xc8)] public Int32 WeaponFireIdx;
-        [FieldOffset(0xcc)] public float Timer;
-        [FieldOffset(0xd0)] public float EmergencyCooldown;
-        [FieldOffset(0xd4)] public Int32 MapType;
+            [FieldOffset(0x24)] public UInt32 CameraColor;
+            [FieldOffset(0x34)] public float MaxLightRadius; // [marker]
+            [FieldOffset(0x38)] public float MinLightRadius;
+            [FieldOffset(0x3c)] public float MapScale;
+            [FieldOffset(0x40)] public UInt32 MapPrefab;
+            [FieldOffset(0x44)] public UInt32 ExileCutscenePrefab;
+            [FieldOffset(0x48)] public Vector2 InitialSpawnCenter;
+            [FieldOffset(0x50)] public Vector2 MeetingSpawnCenter;
+            [FieldOffset(0x58)] public Vector2 MeetingSpawnCenter2;
+            [FieldOffset(0x60)] public float SpawnRadius;
+            [FieldOffset(0x64)] public UInt32 CommonTasks;
+            [FieldOffset(0x68)] public UInt32 LongTasks;
+            [FieldOffset(0x6c)] public UInt32 NormalTasks;
+            [FieldOffset(0x70)] public UInt32 SpecialTasks;
+            [FieldOffset(0x74)] public UInt32 DummyLocations;
+            [FieldOffset(0x78)] public UInt32 AllCameras;
+            [FieldOffset(0x7c)] public UInt32 AllDoors;
+            [FieldOffset(0x80)] public UInt32 AllConsoles;
+            [FieldOffset(0x84)] public UInt32 Systems;
+            [FieldOffset(0x88)] public UInt32 _DJLENIPKKGM_k__BackingField;
+            [FieldOffset(0x8c)] public UInt32 _GCGACPGKENC_k__BackingField;
+            [FieldOffset(0x90)] public UInt32 _dic_LJFDDJHBOGF_GCGACPGKENC_k__BackingField;
+            [FieldOffset(0x94)] public UInt32 _OPPMFCFACJB_k__BackingField;
+            [FieldOffset(0x98)] public UInt32 WeaponFires;
+            [FieldOffset(0x9c)] public UInt32 WeaponsImage;
+            [FieldOffset(0xa0)] public UInt32 VentMoveSounds;
+            [FieldOffset(0xa4)] public UInt32 VentEnterSound;
+            [FieldOffset(0xa8)] public UInt32 HatchActive;
+            [FieldOffset(0xac)] public UInt32 Hatch;
+            [FieldOffset(0xb0)] public UInt32 HatchParticles;
+            [FieldOffset(0xb4)] public UInt32 ShieldsActive;
+            [FieldOffset(0xb8)] public UInt32 ShieldsImages;
+            [FieldOffset(0xbc)] public UInt32 ShieldBorder;
+            [FieldOffset(0xc0)] public UInt32 ShieldBorderOn;
+            [FieldOffset(0xc4)] public UInt32 MedScanner;
+            [FieldOffset(0xc8)] public Int32 WeaponFireIdx;
+            [FieldOffset(0xcc)] public float Timer;
+            [FieldOffset(0xd0)] public float EmergencyCooldown;
+            [FieldOffset(0xd4)] public Int32 MapType;
+        }
+    }
+
+    static partial class Struct_2021_3_5s
+    {
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct v_ShipStatus
+        {
+            // ShipStatus in 2021.3.5s
+
+            [FieldOffset(0x24)] public UInt32 CameraColor;
+            [FieldOffset(0x34)] public float MaxLightRadius; // [marker]
+            [FieldOffset(0x38)] public float MinLightRadius;
+            [FieldOffset(0x3c)] public float MapScale;
+            [FieldOffset(0x40)] public UInt32 MapPrefab;
+            [FieldOffset(0x44)] public UInt32 ExileCutscenePrefab;
+            [FieldOffset(0x48)] public UInt32 EmergencyOverlay;
+            [FieldOffset(0x4c)] public UInt32 ReportOverlay;
+            [FieldOffset(0x48)] public Vector2 InitialSpawnCenter;
+            [FieldOffset(0x58)] public Vector2 MeetingSpawnCenter;
+            [FieldOffset(0x60)] public Vector2 MeetingSpawnCenter2;
+            [FieldOffset(0x68)] public float SpawnRadius;
+            [FieldOffset(0x6c)] public UInt32 CommonTasks;
+            [FieldOffset(0x70)] public UInt32 LongTasks;
+            [FieldOffset(0x74)] public UInt32 NormalTasks;
+            [FieldOffset(0x78)] public UInt32 SpecialTasks;
+            [FieldOffset(0x7c)] public UInt32 DummyLocations;
+            [FieldOffset(0x80)] public UInt32 AllCameras;
+            [FieldOffset(0x84)] public UInt32 AllDoors;
+            [FieldOffset(0x88)] public UInt32 AllConsoles;
+            [FieldOffset(0x8c)] public UInt32 Systems;
+            [FieldOffset(0x90)] public UInt32 SystemNames;
+            [FieldOffset(0x94)] public UInt32 _DJLENIPKKGM_k__BackingField;
+            [FieldOffset(0x98)] public UInt32 _GCGACPGKENC_k__BackingField;
+            [FieldOffset(0x9c)] public UInt32 _dic_LJFDDJHBOGF_GCGACPGKENC_k__BackingField;
+            [FieldOffset(0xa0)] public UInt32 _OPPMFCFACJB_k__BackingField;
+            [FieldOffset(0xa4)] public UInt32 SabotageSound;
+            [FieldOffset(0xa8)] public UInt32 WeaponFires;
+            [FieldOffset(0xac)] public UInt32 WeaponsImage;
+            [FieldOffset(0xb0)] public UInt32 VentMoveSounds;
+            [FieldOffset(0xb4)] public UInt32 VentEnterSound;
+            [FieldOffset(0xb8)] public UInt32 HatchActive;
+            [FieldOffset(0xbc)] public UInt32 Hatch;
+            [FieldOffset(0xc0)] public UInt32 HatchParticles;
+            [FieldOffset(0xc4)] public UInt32 ShieldsActive;
+            [FieldOffset(0xc8)] public UInt32 ShieldsImages;
+            [FieldOffset(0xcc)] public UInt32 ShieldBorder;
+            [FieldOffset(0xd0)] public UInt32 ShieldBorderOn;
+            [FieldOffset(0xd4)] public UInt32 MedScanner;
+            [FieldOffset(0xd8)] public Int32 WeaponFireIdx;
+            [FieldOffset(0xdc)] public float Timer;
+            [FieldOffset(0xe0)] public float EmergencyCooldown;
+            [FieldOffset(0xe4)] public Int32 MapType;
+        }
     }
 
     //EEHJPJEBAGP  in 2020.12.9s

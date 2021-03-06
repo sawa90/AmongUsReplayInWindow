@@ -3,20 +3,19 @@ using System.Runtime.InteropServices;
 
 namespace AmongUsCapture
 {
-    [System.Runtime.InteropServices.StructLayout(LayoutKind.Explicit)]
-    public struct PlayerInfo
+    public interface PlayerInfo
     {
-        [System.Runtime.InteropServices.FieldOffset(8)] public byte PlayerId;
-        [System.Runtime.InteropServices.FieldOffset(12)] public uint PlayerName;
-        [System.Runtime.InteropServices.FieldOffset(16)] public byte ColorId;
-        [System.Runtime.InteropServices.FieldOffset(20)] public uint HatId;
-        [System.Runtime.InteropServices.FieldOffset(24)] public uint PetId;
-        [System.Runtime.InteropServices.FieldOffset(28)] public uint SkinId;
-        [System.Runtime.InteropServices.FieldOffset(32)] public byte Disconnected;
-        [System.Runtime.InteropServices.FieldOffset(36)] public UInt32 Tasks;
-        [System.Runtime.InteropServices.FieldOffset(40)] public byte IsImpostor;
-        [System.Runtime.InteropServices.FieldOffset(41)] public byte IsDead;
-        [System.Runtime.InteropServices.FieldOffset(44)] public UInt32 _object;
+        public abstract byte PlayerId { get; }
+        public abstract IntPtr PlayerName { get; }
+        public abstract byte ColorId { get; }
+        public abstract uint HatId { get; }
+        public abstract uint PetId { get; }
+        public abstract uint SkinId { get; }
+        public abstract byte Disconnected { get; }
+        public abstract IntPtr Tasks { get; }
+        public abstract byte IsImpostor { get; }
+        public abstract byte IsDead { get; }
+        public abstract IntPtr _object { get; }
 
         public bool GetIsDead()
         {
@@ -25,8 +24,12 @@ namespace AmongUsCapture
 
         public string GetPlayerName()
         {
-            if (this.PlayerName == 0) return null;
-            return ProcessMemory.getInstance().ReadString((IntPtr)this.PlayerName);
+            return ProcessMemory.getInstance().ReadString((IntPtr)this.PlayerName, 0x10, 0x14);
+        }
+
+        public bool GetIsImposter()
+        {
+            return this.IsImpostor == 1;
         }
 
         public PlayerColor GetPlayerColor()
@@ -37,6 +40,118 @@ namespace AmongUsCapture
         public bool GetIsDisconnected()
         {
             return this.Disconnected > 0;
+        }
+    }
+    static partial class Struct_2020_12_9s
+    {
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct v_PlayerInfo : PlayerInfo
+        {
+            [FieldOffset(0x08)] public byte PlayerId;
+            [FieldOffset(0x0C)] public uint PlayerName;
+            [FieldOffset(0x10)] public byte ColorId;
+            [FieldOffset(0x14)] public uint HatId;
+            [FieldOffset(0x18)] public uint PetId;
+            [FieldOffset(0x1C)] public uint SkinId;
+            [FieldOffset(0x20)] public byte Disconnected;
+            [FieldOffset(0x24)] public IntPtr Tasks;
+            [FieldOffset(0x28)] public byte IsImpostor;
+            [FieldOffset(0x29)] public byte IsDead;
+            [FieldOffset(0x2C)] public IntPtr _object;
+
+            byte PlayerInfo.PlayerId => PlayerId;
+
+            IntPtr PlayerInfo.PlayerName => (IntPtr)PlayerName;
+
+            byte PlayerInfo.ColorId => ColorId;
+
+            uint PlayerInfo.HatId => HatId;
+
+            uint PlayerInfo.PetId => PetId;
+
+            uint PlayerInfo.SkinId => SkinId;
+
+            byte PlayerInfo.Disconnected => Disconnected;
+
+            IntPtr PlayerInfo.Tasks => Tasks;
+
+            byte PlayerInfo.IsImpostor => IsImpostor;
+
+            byte PlayerInfo.IsDead => IsDead;
+
+            IntPtr PlayerInfo._object => _object;
+
+            public bool GetIsDead()
+            {
+                return this.IsDead > 0;
+            }
+
+            public string GetPlayerName()
+            {
+                if (this.PlayerName == 0) return null;
+                return ProcessMemory.getInstance().ReadString((IntPtr)this.PlayerName);
+            }
+
+            public PlayerColor GetPlayerColor()
+            {
+                return (PlayerColor)this.ColorId;
+            }
+
+            public bool GetIsDisconnected()
+            {
+                return this.Disconnected > 0;
+            }
+        }
+    }
+
+
+    static partial class Struct_2021_3_5s
+    {
+        [StructLayout(LayoutKind.Explicit)]
+        public struct v_PlayerInfo : PlayerInfo
+        {
+            [FieldOffset(0x08)] public byte PlayerId;
+            [FieldOffset(0x0C)] public uint PlayerName;
+            [FieldOffset(0x11)] public byte ColorId;
+            [FieldOffset(0x14)] public uint HatId;
+            [FieldOffset(0x18)] public uint PetId;
+            [FieldOffset(0x1C)] public uint SkinId;
+            [FieldOffset(0x20)] public byte Disconnected;
+            [FieldOffset(0x24)] public IntPtr Tasks;
+            [FieldOffset(0x28)] public byte IsImpostor;
+            [FieldOffset(0x29)] public byte IsDead;
+            [FieldOffset(0x2C)] public IntPtr _object;
+
+            byte PlayerInfo.PlayerId => PlayerId;
+
+            IntPtr PlayerInfo.PlayerName => (IntPtr)PlayerName;
+
+            byte PlayerInfo.ColorId => ColorId;
+
+            uint PlayerInfo.HatId => HatId;
+
+            uint PlayerInfo.PetId => PetId;
+
+            uint PlayerInfo.SkinId => SkinId;
+
+            byte PlayerInfo.Disconnected => Disconnected;
+
+            IntPtr PlayerInfo.Tasks => Tasks;
+
+            byte PlayerInfo.IsImpostor => IsImpostor;
+
+            byte PlayerInfo.IsDead => IsDead;
+
+            IntPtr PlayerInfo._object => _object;
+
+
+            public string GetPlayerName()
+            {
+                if (this.PlayerName == 0) return null;
+                return ProcessMemory.getInstance().ReadString((IntPtr)this.PlayerName);
+            }
+
         }
     }
 
