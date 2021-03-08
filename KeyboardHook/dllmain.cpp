@@ -147,6 +147,7 @@ DLLAPI LRESULT CALLBACK MyWndProc(int nCode, WPARAM wp, LPARAM lp) {
         case WM_CLOSE:
         case WM_DESTROY:
                 PostMessage(hwnd, WM_CLOSE, 0, 0);
+                ResetKeyboardHook();
                 break;
         default:
             break;

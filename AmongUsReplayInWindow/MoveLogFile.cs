@@ -19,10 +19,11 @@ namespace AmongUsReplayInWindow
             string folderPass;
             private Stream stream;
             private BinaryWriter writer;
-            int AllImposorNum;
-            string tempfilename;
+            internal int AllImposorNum;
+            internal string tempfilename;
             public string filename;
-            private object lockObject = new object();
+            internal object lockObject = new object();
+            internal PlayerMoveArgs move = null;
 
             public WriteMoveLogFile(GameStartEventArgs startArgs)
             {
@@ -43,7 +44,7 @@ namespace AmongUsReplayInWindow
                         Directory.CreateDirectory(folderPass);
                     }
                     this.filename = folderPass + "\\" + startArgs.filename + ".dat";
-                    tempfilename = folderPass + "\\" + DateTime.Now.ToString("yyyyMMdd_HHmm_ss")+".dat";
+                    tempfilename = folderPass + "\\" + DateTime.Now.ToString("yyyyMMdd_HHmm_ss") + ".dat";
                     try
                     {
                         stream = File.Create(tempfilename);
@@ -67,7 +68,7 @@ namespace AmongUsReplayInWindow
                 Close();
             }
 
-            public void Close()
+            public virtual void Close()
             {
                 lock (lockObject)
                 {
@@ -80,7 +81,7 @@ namespace AmongUsReplayInWindow
                         stream = null;
                         if (File.Exists(tempfilename))
                             File.Move(tempfilename, filename);
-                    } catch(ObjectDisposedException e)
+                    } catch (ObjectDisposedException e)
                     {
                         writer = null;
                         stream = null;
@@ -92,6 +93,7 @@ namespace AmongUsReplayInWindow
             {
                 lock (lockObject)
                 {
+                    move = startArgs.PlayerMove;
                     if (writer != null)
                     {
                         writer.Write((Int32)version);
@@ -120,6 +122,7 @@ namespace AmongUsReplayInWindow
             {
                 lock (lockObject)
                 {
+                    move = e;
                     if (writer != null)
                     {
                         writer.Write((Int32)e.time);
@@ -133,7 +136,7 @@ namespace AmongUsReplayInWindow
                             writer.Write(e.PlayerPoses[i].X);
                             writer.Write(e.PlayerPoses[i].Y);
                             writer.Write((sbyte)(e.PlayerIsDead[i]));
-                            if(e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote)
+                            if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote)
                                 writer.Write((sbyte)e.voteList[i]);
                             else
                                 writer.Write((byte)(e.TaskProgress[i] * 255));
@@ -177,7 +180,7 @@ namespace AmongUsReplayInWindow
                 {
                     startArgs = new GameStartEventArgs();
                     startArgs.PlayerMove = e;
-                    
+
 
                     version = reader.ReadInt32();
                     startArgs.PlayMap = (PlayMap)reader.ReadInt32();
@@ -277,13 +280,102 @@ namespace AmongUsReplayInWindow
                     }
                     catch (EndOfStreamException er)
                     {
-                        
+
                     }
                 }
                 return e;
             }
 
 
+        }
+
+        public class WriteMoveLogFile_chatLogFile : WriteMoveLogFile
+        {
+            private string tempChatfilename;
+            private Stream chatstream;
+            private StreamWriter chatwriter;
+            private Dictionary<string, int> PlayerName2Id = new Dictionary<string, int>();
+            private Dictionary<string, string> Name2WithInfo = new Dictionary<string, string>();
+            public WriteMoveLogFile_chatLogFile(GameStartEventArgs startArgs) :base(startArgs)
+            {
+                lock (lockObject)
+                {
+                    tempChatfilename = Path.ChangeExtension(filename, "txt");
+                    try
+                    {
+                        chatstream = File.Create(tempChatfilename);
+                        chatwriter = new StreamWriter(chatstream);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        chatwriter?.Close();
+                        chatstream?.Close();
+                        chatwriter = null;
+                        chatstream = null;
+                        return;
+                    }
+                    int playerNum = startArgs.PlayerMove.PlayerNum;
+                    var m = startArgs.PlayerMove;
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("Impostor:\n");
+                    for (int i = 0; i < AllImposorNum; i++)
+                    {
+                        sb.Append(m.PlayerNames[m.ImpostorId[i]] + "/" + GameMemReader.ColorNameDict[m.PlayerColors[m.ImpostorId[i]].ToArgb()] + "\n");
+                    }
+
+                    sb.Append("\nCrewmate:\n");
+                    int NameInfoMax = 0;
+                    for (int i = 0; i < playerNum; i++)
+                    {
+                        PlayerName2Id[m.PlayerNames[i]] = i;
+                        string nameinfo = m.PlayerNames[i] + "/" + GameMemReader.ColorNameDict[m.PlayerColors[i].ToArgb()];
+                        Name2WithInfo[m.PlayerNames[i]] = nameinfo + ":";
+                        if (nameinfo.Length > NameInfoMax) NameInfoMax = nameinfo.Length;
+                        if (!m.IsImpostor[i])
+                            sb.Append(nameinfo + "\n");
+                    }
+                    for (int i = 0; i < playerNum; i++)
+                        Name2WithInfo[m.PlayerNames[i]] = Name2WithInfo[m.PlayerNames[i]].PadRight(NameInfoMax + 2);
+                    for (int i = 0; i < AllImposorNum; i++)
+                    {
+                        Name2WithInfo[m.PlayerNames[m.ImpostorId[i]]] = "☆" + Name2WithInfo[m.PlayerNames[m.ImpostorId[i]]];
+                    }
+                    sb.Append("\n\n");
+                    chatwriter.Write(sb.ToString());
+                }
+            }
+
+            public void WriteChat(ChatMessageEventArgs chat)
+            {
+                lock (lockObject)
+                {
+                    if (chatwriter == null) return;
+                    if (chat.Sender != null)
+                    {
+                        string nameinfo;
+                        if (Name2WithInfo.TryGetValue(chat.Sender, out nameinfo))
+                        {
+                            chatwriter.WriteLine(nameinfo + chat.Message);
+                            return;
+                        }
+                    }
+                    chatwriter.WriteLine(chat.Sender + chat.Message);
+                }
+            }
+
+
+            override public void Close()
+            {
+                base.Close();
+                lock (lockObject)
+                {
+                    chatwriter?.Close();
+                    chatstream?.Close();
+                    chatwriter = null;
+                    chatstream = null;
+                }
+            }
         }
 
     }

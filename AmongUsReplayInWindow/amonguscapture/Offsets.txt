@@ -201,7 +201,8 @@
     "ShipStatusPtr": [0x2c6c3e8,0x5c,0x0],
     "DoorsPtr": 0x84,
     "PlayerVoteAreaListPtr": 0x60,
-    "before20201209s":false
+    "before20201209s": false,
+    "ChatControllerPtr": [0x2AE8A78,0x5C,0,0x2C]
   }
 }
 

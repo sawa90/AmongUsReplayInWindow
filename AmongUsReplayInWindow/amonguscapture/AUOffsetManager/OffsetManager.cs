@@ -37,6 +37,7 @@ namespace AUOffsetManager
             {
                 OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
             }
+            OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
 
         }
         public async Task RefreshIndex()
@@ -195,6 +196,7 @@ namespace AUOffsetManager
         public bool before20201209s { get; set; }
         public int DoorsPtr { get; set; }
         public int PlayerVoteAreaListPtr { get; set; }
+        public int[] ChatControllerPtr { get; set; }
     }
 
 }

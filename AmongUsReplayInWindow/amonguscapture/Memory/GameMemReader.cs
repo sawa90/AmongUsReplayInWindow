@@ -35,32 +35,33 @@ namespace AmongUsCapture
 
     public class GameMemReader
     {
+        #region value
         private static readonly GameMemReader instance = new GameMemReader();
         private bool exileCausesEnd;
 
-        private bool shouldReadLobby = false;
+        //private bool shouldReadLobby = false;
         private IntPtr GameAssemblyPtr = IntPtr.Zero;
-
+        /*
         public Dictionary<string, PlayerInfo>
             newPlayerInfos =
                 new Dictionary<string, PlayerInfo>(
                     10); // container for new player infos. Also has capacity 10 already assigned so no internal resizing of the data structure is needed
-
+        */
         private LobbyEventArgs latestLobbyEventArgs = null;
-
+        /*
         public Dictionary<string, PlayerInfo>
             oldPlayerInfos =
                 new Dictionary<string, PlayerInfo>(
                     10); // Important: this is making the assumption that player names are unique. They are, but for better tracking of players and to eliminate any ambiguity the keys of this probably need to be the players' network IDs instead
 
         private Dictionary<string, ImmutablePlayer> CachedPlayerInfos = new Dictionary<string, ImmutablePlayer>();
-
+        */
         private GameState oldState = GameState.UNKNOWN;
 
         private int prevChatBubsVersion;
-        private bool shouldForceTransmitState;
-        private bool shouldForceUpdatePlayers;
-        private bool shouldTransmitLobby;
+        //private bool shouldForceTransmitState;
+        //private bool shouldForceUpdatePlayers;
+        //private bool shouldTransmitLobby;
 
         public static GameMemReader getInstance()
         {
@@ -142,6 +143,10 @@ namespace AmongUsCapture
 
         Int32 discussionEndTime = -10000;
         sbyte[] voteList = new sbyte[10];
+        IntPtr lastChatBubblePtr = IntPtr.Zero;
+        int lastChatBubbleIdx = 0;
+        bool loadLastchatNextturn = false;
+        #endregion
 
         public GameMemReader()
         {
@@ -172,6 +177,8 @@ namespace AmongUsCapture
             PlayerName2IDdict.Clear();
             gameOverReason = GameOverReason.Unknown;
             doorsUint = 0;
+            lastChatBubblePtr = IntPtr.Zero;
+            lastChatBubbleIdx = 0;
         }
 
 
@@ -509,7 +516,13 @@ namespace AmongUsCapture
                         }
                     }
                     #region amonguscapture
-                    if (state != oldState || shouldForceTransmitState)
+                    if (state != oldState)
+                    {
+                        GameStateChanged?.Invoke(this, new GameStateChangedEventArgs { NewState = state });
+                        Console.WriteLine($"GameState Changed: {state}");
+                    }
+                    /*
+                    if (state == oldState || shouldForceTransmitState)
                     {
                         GameStateChanged?.Invoke(this, new GameStateChangedEventArgs { NewState = state });
                         shouldForceTransmitState = false;
@@ -520,14 +533,14 @@ namespace AmongUsCapture
                     {
                         shouldReadLobby = true; // will eventually transmit
                     }
-
+                    */
 
                     if (oldState == GameState.ENDED && (state == GameState.LOBBY || state == GameState.MENU)) // game ended
                     {
                         int rawGameOverReason = ProcessMemory.getInstance()
                             .Read<int>(GameAssemblyPtr, CurrentOffsets.RawGameOverReasonOffsets);
                         gameOverReason = (GameOverReason)rawGameOverReason;
-
+                        /*
                         bool humansWon = rawGameOverReason <= 1 || rawGameOverReason == 5;
                         if (humansWon) // we will be reading humans data, so set all to simps
                         {
@@ -570,12 +583,13 @@ namespace AmongUsCapture
 
                         ImmutablePlayer[] endingPlayerInfos = new ImmutablePlayer[CachedPlayerInfos.Count];
                         CachedPlayerInfos.Values.CopyTo(endingPlayerInfos, 0);
-
+                        
                         GameOver?.Invoke(this, new GameOverEventArgs
                         {
                             GameOverReason = gameOverReason,
                             PlayerInfos = endingPlayerInfos
                         });
+                        */
                         Console.WriteLine($"{gameOverReason}");
                     }
 
@@ -584,7 +598,7 @@ namespace AmongUsCapture
                     oldState = state;
 
 
-                    newPlayerInfos.Clear();
+                    //newPlayerInfos.Clear();
 #endregion
                     playerAddrPtr = allPlayers + 0x10;
                     AllImposterNum = 0;
@@ -682,6 +696,7 @@ namespace AmongUsCapture
                         }
                         if (pi.IsImpostor == 1) AllImposterNum++;
                         #region amonguscapture
+                        /*
                         newPlayerInfos[playerName] = pi; // add to new playerinfos for comparison later
 
                         if (!oldPlayerInfos.ContainsKey(playerName)) // player wasn't here before, they just joined
@@ -745,38 +760,44 @@ namespace AmongUsCapture
                                     PetId = pi.PetId
                                 });
                         }
+                        */
                     }
                     #endregion
 
                     //impostor set
-                    for (int i = 0; i < AllImposterNum; i++)
+                    if (newPlayerCon[0] != null)
                     {
-                        var id = ImpostorId[i];
-
-                        InVent[i] = newPlayerCon[id].inVent;
-                    }
-
-                    //dead set
-
-                    for (var i = 0; i < playerCount; i++)
-                    {
-                        if (Math.Abs(playerIsDead[i]) == 1)
+                        for (int i = 0; i < AllImposterNum; i++)
                         {
-                            DeadLogList.Add(new DeadLog(gameStartTime, i, PlayerPoses[i]));
-                        } else if(playerIsDead[i] == 10)
-                        {
-                            DeadLogList.Add(new DeadLog(gameStartTime, i, PlayerPoses[i]));
-                            playerIsDead[i] = -10;
+                            var id = ImpostorId[i];
+
+                            InVent[i] = newPlayerCon[id].inVent;
                         }
-                        if (playerIsDead[i] == 1)
+
+
+                        //dead set
+
+                        for (var i = 0; i < playerCount; i++)
                         {
-                            DeadBodyPosList.Insert(0, new DeadBodyPos(i, PlayerPoses, ImpostorId, playerIsDead, AllImposterNum));
-                            if (DeadBodyPosList[0].ImpostorDists.Count == 0)
+                            if (Math.Abs(playerIsDead[i]) == 1)
                             {
-                                playerIsDead[i] = 15;
-                                DeadBodyPosList.RemoveAt(0);
+                                DeadLogList.Add(new DeadLog(gameStartTime, i, PlayerPoses[i]));
                             }
-                            else playerIsDead[i] = DeadBodyPosList[0].ImpostorDists[0].Id + 20;
+                            else if (playerIsDead[i] == 10)
+                            {
+                                DeadLogList.Add(new DeadLog(gameStartTime, i, PlayerPoses[i]));
+                                playerIsDead[i] = -10;
+                            }
+                            if (playerIsDead[i] == 1)
+                            {
+                                DeadBodyPosList.Insert(0, new DeadBodyPos(i, PlayerPoses, ImpostorId, playerIsDead, AllImposterNum));
+                                if (DeadBodyPosList[0].ImpostorDists.Count == 0)
+                                {
+                                    playerIsDead[i] = 15;
+                                    DeadBodyPosList.RemoveAt(0);
+                                }
+                                else playerIsDead[i] = DeadBodyPosList[0].ImpostorDists[0].Id + 20;
+                            }
                         }
                     }
 
@@ -799,8 +820,99 @@ namespace AmongUsCapture
                             doorsUint = Doors.polus.Doors2Uint(doors);
                     }
 
+                    if (CurrentOffsets.ChatControllerPtr != null)
+                    {
+                        if (loadLastchatNextturn)
+                        {
+                            var msgPtr = ProcessMemory.getInstance().Read<IntPtr>(lastChatBubblePtr, 0x20, 0x70);
+                            var senderPtr = ProcessMemory.getInstance().Read<IntPtr>(lastChatBubblePtr, 0x1C, 0x70);
+                            if (senderPtr != IntPtr.Zero || msgPtr != IntPtr.Zero)
+                            {
+                                var msgText = ProcessMemory.getInstance().ReadString(msgPtr, 0x10, 0x14);
+                                var msgSender = ProcessMemory.getInstance().ReadString(senderPtr, 0x10, 0x14);
+                                ChatMessageAdded?.Invoke(this, new ChatMessageEventArgs
+                                {
+                                    Sender = msgSender,
+                                    Message = msgText
+                                });
+                                if (msgText != "")
+                                    Console.WriteLine(msgSender + ":\t" +msgText);
+                                else
+                                    Console.WriteLine(msgSender);
+                            }
+                            loadLastchatNextturn = false;
+                        }
+                        var chatControllerPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ChatControllerPtr);
+                        if (chatControllerPtr != IntPtr.Zero)
+                        {
+                            var chatPoolPtr = ProcessMemory.getInstance().Read<IntPtr>(chatControllerPtr, 0xc);
+                            var chatBubblesPtr = ProcessMemory.getInstance().Read<IntPtr>(chatPoolPtr, 0x14);
+                            var chatBubsVersion = ProcessMemory.getInstance().Read<int>(chatBubblesPtr, 0x10);
+                            if (chatBubsVersion != prevChatBubsVersion)
+                            {
+                                var poolSize = 20;//ProcessMemory.getInstance().Read<Int32>(chatPoolPtr, 0xc);
+                                var numChatBubbles = ProcessMemory.getInstance().Read<int>(chatBubblesPtr, 0xC);
+                                var chatBubblesAddr = ProcessMemory.getInstance().Read<IntPtr>(chatBubblesPtr, 0x8) + 0x10;
+                                var chatBubblePtrs = ProcessMemory.getInstance().ReadArray(chatBubblesAddr, numChatBubbles);
+
+                                var newMsgs = 0;
+
+                                if (chatBubsVersion > prevChatBubsVersion) // new message has been sent
+                                {
+                                    if (chatBubsVersion > poolSize) // increments are twofold (push to and pop from pool)
+                                    {
+                                        if (prevChatBubsVersion > poolSize)
+                                            newMsgs = (chatBubsVersion - prevChatBubsVersion) >> 1;
+                                        else
+                                            newMsgs = poolSize - prevChatBubsVersion + ((chatBubsVersion - poolSize) >> 1);
+                                    }
+                                    else // single increments
+                                    {
+                                        newMsgs = chatBubsVersion - prevChatBubsVersion;
+                                    }
+                                    while (numChatBubbles - newMsgs > 0 && chatBubblePtrs[numChatBubbles - newMsgs - 1] != lastChatBubblePtr)
+                                        newMsgs++;
+                                }
+                                else if (chatBubsVersion < prevChatBubsVersion) // reset
+                                {
+                                    if (chatBubsVersion > poolSize) // increments are twofold (push to and pop from pool)
+                                        newMsgs = poolSize + ((chatBubsVersion - poolSize) >> 1);
+                                    else // single increments
+                                        newMsgs = chatBubsVersion;
+                                }
+
+                                if (numChatBubbles - newMsgs < 0) newMsgs = numChatBubbles;
+                                if (numChatBubbles > 0)
+                                {
+                                    lastChatBubblePtr = chatBubblePtrs[numChatBubbles - 1];
+                                    loadLastchatNextturn = true;
+                                }
+                                prevChatBubsVersion = chatBubsVersion;
+
+                                for (var i = numChatBubbles - newMsgs; i < numChatBubbles - 1; i++)
+                                {
+                                    var msgText = ProcessMemory.getInstance()
+                                        .ReadString(ProcessMemory.getInstance().Read<IntPtr>(chatBubblePtrs[i], 0x20, 0x70), 0x10, 0x14);
+                                    var msgSender = ProcessMemory.getInstance()
+                                        .ReadString(ProcessMemory.getInstance().Read<IntPtr>(chatBubblePtrs[i], 0x1C, 0x70), 0x10, 0x14);
+                                    ChatMessageAdded?.Invoke(this, new ChatMessageEventArgs
+                                    {
+                                        Sender = msgSender,
+                                        Message = msgText
+                                    });
+                                    if (msgText != "")
+                                        Console.WriteLine(msgSender + ":\t" + msgText);
+                                    else
+                                        Console.WriteLine(msgSender);
+                                }
+                            }
+                        }
+                    }
+
+
 
                     #region amonguscapture
+                    /*
                     foreach (var kvp in oldPlayerInfos)
                     {
                         var pi = kvp.Value;
@@ -894,6 +1006,7 @@ namespace AmongUsCapture
 
                         shouldTransmitLobby = false;
                     }
+                    */
 #endregion
 
 
@@ -951,6 +1064,9 @@ namespace AmongUsCapture
                     else PlayerMove?.Invoke(this, move);
                     frame = frame_now;
                    Thread.Sleep((frame_now + 1) * 100 - gametimeMili);
+
+                   
+
 
                 }
                 catch (Exception e)
@@ -1048,7 +1164,7 @@ namespace AmongUsCapture
                 {
                     repeatcount++;
                     if (repeatcount > 50) break;
-                    Console.WriteLine($"Wrong data : Empty player color | Retrying in 100ms");
+                    Console.WriteLine("Wrong data : Empty player color | Retrying in 100ms");
                     Thread.Sleep(100);
                     allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
                     allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
@@ -1057,7 +1173,7 @@ namespace AmongUsCapture
                 }
             }
 
-            if (repeatcount > 50) Console.WriteLine($"Wrong data : Empty player color | Continue");
+            if (repeatcount > 50) Console.WriteLine("Wrong data : Empty player color | Continue");
 
             var s = "";
             for (int i = 0; i < playerCount; i++)
@@ -1117,7 +1233,23 @@ namespace AmongUsCapture
             Color.Lime
         };
 
+        static public Dictionary<int, string> ColorNameDict = new Dictionary<int, string>
+            {
+                { Color.Red.ToArgb(),"Red" },
+                { Color.Blue.ToArgb(),"Blue" },
+                { Color.Green.ToArgb(),"Green" },
+                { Color.HotPink.ToArgb(),"Pink" },
+                { Color.Orange.ToArgb(),"Orange" },
+                { Color.Yellow.ToArgb(),"Yellow" },
+                { Color.Black.ToArgb(),"Black" },
+                { Color.White.ToArgb(),"White" },
+                { Color.BlueViolet.ToArgb(),"Purple" },
+                { Color.Brown.ToArgb(), "Brown" },
+                { Color.Cyan.ToArgb(),"Cyan" },
+                { Color.Lime.ToArgb(),"Lime" },
+            };
 
+        /*
         public void ForceTransmitLobby()
         {
             shouldTransmitLobby = true;
@@ -1132,6 +1264,7 @@ namespace AmongUsCapture
         {
             shouldForceTransmitState = true;
         }
+        */
     }
 
     public class GameStateChangedEventArgs : EventArgs
