@@ -95,7 +95,11 @@ namespace AmongUsReplayInWindow
                 openFileDialog1.FileName = Path.GetFileName(filenameTextBox.Text);
             }
             else
+            {
                 openFileDialog1.InitialDirectory = Program.exeFolder + "\\replay";
+                openFileDialog1.FileName = "";
+            }
+            openFileDialog1.Filter = "Data Files (*.dat)|*.dat";
             DialogResult dr = openFileDialog1.ShowDialog();
             if (dr == System.Windows.Forms.DialogResult.OK)
             {
@@ -161,6 +165,8 @@ namespace AmongUsReplayInWindow
                                 GameMemReader.getInstance().PlayerMove += overlayForm.PlayerPosHandler;
                                 GameMemReader.getInstance().GameStateChanged += overlayForm.GameStateChangedEventHandler;
                                 GameMemReader.getInstance().GameStart += overlayForm.GameStartHandler;
+                                GameMemReader.getInstance().ChatMessageAdded += overlayForm.TextLogHander;
+                                GameMemReader.getInstance().TextLogEvent += overlayForm.TextLogHander;
                                 GameMemReader.getInstance().RunLoop(cancelToken);
                             }, cancelToken); // run loop in background
 
@@ -275,6 +281,12 @@ namespace AmongUsReplayInWindow
 
             [DefaultValue("Control")]
             public string hotkey = "Control";
+
+            [DefaultValue(true)]
+            public bool OutputTextLog = true;
+
+            [DefaultValue(false)]
+            public bool PopupTextLog = false;
         }
 
         void applySettings()
@@ -302,6 +314,8 @@ namespace AmongUsReplayInWindow
                 hotkey = 0x11;
             }
             StartWindow.SetHotKey(hotkey);
+            OverlayWindow.OutputTextLog = settings.OutputTextLog;
+            OverlayWindow.PopupTextLog = settings.PopupTextLog;
         }
 
         public static Dictionary<string, UInt32> hotKeyDict = new Dictionary<string, uint>()

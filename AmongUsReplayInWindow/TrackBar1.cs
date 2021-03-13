@@ -40,7 +40,6 @@ namespace AmongUsReplayInWindow
         {
             lock (OwnerForm.lockObject)
             {
-                NativeMethods.ShowWindow(Handle, NativeMethods.SW_SHOWNA);
                 trackBar0.Value = 0;
                 trackBar0.Maximum = (int)OwnerForm.logReader.maxMoveNum;
 

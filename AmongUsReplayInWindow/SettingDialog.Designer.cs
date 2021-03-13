@@ -40,6 +40,8 @@ namespace AmongUsReplayInWindow
             this.HotKeyBox = new System.Windows.Forms.ComboBox();
             this.HotKeyLabel = new System.Windows.Forms.Label();
             this.VoteCheckBox = new System.Windows.Forms.CheckBox();
+            this.textLogCheckBox = new System.Windows.Forms.CheckBox();
+            this.textLogPopupCheckBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.PlayerSizeBar)).BeginInit();
             this.SuspendLayout();
             // 
@@ -147,7 +149,7 @@ namespace AmongUsReplayInWindow
             // VoteCheckBox
             // 
             this.VoteCheckBox.AutoSize = true;
-            this.VoteCheckBox.Location = new System.Drawing.Point(28, 258);
+            this.VoteCheckBox.Location = new System.Drawing.Point(28, 249);
             this.VoteCheckBox.Name = "VoteCheckBox";
             this.VoteCheckBox.Size = new System.Drawing.Size(49, 19);
             this.VoteCheckBox.TabIndex = 18;
@@ -155,11 +157,35 @@ namespace AmongUsReplayInWindow
             this.VoteCheckBox.UseVisualStyleBackColor = true;
             this.VoteCheckBox.CheckedChanged += new System.EventHandler(this.VoteCheckBox_CheckedChanged);
             // 
+            // textLogCheckBox
+            // 
+            this.textLogCheckBox.AutoSize = true;
+            this.textLogCheckBox.Location = new System.Drawing.Point(164, 249);
+            this.textLogCheckBox.Name = "textLogCheckBox";
+            this.textLogCheckBox.Size = new System.Drawing.Size(107, 19);
+            this.textLogCheckBox.TabIndex = 19;
+            this.textLogCheckBox.Text = "Output text log";
+            this.textLogCheckBox.UseVisualStyleBackColor = true;
+            this.textLogCheckBox.CheckedChanged += new System.EventHandler(this.textLogCheckBox_CheckedChanged);
+            // 
+            // textLogPopupCheckBox
+            // 
+            this.textLogPopupCheckBox.AutoSize = true;
+            this.textLogPopupCheckBox.Location = new System.Drawing.Point(181, 274);
+            this.textLogPopupCheckBox.Name = "textLogPopupCheckBox";
+            this.textLogPopupCheckBox.Size = new System.Drawing.Size(107, 19);
+            this.textLogPopupCheckBox.TabIndex = 20;
+            this.textLogPopupCheckBox.Text = "Pop up text log";
+            this.textLogPopupCheckBox.UseVisualStyleBackColor = true;
+            this.textLogPopupCheckBox.CheckedChanged += new System.EventHandler(this.textLogPopupCheckBox_CheckedChanged);
+            // 
             // SettingDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(327, 300);
+            this.ClientSize = new System.Drawing.Size(327, 312);
+            this.Controls.Add(this.textLogPopupCheckBox);
+            this.Controls.Add(this.textLogCheckBox);
             this.Controls.Add(this.VoteCheckBox);
             this.Controls.Add(this.HotKeyLabel);
             this.Controls.Add(this.HotKeyBox);
@@ -192,5 +218,7 @@ namespace AmongUsReplayInWindow
         private System.Windows.Forms.ComboBox HotKeyBox;
         private System.Windows.Forms.Label HotKeyLabel;
         private System.Windows.Forms.CheckBox VoteCheckBox;
+        private System.Windows.Forms.CheckBox textLogCheckBox;
+        private System.Windows.Forms.CheckBox textLogPopupCheckBox;
     }
 }

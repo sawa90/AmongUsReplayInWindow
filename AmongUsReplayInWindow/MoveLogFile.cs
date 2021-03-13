@@ -29,7 +29,9 @@ namespace AmongUsReplayInWindow
             {
                 lock (lockObject)
                 {
+                    if (startArgs == null || startArgs.PlayerMove == null) return;
                     folderPass = Program.exeFolder + "\\replay";
+                    move = startArgs.PlayerMove;
                     AllImposorNum = 0;
                     for (int i = 0; i < startArgs.PlayerMove.PlayerNum; i++)
                     {
@@ -292,15 +294,20 @@ namespace AmongUsReplayInWindow
         public class WriteMoveLogFile_chatLogFile : WriteMoveLogFile
         {
             private string tempChatfilename;
-            private Stream chatstream;
-            private StreamWriter chatwriter;
+            private string chatfilename;
+            private Stream chatstream = null;
+            private StreamWriter chatwriter = null;
             private Dictionary<string, int> PlayerName2Id = new Dictionary<string, int>();
-            private Dictionary<string, string> Name2WithInfo = new Dictionary<string, string>();
-            public WriteMoveLogFile_chatLogFile(GameStartEventArgs startArgs) :base(startArgs)
+            private string[] Name2WithInfo = new string[10];
+            private readonly bool outputTextlog = false;
+            public WriteMoveLogFile_chatLogFile(GameStartEventArgs startArgs, bool outputTextlog = true) :base(startArgs)
             {
+                this.outputTextlog = outputTextlog;
+                if (!outputTextlog) return;
                 lock (lockObject)
                 {
-                    tempChatfilename = Path.ChangeExtension(filename, "txt");
+                    tempChatfilename = Path.ChangeExtension(tempfilename, "txt");
+                    chatfilename = Path.ChangeExtension(filename, "txt");
                     try
                     {
                         chatstream = File.Create(tempChatfilename);
@@ -318,28 +325,24 @@ namespace AmongUsReplayInWindow
                     int playerNum = startArgs.PlayerMove.PlayerNum;
                     var m = startArgs.PlayerMove;
                     StringBuilder sb = new StringBuilder();
-                    sb.Append("Impostor:\n");
+                    sb.Append("☆Impostor:\n");
                     for (int i = 0; i < AllImposorNum; i++)
                     {
                         sb.Append(m.PlayerNames[m.ImpostorId[i]] + "/" + GameMemReader.ColorNameDict[m.PlayerColors[m.ImpostorId[i]].ToArgb()] + "\n");
                     }
 
                     sb.Append("\nCrewmate:\n");
-                    int NameInfoMax = 0;
                     for (int i = 0; i < playerNum; i++)
                     {
                         PlayerName2Id[m.PlayerNames[i]] = i;
                         string nameinfo = m.PlayerNames[i] + "/" + GameMemReader.ColorNameDict[m.PlayerColors[i].ToArgb()];
-                        Name2WithInfo[m.PlayerNames[i]] = nameinfo + ":";
-                        if (nameinfo.Length > NameInfoMax) NameInfoMax = nameinfo.Length;
+                        Name2WithInfo[i] = nameinfo + ":\t";
                         if (!m.IsImpostor[i])
                             sb.Append(nameinfo + "\n");
                     }
-                    for (int i = 0; i < playerNum; i++)
-                        Name2WithInfo[m.PlayerNames[i]] = Name2WithInfo[m.PlayerNames[i]].PadRight(NameInfoMax + 2);
                     for (int i = 0; i < AllImposorNum; i++)
                     {
-                        Name2WithInfo[m.PlayerNames[m.ImpostorId[i]]] = "☆" + Name2WithInfo[m.PlayerNames[m.ImpostorId[i]]];
+                        Name2WithInfo[m.ImpostorId[i]] = "☆" + Name2WithInfo[m.ImpostorId[i]];
                     }
                     sb.Append("\n\n");
                     chatwriter.Write(sb.ToString());
@@ -348,19 +351,46 @@ namespace AmongUsReplayInWindow
 
             public void WriteChat(ChatMessageEventArgs chat)
             {
+                if (!outputTextlog) return;
                 lock (lockObject)
                 {
                     if (chatwriter == null) return;
+                    int m = chat.time / (1000 * 60);
+                    int s = chat.time / 1000 - m * 60;
+                    string timestr = $"{m:00}:{s:00} ";
+                    if (chat.time < 0) timestr = "";
                     if (chat.Sender != null)
                     {
-                        string nameinfo;
-                        if (Name2WithInfo.TryGetValue(chat.Sender, out nameinfo))
+                        int id;
+                        if (PlayerName2Id.TryGetValue(chat.Sender, out id))
                         {
-                            chatwriter.WriteLine(nameinfo + chat.Message);
+                            string nameinfo = Name2WithInfo[id];
+                            if (move.PlayerIsDead[id] != 0) nameinfo += "(Dead) ";
+                            chatwriter.WriteLine(timestr + nameinfo + chat.Message);
                             return;
                         }
                     }
-                    chatwriter.WriteLine(chat.Sender + chat.Message);
+                    chatwriter.WriteLine(timestr + chat.Sender + chat.Message);
+                }
+            }
+
+            public void WritePostGameChat(ChatMessageEventArgs chat)
+            {
+                if (!outputTextlog) return;
+                lock (lockObject)
+                {
+                    if (chat.Sender != null)
+                    {
+                        int id;
+                        if (PlayerName2Id.TryGetValue(chat.Sender, out id))
+                        {
+                            string nameinfo = Name2WithInfo[id];
+                            if (move.PlayerIsDead[id] != 0) nameinfo += "(Dead) ";
+                            File.AppendAllText(chatfilename, nameinfo + chat.Message + "\n");
+                        }
+                        else
+                            File.AppendAllText(chatfilename, chat.Sender + ":" + chat.Message + "\n");
+                    }
                 }
             }
 
@@ -374,6 +404,8 @@ namespace AmongUsReplayInWindow
                     chatstream?.Close();
                     chatwriter = null;
                     chatstream = null;
+                    if (File.Exists(tempChatfilename))
+                        File.Move(tempChatfilename, chatfilename);
                 }
             }
         }

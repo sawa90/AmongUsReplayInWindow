@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using AmongUsCapture;
 using System.Runtime.InteropServices;
 using AmongUsReplayInWindow.setOwnerWindow;
+using System.IO;
 
 namespace AmongUsReplayInWindow
 {
@@ -19,8 +20,10 @@ namespace AmongUsReplayInWindow
         public object lockObject = new object();
 
         public MoveLogFile.ReadMoveLogFile logReader = null;
-        MoveLogFile.WriteMoveLogFile writer = null;
-
+        MoveLogFile.WriteMoveLogFile_chatLogFile writer = null;
+        MoveLogFile.WriteMoveLogFile_chatLogFile oldwriter = null;
+        public static bool OutputTextLog = true;
+        public static bool PopupTextLog = false;
 
         public IntPtr ownerHandle = IntPtr.Zero;
         public int ownerProcessId;
@@ -29,6 +32,7 @@ namespace AmongUsReplayInWindow
         delegate void voidDelegate();
         delegate void void_intDelegate(int i);
         delegate bool bool_stringDelegate(string str);
+        delegate bool bool_stringboolDelegate(string str, bool flag);
 
         AdjustToOwnerWindow sizeChange = null;
 
@@ -166,7 +170,7 @@ namespace AmongUsReplayInWindow
         #region set reader
 
         bool drawPlaying = false;
-        public bool setReader(string filename)
+        public bool setReader(string filename, bool show)
         {
             Console.WriteLine("Set reader");
             lock (lockObject)
@@ -189,6 +193,13 @@ namespace AmongUsReplayInWindow
             pictureBox2.Invalidate();
             StartDraw();
             trackwin.Invoke(new voidDelegate(trackwin.setHandler));
+            if (show)
+            {
+                ShowWindow(Handle, SW_SHOWNA);
+                ShowWindow(trackwin.Handle, SW_SHOWNA);
+                trackwin.setFocus();
+            }
+            SetZorder();
             return true;
         }
 
@@ -276,7 +287,7 @@ namespace AmongUsReplayInWindow
             MapChange((int)startArgs.PlayMap);
             Invoke(new voidDelegate(removeReader));
             writer?.Close();
-            writer = new MoveLogFile.WriteMoveLogFile(startArgs);
+            writer = new MoveLogFile.WriteMoveLogFile_chatLogFile(startArgs, OutputTextLog);
             using (var g = CreateGraphics())
                 g.FillRectangle(Brushes.Snow, 0, 0, Width, Height);
 
@@ -284,13 +295,14 @@ namespace AmongUsReplayInWindow
                 g.FillRectangle(Brushes.Snow, 0, 0, pictureBox2.Size.Width, pictureBox2.Size.Height);
 
         }
-
+        
         void finishWriter()
         {
             if (writer != null)
             {
                 writer.Close();
                 filename = writer.filename;
+                oldwriter = writer;
                 writer = null;
             }
         }
@@ -302,13 +314,23 @@ namespace AmongUsReplayInWindow
                 if (newState == GameState.MENU || newState == GameState.LOBBY)
                 {
                     finishWriter();
-                    Playing = false;
+                    
                     Invoke(new voidDelegate(removeReader));
                     if (filename != null)
                     {
-                        Invoke(new bool_stringDelegate(setReader), filename);
+                        Invoke(new bool_stringboolDelegate(setReader), filename, Playing);
                         SetZorder();
+                        if (PopupTextLog && Playing)
+                        {
+                            var chatfile = Path.ChangeExtension(filename, "txt");
+                            if (File.Exists(chatfile))
+                            {
+                                Invoke(new bool_stringDelegate(setpopup), chatfile);
+                            }
+                        }
                     }
+                    Playing = false;
+                    if (newState == GameState.MENU) oldwriter = null;
                 }
                 else if (!Playing)
                 {
@@ -318,6 +340,13 @@ namespace AmongUsReplayInWindow
 
             }
 
+        }
+
+        bool setpopup(string fname)
+        {
+            PopupTextLogWindow popup = new PopupTextLogWindow(fname);
+            popup.Show();
+            return true;
         }
 
         public void DrawTimerHandler(object? sender, EventArgs eArgs)
@@ -341,6 +370,17 @@ namespace AmongUsReplayInWindow
 
         }
 
+        public void TextLogHander(object sender, ChatMessageEventArgs chat)
+        {
+            if (Playing)
+            {
+                writer?.WriteChat(chat);
+            } else
+            {
+                oldwriter?.WritePostGameChat(chat);
+            }
+        }
+
         #endregion
 
 
@@ -353,8 +393,6 @@ namespace AmongUsReplayInWindow
             drawTimer.Interval = startWindow.interval;
             drawTimer?.Start();
             SetKeyboardEnable(Playing, true);
-            ShowWindow(Handle, SW_SHOWNA);
-            SetZorder();
         }
 
         void StopDraw()

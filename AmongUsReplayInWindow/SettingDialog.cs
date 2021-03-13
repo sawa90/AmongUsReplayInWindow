@@ -37,6 +37,10 @@ namespace AmongUsReplayInWindow
             foreach (var key in StartWindow.hotKeyDict.Keys)
                 HotKeyBox.Items.Add(key);
             HotKeyBox.SelectedItem = setting.hotkey;
+
+            textLogCheckBox.Checked = setting.OutputTextLog;
+            textLogPopupCheckBox.Checked = setting.PopupTextLog;
+            textLogPopupCheckBox.Enabled = setting.OutputTextLog;
         }
 
         private void PlayerIcon_SelectedIndexChanged(object sender, EventArgs e)
@@ -94,5 +98,17 @@ namespace AmongUsReplayInWindow
             }
         }
 
+        private void textLogCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            startWindow.settings.OutputTextLog = textLogCheckBox.Checked;
+            OverlayWindow.OutputTextLog = textLogCheckBox.Checked;
+            textLogPopupCheckBox.Enabled = textLogCheckBox.Checked;
+        }
+
+        private void textLogPopupCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            startWindow.settings.PopupTextLog = textLogPopupCheckBox.Checked;
+            OverlayWindow.PopupTextLog = textLogPopupCheckBox.Checked;
+        }
     }
 }
