@@ -1,8 +1,9 @@
 # AmongUsReplayInWindow
 ![screenshot](https://github.com/sawa90/AmongUsReplayInWindow/blob/images/scrnshot3.png)
 
-Among Usに簡易的なリプレイ機能を追加するツールです。リプレイはゲーム終了後ゲームウィンドウ内に表示され、コントロールキーで開閉することができます。
+Among Us (Steam version)に簡易的なリプレイ機能を追加するツールです。リプレイはゲーム終了後ゲームウィンドウ内に表示され、コントロールキーで開閉することができます。
 リプレイでは、全員の居場所、誰がインポスターか、いつ誰が殺したか、タスクの進行状況、投票結果、ベント、サボタージュを見ることができます。  
+また、チャットのログ、投票結果などを含むテキストログの出力も可能です。
 
 ## Requirement
 [.NET 5 Desktop Runtime x86](https://dotnet.microsoft.com/download/dotnet/thank-you/runtime-desktop-5.0.3-windows-x86-installer)  
