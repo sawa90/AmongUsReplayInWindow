@@ -37,7 +37,6 @@ namespace AUOffsetManager
             {
                 OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
             }
-            OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
 
         }
         public async Task RefreshIndex()
@@ -102,7 +101,7 @@ namespace AUOffsetManager
             }
             else
             {
-                if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash) || OffsetIndex[hash].ShipStatusPtr == null) 
+                if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash) || OffsetIndex[hash].offsetListVersion < 1) 
                 {
                     indexTask = RefreshIndex();
                     indexTask.Wait();
@@ -159,6 +158,8 @@ namespace AUOffsetManager
     {
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
         public string Description = "";
+
+        public int offsetListVersion { get; set; }
 
         public int AmongUsClientOffset { get; set; }
 
