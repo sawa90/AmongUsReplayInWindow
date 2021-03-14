@@ -313,14 +313,15 @@ namespace AmongUsReplayInWindow
                 var newState = stateArgs.NewState;
                 if (newState == GameState.MENU || newState == GameState.LOBBY)
                 {
+                    var playfinishing = Playing;
+                    Playing = false;
                     finishWriter();
-                    
                     Invoke(new voidDelegate(removeReader));
                     if (filename != null)
                     {
-                        Invoke(new bool_stringboolDelegate(setReader), filename, Playing);
+                        Invoke(new bool_stringboolDelegate(setReader), filename, playfinishing);
                         SetZorder();
-                        if (PopupTextLog && Playing)
+                        if (PopupTextLog && playfinishing)
                         {
                             var chatfile = Path.ChangeExtension(filename, "txt");
                             if (File.Exists(chatfile))
@@ -329,7 +330,6 @@ namespace AmongUsReplayInWindow
                             }
                         }
                     }
-                    Playing = false;
                     if (newState == GameState.MENU) oldwriter = null;
                 }
                 else if (!Playing)

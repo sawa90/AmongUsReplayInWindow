@@ -108,6 +108,12 @@ namespace AmongUsReplayInWindow
                 {
                     var form2 = new fromFile(this, filenameTextBox.Text);
                     form2.Show();
+                    var textfile = Path.ChangeExtension(filenameTextBox.Text, "txt");
+                    if (File.Exists(textfile))
+                    {
+                        var popup = new PopupTextLogWindow(textfile);
+                        popup.Show();
+                    }
                 }
                 catch (Exception e)
                 {
