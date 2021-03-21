@@ -31,7 +31,7 @@ namespace AmongUsReplayInWindow
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //AllocConsole();
+            AllocConsole();
             try
             {
                 var form = new StartWindow();
@@ -41,9 +41,9 @@ namespace AmongUsReplayInWindow
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
             }
-            //Console.WriteLine("\n\nPress Key to exit");
-            //Console.ReadKey();
-            //FreeConsole();
+            Console.WriteLine("\n\nPress Key to exit");
+            Console.ReadKey();
+            FreeConsole();
 
         }
 

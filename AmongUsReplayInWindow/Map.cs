@@ -10,7 +10,7 @@ namespace AmongUsReplayInWindow
 {
     public static class Map
     {
-        static string[] mapFilename = new string[3] { "skeld.png", "mira.png", "polus.png" };
+        static string[] mapFilename = new string[4] { "skeld.png", "mira.png", "polus.png", "airship.png" };
         static public string mapFolder = "color";
         public struct MapScale
         {
@@ -19,7 +19,7 @@ namespace AmongUsReplayInWindow
             public Vector2 centerOfTable;
         }
 
-        static public MapScale[] Maps = new MapScale[3]
+        static public MapScale[] Maps = new MapScale[4]
         { new MapScale
             {
                 Id = 0,
@@ -43,6 +43,16 @@ namespace AmongUsReplayInWindow
             new MapScale
             {
                 Id = 2,
+                hw = 0.69f,
+                xs = 0.0232f,
+                ys = 0.0335f,
+                xp = 0.021f,
+                yp = 0.093f,
+                centerOfTable = new Vector2(19.5f,-16.876f)
+            },
+            new MapScale
+            {
+                Id = 3,
                 hw = 0.69f,
                 xs = 0.0232f,
                 ys = 0.0335f,
@@ -79,6 +89,9 @@ namespace AmongUsReplayInWindow
                     MapImage = Properties.Resources.mira;
                     break;
                 case 2:
+                    MapImage = Properties.Resources.polus;
+                    break;
+                case 3:
                     MapImage = Properties.Resources.polus;
                     break;
                 default:
