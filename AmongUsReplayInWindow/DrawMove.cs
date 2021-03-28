@@ -78,11 +78,11 @@ namespace AmongUsReplayInWindow
                 icons = new Dictionary<Color, Image>();
                 {
 
-                    int colorNum = GameMemReader.ColorList.Length;
+                    int colorNum = PlayerData.ColorList.Length;
                     for (int i = 0; i < colorNum; i++)
                     {
-                        Color color = Color.FromArgb(GameMemReader.ColorList[i].ToArgb());
-                        string iconName = Program.exeFolder + "\\icon\\" + ((PlayerColor)i).ToString() + ".png";
+                        Color color = Color.FromArgb(PlayerData.ColorList[i].ToArgb());
+                        string iconName = Program.exeFolder + "\\icon\\" + ((PlayerData.PlayerColor)i).ToString() + ".png";
                         try
                         {
                             using (FileStream stream = File.OpenRead(iconName))
@@ -150,7 +150,7 @@ namespace AmongUsReplayInWindow
                 for (int i=0;i<move.PlayerNum;i++)
                 {
                     sbyte vote = move.voteList[i];
-                    if (move.PlayerIsDead[i]==0 && vote >= -1 && (vote < 10 || vote >= 31)) voted = true;
+                    if (move.PlayerIsDead[i]==0 && vote >= -1 && (vote < PlayerData.MaxPlayerNum || vote >= 31)) voted = true;
                 }
                 if (!voted) return;
             }
@@ -192,7 +192,7 @@ namespace AmongUsReplayInWindow
                         g.DrawImage(icons.megaphone, x + voteWidth * 0.95f - megaphone_w, y, megaphone_w, mainIconSize);
                     }
                 }
-            int[] voteNum = new int[11];
+            int[] voteNum = new int[PlayerData.MaxPlayerNum + 1];
 
             using (var fnt = new Font(fontName, mainIconSize * 0.4f))
                 for (int i = 0; i < move.PlayerNum; i++)
@@ -252,9 +252,9 @@ namespace AmongUsReplayInWindow
                         }
                         if (dead) continue;
                         if (move.PlayerIsDead[i] == 11 && icons?.dead != null) g.DrawImage(icons.dead, x, y, icon_w * mainIconSize, icon_h * mainIconSize);
-                        if (voteId > 9)
+                        if (voteId >= PlayerData.MaxPlayerNum)
                         {
-                            if (voteId != 14)
+                            if (voteId != PlayerData.notVote)
                                 Console.WriteLine($"{move.PlayerNames[i]}/{move.PlayerColors[i]}->Error ID:{voteId}");
                         }
                         else if (voteId >= 0)
@@ -275,12 +275,12 @@ namespace AmongUsReplayInWindow
                             if (icon != null)
                             {
                                 if (move.IsImpostor[i])
-                                    g.DrawImage(icons.impostor, centerX - voteWidth * 0.95f + iconSize * voteNum[10], centerY - voteHeight * 0.95f + dvoteHeight * 5.05f, icon_w * iconSize, icon_h * iconSize);
-                                g.DrawImage(icon, centerX - voteWidth * 0.95f + iconSize * voteNum[10], centerY - voteHeight * 0.95f + dvoteHeight * 5.05f, icon_w * iconSize, icon_h * iconSize);
+                                    g.DrawImage(icons.impostor, centerX - voteWidth * 0.95f + iconSize * voteNum[PlayerData.MaxPlayerNum], centerY - voteHeight * 0.95f + dvoteHeight * 5.05f, icon_w * iconSize, icon_h * iconSize);
+                                g.DrawImage(icon, centerX - voteWidth * 0.95f + iconSize * voteNum[PlayerData.MaxPlayerNum], centerY - voteHeight * 0.95f + dvoteHeight * 5.05f, icon_w * iconSize, icon_h * iconSize);
                             }
                             else
-                                g.FillRectangle(pColorBrush, centerX - voteWidth * 0.95f + iconSize * voteNum[10], centerY - voteHeight * 0.95f + dvoteHeight * 5.05f, icon_w * iconSize, icon_h * iconSize);
-                            voteNum[10]++;
+                                g.FillRectangle(pColorBrush, centerX - voteWidth * 0.95f + iconSize * voteNum[PlayerData.MaxPlayerNum], centerY - voteHeight * 0.95f + dvoteHeight * 5.05f, icon_w * iconSize, icon_h * iconSize);
+                            voteNum[PlayerData.MaxPlayerNum]++;
                         }
                     }
                 }

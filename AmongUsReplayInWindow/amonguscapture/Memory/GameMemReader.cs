@@ -33,13 +33,97 @@ namespace AmongUsCapture
         VotingResult
     }
 
+    public static class PlayerData
+    {
+        public const int MaxPlayerNum = 15;
+        public const int MaxTaskNum = 15;
+
+        static public Color[] ColorList = new Color[12]
+{
+            Color.Red,
+            Color.Blue,
+            Color.Green,
+            Color.HotPink,
+            Color.Orange,
+            Color.Yellow,
+            Color.Black,
+            Color.White,
+            Color.BlueViolet,
+            Color.Brown,
+            Color.Cyan,
+            Color.Lime
+};
+
+        static public Dictionary<int, string> ColorNameDict = new Dictionary<int, string>
+            {
+                { Color.Red.ToArgb(),"Red" },
+                { Color.Blue.ToArgb(),"Blue" },
+                { Color.Green.ToArgb(),"Green" },
+                { Color.HotPink.ToArgb(),"Pink" },
+                { Color.Orange.ToArgb(),"Orange" },
+                { Color.Yellow.ToArgb(),"Yellow" },
+                { Color.Black.ToArgb(),"Black" },
+                { Color.White.ToArgb(),"White" },
+                { Color.BlueViolet.ToArgb(),"Purple" },
+                { Color.Brown.ToArgb(), "Brown" },
+                { Color.Cyan.ToArgb(),"Cyan" },
+                { Color.Lime.ToArgb(),"Lime" },
+            };
+
+        public enum PlayerAction
+        {
+            Joined,
+            Left,
+            Died,
+            ChangedColor,
+            ForceUpdated,
+            Disconnected,
+            Exiled
+        }
+
+        public enum PlayerColor
+        {
+            Red = 0,
+            Blue = 1,
+            Green = 2,
+            Pink = 3,
+            Orange = 4,
+            Yellow = 5,
+            Black = 6,
+            White = 7,
+            Purple = 8,
+            Brown = 9,
+            Cyan = 10,
+            Lime = 11
+        }
+
+        public enum PlayRegion
+        {
+            NorthAmerica = 0,
+            Asia = 1,
+            Europe = 2
+        }
+
+        public enum PlayMap
+        {
+            Skeld = 0,
+            Mira = 1,
+            Polus = 2
+        }
+
+        public static Vector2[] centerOfTable = { new Vector2(-1.0f, 1.1f), new Vector2(24.03f, 2.625f), new Vector2(19.5f, -16.876f) };
+
+        public const int notVote = 14;
+    }
+
     public class GameMemReader
     {
         #region value
         private static readonly GameMemReader instance = new GameMemReader();
         private bool exileCausesEnd;
 
-        //private bool shouldReadLobby = false;
+        private bool shouldReadLobby = false;
+        private string LobbyCode = "";
         private IntPtr GameAssemblyPtr = IntPtr.Zero;
         /*
         public Dictionary<string, PlayerInfo>
@@ -93,28 +177,28 @@ namespace AmongUsCapture
         private bool cracked = false;
 
         public event EventHandler<PlayerMoveArgs> PlayerMove;
-        public Vector2[] PlayerPoses = new Vector2[10];
-        PlayerControl[] newPlayerCon = new PlayerControl[10]; // container for new player infos. Also has capacity 10 already assigned so no internal resizing of the data structure is needed
+        public Vector2[] PlayerPoses = new Vector2[PlayerData.MaxPlayerNum];
+        PlayerControl[] newPlayerCon = new PlayerControl[PlayerData.MaxPlayerNum]; // container for new player infos. Also has capacity 10 already assigned so no internal resizing of the data structure is needed
 
-        public Color[] PlayerColors = new Color[10];
-        public PlayerColor[] PlayerColorsInt = new PlayerColor[10];
-        public string[] PlayerNames = new string[10];
+        public Color[] PlayerColors = new Color[PlayerData.MaxPlayerNum];
+        public PlayerData.PlayerColor[] PlayerColorsInt = new PlayerData.PlayerColor[PlayerData.MaxPlayerNum];
+        public string[] PlayerNames = new string[PlayerData.MaxPlayerNum];
 
         //-10 disconnect, +-11 ejected, +/-29~+/-20 killed this/previous turn by ID:abs(num)-20, +/-15 killed by someone this/previous turn 
-        public int[] playerIsDead = new int[10];
-        public bool[] IsImpostorLis = new bool[10];
+        public int[] playerIsDead = new int[PlayerData.MaxPlayerNum];
+        public bool[] IsImpostorLis = new bool[PlayerData.MaxPlayerNum];
 
 
         int AllImposterNum = 0;
-        int[] ImpostorId = new int[3];
-        bool[] InVent = new bool[3];
+        int[] ImpostorId = new int[PlayerData.MaxPlayerNum];
+        bool[] InVent = new bool[PlayerData.MaxPlayerNum];
 
-        int[] TaskNum = new int[10];
-        TaskInfo[][] taskInfos = new TaskInfo[10][];
+        int[] TaskNum = new int[PlayerData.MaxPlayerNum];
+        TaskInfo[][] taskInfos = new TaskInfo[PlayerData.MaxPlayerNum][];
         TaskInfo Sabotage;
 
-        float[] TaskProgress = new float[10];
-        bool[] Taskcompleted = new bool[10];
+        float[] TaskProgress = new float[PlayerData.MaxPlayerNum];
+        bool[] Taskcompleted = new bool[PlayerData.MaxPlayerNum];
         GameState testState = GameState.TASKS;
         bool testbool = false;
 
@@ -129,21 +213,21 @@ namespace AmongUsCapture
        List<DeadBodyPos> DeadBodyPosList = new List<DeadBodyPos>();
         List<DeadLog> DeadLogList = new List<DeadLog>();
 
-        Vector2[] centerOfTable = new Vector2[3] { new Vector2(-1.0f, 1.1f), new Vector2(24.03f,2.625f), new Vector2(19.5f,-16.876f)};
+        Vector2[] centerOfTable = PlayerData.centerOfTable;
 
         GameOverReason gameOverReason = GameOverReason.Unknown;
         GameState exileCausesEndState = GameState.Unknown;
 
-        PlayMap playMap = PlayMap.Skeld;
+        PlayerData.PlayMap playMap = PlayerData.PlayMap.Skeld;
         public string filename = null;
         int myId = 0;
-        int[] IdList = new int[10];
+        int[] IdList = new int[PlayerData.MaxPlayerNum];
 
         Door[] doors;
         UInt32 doorsUint = 0;
 
         Int32 discussionEndTime = -10000;
-        sbyte[] voteList = new sbyte[10];
+        sbyte[] voteList = new sbyte[PlayerData.MaxPlayerNum];
         IntPtr lastChatBubblePtr = IntPtr.Zero;
         bool loadLastchatNextturn = false;
         bool firstdisc = false;
@@ -158,12 +242,12 @@ namespace AmongUsCapture
 
         private void initConInfo()
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < PlayerData.MaxPlayerNum; i++)
             {
                 playerIsDead[i] = 0;
                 PlayerColors[i] = Color.Empty;
                 IsImpostorLis[i] = false;
-                taskInfos[i] = new TaskInfo[10];
+                taskInfos[i] = new TaskInfo[PlayerData.MaxTaskNum];
                 TaskProgress[i] = 0;
                 Taskcompleted[i] = false;
                 TaskNum[i] = 0;
@@ -392,7 +476,7 @@ namespace AmongUsCapture
                                         if (voteArea.didVote)
                                         {
                                             sbyte votedId = voteArea.votedFor;
-                                            if (votedId >= 0 && votedId < 10) votedId = (sbyte)IdList[votedId];
+                                            if (votedId >= 0 && votedId < PlayerData.MaxPlayerNum) votedId = (sbyte)IdList[votedId];
                                             voteList[id] = votedId;
                                         }
                                         else voteList[id] = -3;
@@ -413,7 +497,7 @@ namespace AmongUsCapture
                                         if (voteArea.didVote)
                                         {
                                             sbyte votedId = voteArea.votedFor;
-                                            if (votedId >= 0 && votedId < 10) votedId = (sbyte)IdList[votedId];
+                                            if (votedId >= 0 && votedId < PlayerData.MaxPlayerNum) votedId = (sbyte)IdList[votedId];
                                             voteList[id] = votedId;
                                         }
                                         else voteList[id] = -3;
@@ -424,7 +508,7 @@ namespace AmongUsCapture
                         }
                         else
                         {
-                            for (int i = 0; i < 10; i++) voteList[i] = -3;
+                            for (int i = 0; i < PlayerData.MaxPlayerNum; i++) voteList[i] = -3;
                         }
                     }
 
@@ -444,10 +528,10 @@ namespace AmongUsCapture
                             if (votedId > 20) votedId -= 32;
                             if (playerIsDead[i] == 0)
                             {
-                                if (votedId == 14 || votedId == -2)
+                                if (votedId == PlayerData.notVote || votedId == -2)
                                     votingresult = $"->Not Vote";
 
-                                else if (votedId > 9)
+                                else if (votedId >= PlayerData.MaxPlayerNum)
                                     votingresult = $"->Error ID:{votedId}";
                                 else if (votedId >= 0)
                                     votingresult = $"->{PlayerNames[votedId]}/{PlayerColorsInt[votedId]}";
@@ -487,7 +571,7 @@ namespace AmongUsCapture
                             {
                                 PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
                                 {
-                                    Action = PlayerAction.Exiled,
+                                    Action = PlayerData.PlayerAction.Exiled,
                                     Name = pi.GetPlayerName(),
                                     IsDead = pi.GetIsDead(),
                                     Disconnected = pi.GetIsDisconnected(),
@@ -557,12 +641,12 @@ namespace AmongUsCapture
                         shouldForceTransmitState = false;
                         Console.WriteLine($"GameState Changed: {state}");
                     }
-
+                    */
                     if (state != oldState && state == GameState.LOBBY)
                     {
                         shouldReadLobby = true; // will eventually transmit
                     }
-                    */
+                    
 
                     if (oldState == GameState.ENDED && (state == GameState.LOBBY || state == GameState.MENU)) // game ended
                     {
@@ -880,9 +964,9 @@ namespace AmongUsCapture
                         {
                             doors[i] = ProcessMemory.getInstance().Read<Door>(doorsListPtr, 4 * i, 0);
                         }
-                        if (playMap == PlayMap.Skeld)
+                        if (playMap == PlayerData.PlayMap.Skeld)
                             doorsUint = Doors.skeld.Doors2Uint(doors);
-                        else if (playMap == PlayMap.Polus)
+                        else if (playMap == PlayerData.PlayMap.Polus)
                             doorsUint = Doors.polus.Doors2Uint(doors);
                     }
 
@@ -1011,108 +1095,96 @@ namespace AmongUsCapture
 
 
                     #region amonguscapture
-                        /*
-                        foreach (var kvp in oldPlayerInfos)
-                        {
-                            var pi = kvp.Value;
-                            var playerName = kvp.Key;
-                            if (!newPlayerInfos.ContainsKey(playerName)) // player was here before, isn't now, so they left
-                                PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
-                                {
-                                    Action = PlayerAction.Left,
-                                    Name = playerName,
-                                    IsDead = pi.GetIsDead(),
-                                    Disconnected = pi.GetIsDisconnected(),
-                                    Color = pi.GetPlayerColor()
-                                });
-                        }
-
-                        oldPlayerInfos.Clear();
-
-                        var emitAll = false;
-                        if (shouldForceUpdatePlayers)
-                        {
-                            shouldForceUpdatePlayers = false;
-                            emitAll = true;
-                        }
-
-
-                        if (state != cachedOldState && (state == GameState.DISCUSSION || state == GameState.TASKS)
-                        ) // game started, or at least we're still in game
-                        {
-                            CachedPlayerInfos.Clear();
-                            foreach (var kvp in newPlayerInfos
-                            ) // do this instead of assignment so they don't point to the same object
+                    /*
+                    foreach (var kvp in oldPlayerInfos)
+                    {
+                        var pi = kvp.Value;
+                        var playerName = kvp.Key;
+                        if (!newPlayerInfos.ContainsKey(playerName)) // player was here before, isn't now, so they left
+                            PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
                             {
-                                var pi = kvp.Value;
-                                string playerName = pi.GetPlayerName();
-                                CachedPlayerInfos[playerName] = new ImmutablePlayer()
-                                {
-                                    Name = playerName,
-                                    IsImpostor = false
-                                };
-                            }
-                        }
+                                Action = PlayerAction.Left,
+                                Name = playerName,
+                                IsDead = pi.GetIsDead(),
+                                Disconnected = pi.GetIsDisconnected(),
+                                Color = pi.GetPlayerColor()
+                            });
+                    }
 
+                    oldPlayerInfos.Clear();
+
+                    var emitAll = false;
+                    if (shouldForceUpdatePlayers)
+                    {
+                        shouldForceUpdatePlayers = false;
+                        emitAll = true;
+                    }
+
+
+                    if (state != cachedOldState && (state == GameState.DISCUSSION || state == GameState.TASKS)
+                    ) // game started, or at least we're still in game
+                    {
+                        CachedPlayerInfos.Clear();
                         foreach (var kvp in newPlayerInfos
                         ) // do this instead of assignment so they don't point to the same object
                         {
                             var pi = kvp.Value;
-                            oldPlayerInfos[kvp.Key] = pi;
-                            if (emitAll)
-                                PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
-                                {
-                                    Action = PlayerAction.ForceUpdated,
-                                    Name = kvp.Key,
-                                    IsDead = pi.GetIsDead(),
-                                    Disconnected = pi.GetIsDisconnected(),
-                                    Color = pi.GetPlayerColor()
-                                });
-                        }
-
-                        if (shouldReadLobby)
-                        {
-                            var gameCode = ProcessMemory.getInstance().ReadString(ProcessMemory.getInstance().Read<IntPtr>(
-                                GameAssemblyPtr,
-                                CurrentOffsets.GameCodeOffsets), CurrentOffsets.StringOffsets[0], CurrentOffsets.StringOffsets[1]);
-                            string[] split;
-                            if (!string.IsNullOrEmpty(gameCode) && (split = gameCode.Split('\n')).Length == 2)
+                            string playerName = pi.GetPlayerName();
+                            CachedPlayerInfos[playerName] = new ImmutablePlayer()
                             {
-                                PlayRegion region = (PlayRegion)((4 - (ProcessMemory.getInstance()
-                                    .Read<int>(GameAssemblyPtr, CurrentOffsets.PlayRegionOffsets) & 0b11)) % 3); // do NOT ask
-
-                                //Recheck for GameOptionsOffset
-                                PlayMap map = (PlayMap)ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.PlayMapOffsets);
-
-                                playMap = map;
-                                this.latestLobbyEventArgs = new LobbyEventArgs()
-                                {
-                                    LobbyCode = split[1],
-                                    Region = region,
-                                    Map = map,
-                                };
-                                shouldReadLobby = false;
-                                shouldTransmitLobby = true; // since this is probably new info
-                            }
+                                Name = playerName,
+                                IsImpostor = false
+                            };
                         }
+                    }
 
-                        if (shouldTransmitLobby)
-                        {
-                            if (this.latestLobbyEventArgs != null)
+                    foreach (var kvp in newPlayerInfos
+                    ) // do this instead of assignment so they don't point to the same object
+                    {
+                        var pi = kvp.Value;
+                        oldPlayerInfos[kvp.Key] = pi;
+                        if (emitAll)
+                            PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
                             {
-                                JoinedLobby?.Invoke(this, this.latestLobbyEventArgs);
-                            }
+                                Action = PlayerAction.ForceUpdated,
+                                Name = kvp.Key,
+                                IsDead = pi.GetIsDead(),
+                                Disconnected = pi.GetIsDisconnected(),
+                                Color = pi.GetPlayerColor()
+                            });
+                    }
 
-                            shouldTransmitLobby = false;
+
+
+                    if (shouldTransmitLobby)
+                    {
+                        if (this.latestLobbyEventArgs != null)
+                        {
+                            JoinedLobby?.Invoke(this, this.latestLobbyEventArgs);
                         }
-                        */
-                        #endregion
 
+                        shouldTransmitLobby = false;
+                    }
+                    */
+                    #endregion
 
+                    if (shouldReadLobby)
+                    {
+                        var gameCode = ProcessMemory.getInstance().ReadString(ProcessMemory.getInstance().Read<IntPtr>(
+                            GameAssemblyPtr,
+                            CurrentOffsets.GameCodeOffsets), CurrentOffsets.StringOffsets[0], CurrentOffsets.StringOffsets[1]);
+                        string[] split;
+                        if (!string.IsNullOrEmpty(gameCode) && (split = gameCode.Split('\n')).Length == 2)
+                        {
+                            LobbyCode = split[1];
+                            Console.WriteLine("Code:" + LobbyCode);
+                            shouldReadLobby = false;
+                        }
+                    }
 
-                        //game start check and init
-                        //if (oldAllImposterNum != AllImposterNum)
-                    
+                    //game start check and init
+                    //if (oldAllImposterNum != AllImposterNum)
+
                     {
                         if (state == GameState.MENU || state == GameState.LOBBY)
                         {
@@ -1202,7 +1274,7 @@ namespace AmongUsCapture
             var allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
             var playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
 
-            while (playerCount > 10 && repeatcount < 50)
+            while (playerCount > PlayerData.MaxPlayerNum && repeatcount < 50)
             {
                 Console.WriteLine($"Wrong data : Player count is {playerCount}. | Retrying in 100ms");
                 Thread.Sleep(100);
@@ -1213,15 +1285,15 @@ namespace AmongUsCapture
             if (repeatcount > 50)
             {
                 Console.WriteLine($"Wrong data : Player count is {playerCount}. | Continue");
-                playerCount = 10;
+                playerCount = PlayerData.MaxPlayerNum;
             }
 
             var allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
             var playerAddrPtr = allPlayers + 0x10;
 
-            uint[] HatIds = new uint[10];
-            uint[] PetIds = new uint[10];
-            uint[] SkinIds = new uint[10];
+            uint[] HatIds = new uint[PlayerData.MaxPlayerNum];
+            uint[] PetIds = new uint[PlayerData.MaxPlayerNum];
+            uint[] SkinIds = new uint[PlayerData.MaxPlayerNum];
 
             while (!dataCompleted)
             {
@@ -1240,8 +1312,8 @@ namespace AmongUsCapture
                     var col = (int)pi.GetPlayerColor();
                     if (col >= 0 && col < 12)
                     {
-                        PlayerColors[i] = ColorList[col];
-                        PlayerColorsInt[i] = (PlayerColor)col;
+                        PlayerColors[i] = PlayerData.ColorList[col];
+                        PlayerColorsInt[i] = (PlayerData.PlayerColor)col;
                     }
                     else PlayerColors[i] = Color.Empty;
                     if (pi.IsImpostor == 1)
@@ -1291,7 +1363,7 @@ namespace AmongUsCapture
                 s += $"{PlayerNames[i]}/{PlayerColorsInt[i]}, ";
             }
             Console.WriteLine(s);
-            playMap = (PlayMap)ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.PlayMapOffsets);
+            playMap = (PlayerData.PlayMap)ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.PlayMapOffsets);
 
                 var move = new PlayerMoveArgs
             {
@@ -1316,6 +1388,7 @@ namespace AmongUsCapture
             GameStart?.Invoke(this, new GameStartEventArgs
             {
                 filename = filename,
+                LobbyCode = LobbyCode,
                 PlayMap = playMap,
                 PlayerMove = move,
                 HatIds = HatIds,
@@ -1326,37 +1399,7 @@ namespace AmongUsCapture
 
         }
 
-        static public Color[] ColorList = new Color[12]
-        {
-            Color.Red,
-            Color.Blue,
-            Color.Green,
-            Color.HotPink,
-            Color.Orange,
-            Color.Yellow,
-            Color.Black,
-            Color.White,
-            Color.BlueViolet,
-            Color.Brown,
-            Color.Cyan,
-            Color.Lime
-        };
 
-        static public Dictionary<int, string> ColorNameDict = new Dictionary<int, string>
-            {
-                { Color.Red.ToArgb(),"Red" },
-                { Color.Blue.ToArgb(),"Blue" },
-                { Color.Green.ToArgb(),"Green" },
-                { Color.HotPink.ToArgb(),"Pink" },
-                { Color.Orange.ToArgb(),"Orange" },
-                { Color.Yellow.ToArgb(),"Yellow" },
-                { Color.Black.ToArgb(),"Black" },
-                { Color.White.ToArgb(),"White" },
-                { Color.BlueViolet.ToArgb(),"Purple" },
-                { Color.Brown.ToArgb(), "Brown" },
-                { Color.Cyan.ToArgb(),"Cyan" },
-                { Color.Lime.ToArgb(),"Lime" },
-            };
 
         /*
         public void ForceTransmitLobby()
@@ -1381,46 +1424,7 @@ namespace AmongUsCapture
         public GameState NewState { get; set; }
     }
 
-    public enum PlayerAction
-    {
-        Joined,
-        Left,
-        Died,
-        ChangedColor,
-        ForceUpdated,
-        Disconnected,
-        Exiled
-    }
 
-    public enum PlayerColor
-    {
-        Red = 0,
-        Blue = 1,
-        Green = 2,
-        Pink = 3,
-        Orange = 4,
-        Yellow = 5,
-        Black = 6,
-        White = 7,
-        Purple = 8,
-        Brown = 9,
-        Cyan = 10,
-        Lime = 11
-    }
-
-    public enum PlayRegion
-    {
-        NorthAmerica = 0,
-        Asia = 1,
-        Europe = 2
-    }
-    
-    public enum PlayMap
-    {
-        Skeld = 0,
-        Mira = 1,
-        Polus = 2
-    }
 
     public class PlayerCosmeticChangedEventArgs : EventArgs
     {
@@ -1432,11 +1436,11 @@ namespace AmongUsCapture
 
     public class PlayerChangedEventArgs : EventArgs
     {
-        public PlayerAction Action { get; set; }
+        public PlayerData.PlayerAction Action { get; set; }
         public string Name { get; set; }
         public bool IsDead { get; set; }
         public bool Disconnected { get; set; }
-        public PlayerColor Color { get; set; }
+        public PlayerData.PlayerColor Color { get; set; }
     }
 
     public class ChatMessageEventArgs : EventArgs
@@ -1449,8 +1453,8 @@ namespace AmongUsCapture
     public class LobbyEventArgs : EventArgs
     {
         public string LobbyCode { get; set; }
-        public PlayRegion Region { get; set; }
-        public PlayMap Map { get; set; }
+        public PlayerData.PlayRegion Region { get; set; }
+        public PlayerData.PlayMap Map { get; set; }
     }
 
     public class GameOverEventArgs : EventArgs
@@ -1462,7 +1466,8 @@ namespace AmongUsCapture
     public class GameStartEventArgs : EventArgs
     {
         public string filename;
-        public PlayMap PlayMap;
+        public string LobbyCode;
+        public PlayerData.PlayMap PlayMap;
         public PlayerMoveArgs PlayerMove;
         public uint[] HatIds;
         public uint[] PetIds;

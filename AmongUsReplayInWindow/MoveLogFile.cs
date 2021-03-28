@@ -185,28 +185,28 @@ namespace AmongUsReplayInWindow
 
 
                     version = reader.ReadInt32();
-                    startArgs.PlayMap = (PlayMap)reader.ReadInt32();
+                    startArgs.PlayMap = (PlayerData.PlayMap)reader.ReadInt32();
                     PlayerNum = reader.ReadInt32();
                     e.myId = reader.ReadInt32();
                     AllImposorNum = reader.ReadInt32();
                     startArgs.filename = filename;
 
-                    startArgs.HatIds = new uint[10];
-                    startArgs.PetIds = new uint[10];
-                    startArgs.SkinIds = new uint[10];
+                    startArgs.HatIds = new uint[PlayerData.MaxPlayerNum];
+                    startArgs.PetIds = new uint[PlayerData.MaxPlayerNum];
+                    startArgs.SkinIds = new uint[PlayerData.MaxPlayerNum];
 
-                    e.PlayerNames = new string[10];
+                    e.PlayerNames = new string[PlayerData.MaxPlayerNum];
 
                     e.PlayerNum = PlayerNum;
-                    e.PlayerColors = new Color[10];
-                    e.IsImpostor = new bool[10];
-                    e.PlayerPoses = new Vector2[10];
-                    e.PlayerIsDead = new int[10];
-                    e.ImpostorId = new int[3];
-                    e.InVent = new bool[3];
-                    e.TaskProgress = new float[10];
+                    e.PlayerColors = new Color[PlayerData.MaxPlayerNum];
+                    e.IsImpostor = new bool[PlayerData.MaxPlayerNum];
+                    e.PlayerPoses = new Vector2[PlayerData.MaxPlayerNum];
+                    e.PlayerIsDead = new int[PlayerData.MaxPlayerNum];
+                    e.ImpostorId = new int[PlayerData.MaxPlayerNum];
+                    e.InVent = new bool[PlayerData.MaxPlayerNum];
+                    e.TaskProgress = new float[PlayerData.MaxPlayerNum];
                     e.Sabotage = new TaskInfo();
-                    if (version > 0) e.voteList = new sbyte[10];
+                    if (version > 0) e.voteList = new sbyte[PlayerData.MaxPlayerNum];
 
                     for (int i = 0; i < AllImposorNum; i++) e.ImpostorId[i] = reader.ReadInt32();
                     for (int i = 0; i < PlayerNum; i++)
@@ -298,7 +298,7 @@ namespace AmongUsReplayInWindow
             private Stream chatstream = null;
             private StreamWriter chatwriter = null;
             private Dictionary<string, int> PlayerName2Id = new Dictionary<string, int>();
-            private string[] Name2WithInfo = new string[10];
+            private string[] Name2WithInfo = new string[PlayerData.MaxPlayerNum];
             private readonly bool outputTextlog = false;
             public WriteMoveLogFile_chatLogFile(GameStartEventArgs startArgs, bool outputTextlog = true) :base(startArgs)
             {
@@ -325,17 +325,18 @@ namespace AmongUsReplayInWindow
                     int playerNum = startArgs.PlayerMove.PlayerNum;
                     var m = startArgs.PlayerMove;
                     StringBuilder sb = new StringBuilder();
+                    sb.Append("Code:" + startArgs.LobbyCode + "\n\n");
                     sb.Append("☆Impostor:\n");
                     for (int i = 0; i < AllImposorNum; i++)
                     {
-                        sb.Append(m.PlayerNames[m.ImpostorId[i]] + "/" + GameMemReader.ColorNameDict[m.PlayerColors[m.ImpostorId[i]].ToArgb()] + "\n");
+                        sb.Append(m.PlayerNames[m.ImpostorId[i]] + "/" + PlayerData.ColorNameDict[m.PlayerColors[m.ImpostorId[i]].ToArgb()] + "\n");
                     }
 
                     sb.Append("\nCrewmate:\n");
                     for (int i = 0; i < playerNum; i++)
                     {
                         PlayerName2Id[m.PlayerNames[i]] = i;
-                        string nameinfo = m.PlayerNames[i] + "/" + GameMemReader.ColorNameDict[m.PlayerColors[i].ToArgb()];
+                        string nameinfo = m.PlayerNames[i] + "/" + PlayerData.ColorNameDict[m.PlayerColors[i].ToArgb()];
                         Name2WithInfo[i] = nameinfo + ":\t";
                         if (!m.IsImpostor[i])
                             sb.Append(nameinfo + "\n");

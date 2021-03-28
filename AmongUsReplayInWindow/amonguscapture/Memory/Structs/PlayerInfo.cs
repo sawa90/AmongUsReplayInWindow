@@ -32,9 +32,9 @@ namespace AmongUsCapture
             return this.IsImpostor == 1;
         }
 
-        public PlayerColor GetPlayerColor()
+        public PlayerData.PlayerColor GetPlayerColor()
         {
-            return (PlayerColor)this.ColorId;
+            return (PlayerData.PlayerColor)this.ColorId;
         }
 
         public bool GetIsDisconnected()
@@ -93,9 +93,9 @@ namespace AmongUsCapture
                 return ProcessMemory.getInstance().ReadString((IntPtr)this.PlayerName);
             }
 
-            public PlayerColor GetPlayerColor()
+            public PlayerData.PlayerColor GetPlayerColor()
             {
-                return (PlayerColor)this.ColorId;
+                return (PlayerData.PlayerColor)this.ColorId;
             }
 
             public bool GetIsDisconnected()
