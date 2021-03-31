@@ -79,6 +79,10 @@ DLLAPI BOOL ResetKeyboardHook()
 DLLAPI void SetKeyboardEnable(BOOL gPlaying, BOOL gEnable) {
     playing = gPlaying;
     enable = gEnable;
+    if (!enable) {
+        if(hwnd != NULL) ShowWindow(hwnd, SW_HIDE);
+        if(trackhwnd != NULL)ShowWindow(trackhwnd, SW_HIDE);
+    }
 }
 
 DLLAPI void SetHotKey(UINT32 key) {

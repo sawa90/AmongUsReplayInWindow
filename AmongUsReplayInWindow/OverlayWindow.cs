@@ -50,6 +50,7 @@ namespace AmongUsReplayInWindow
         string filename = null;
         bool Playing = true;
         int discussionTime = -1000;
+        public bool showDisconnect = true;
 
 
         public List<int[]> discFrames = new List<int[]>();
@@ -337,6 +338,13 @@ namespace AmongUsReplayInWindow
                     Playing = true;
                     Invoke(new voidDelegate(removeReader));
                 }
+                else
+                {
+                    if (newState == GameState.DISCUSSION)
+                        SetKeyboardEnable(Playing, showDisconnect);
+                    else
+                        SetKeyboardEnable(Playing, false);
+                }
 
             }
 
@@ -459,10 +467,32 @@ namespace AmongUsReplayInWindow
         {
             if (Width <= 0 || Height <= 0) return;
             if (!Playing)
-                backgroundMap?.Draw(paint.Graphics);
-            lock (lockObject)
             {
-                DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
+                backgroundMap?.Draw(paint.Graphics);
+                lock (lockObject)
+                {
+                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
+                }
+            }else
+            {
+                paint.Graphics.FillRectangle(Brushes.Snow, paint.ClipRectangle);
+                if(moveArg!=null && moveArg.state == GameState.DISCUSSION)
+                {
+                    float circleSize = Height / 39.0f;
+                    paint.Graphics.FillRectangle(Brushes.White, 0, Height / 5, Width / 2, circleSize * 10);
+                    string disconnect = "DISCONNECT:\n";
+                    for(int i = 0; i < moveArg.PlayerNum; i++)
+                    {
+                        if(moveArg.PlayerIsDead[i] == -10)
+                        {
+                            disconnect += "\t" + moveArg.PlayerNames[i] + "/" + PlayerData.ColorNameDict.GetValueOrDefault(moveArg.PlayerColors[i].ToArgb()) + "\n";
+                        }
+                    }
+                    using (var fnt = new Font("Times New Roman", circleSize, FontStyle.Bold))
+                    {
+                        paint.Graphics.DrawString(disconnect, fnt, Brushes.Black, 0, Height / 5);
+                    }
+                }
             }
 
         }
