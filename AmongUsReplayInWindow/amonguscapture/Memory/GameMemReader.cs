@@ -108,10 +108,12 @@ namespace AmongUsCapture
         {
             Skeld = 0,
             Mira = 1,
-            Polus = 2
+            Polus = 2,
+            dlekS = 3,
+            AirShip = 4,
         }
 
-        public static Vector2[] centerOfTable = { new Vector2(-1.0f, 1.1f), new Vector2(24.03f, 2.625f), new Vector2(19.5f, -16.876f) };
+        public static Vector2[] centerOfTable = { new Vector2(-1.0f, 1.1f), new Vector2(24.03f, 2.625f), new Vector2(19.5f, -16.876f), new Vector2(-1.0f, 1.1f), new Vector2(-1.0f, 1.1f) };
 
         public const int notVote = 14;
     }
@@ -200,7 +202,7 @@ namespace AmongUsCapture
         float[] TaskProgress = new float[PlayerData.MaxPlayerNum];
         bool[] Taskcompleted = new bool[PlayerData.MaxPlayerNum];
         GameState testState = GameState.TASKS;
-        bool testbool = false;
+        public static bool testflag = false;
 
 
         public bool playing = false;
@@ -225,6 +227,7 @@ namespace AmongUsCapture
 
         Door[] doors;
         UInt32 doorsUint = 0;
+        bool IsLeft = true;
 
         Int32 discussionEndTime = -10000;
         sbyte[] voteList = new sbyte[PlayerData.MaxPlayerNum];
@@ -435,7 +438,11 @@ namespace AmongUsCapture
                             }
                     }
                     //Console.WriteLine($"Got state: {state}");
-                    if (testbool) state = testState;
+                    if (testflag)
+                    {
+                        state = testState;
+                        AllImposterNum = 1;
+                    }
 
 
                     var allPlayersPtr =
@@ -462,7 +469,7 @@ namespace AmongUsCapture
                             {
                                 var votePlayerCount = ProcessMemory.getInstance().Read<int>((IntPtr)voteInfoPtr, 0xC);
                                 voteInfoPtr += 0x10;
-                                if (CurrentOffsets.before20201209s)
+                                if (CurrentOffsets.StructVersion == 0)
                                 {
                                     var voteAreaPtrList = ProcessMemory.getInstance().ReadArray(voteInfoPtr, votePlayerCount);
                                     Struct_2020_12_9s.v_PlayerVoteArea voteArea;
@@ -564,7 +571,15 @@ namespace AmongUsCapture
 
                         for (var i = 0; i < playerCount; i++)
                         {
-                            PlayerInfo pi = CurrentOffsets.before20201209s ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                            PlayerInfo pi;
+                            if (CurrentOffsets.StructVersion == 0)
+                                pi = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                            else if (CurrentOffsets.StructVersion == 1)
+                                pi = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                            else
+                                pi = ProcessMemory.getInstance().Read<Struct_2021_3_31_3s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+
+
 
                             var id = IdList[pi.PlayerId];
                             if (pi.PlayerId == exiledPlayerId)
@@ -721,7 +736,13 @@ namespace AmongUsCapture
 
                     for (var i = 0; i < playerCount; i++)
                     {
-                        PlayerInfo pi = CurrentOffsets.before20201209s ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                        PlayerInfo pi;
+                        if (CurrentOffsets.StructVersion == 0)
+                            pi = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                        else if(CurrentOffsets.StructVersion == 1)
+                            pi = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                        else 
+                            pi = ProcessMemory.getInstance().Read<Struct_2021_3_31_3s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
 
                         //string playerName = pi.GetPlayerName();
                         //if (playerName == null) playerName = "";
@@ -735,7 +756,7 @@ namespace AmongUsCapture
                         }
 
 
-                        PlayerControl pcontrol = CurrentOffsets.before20201209s ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object);
+                        PlayerControl pcontrol = CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object);
 
                         if ((!pi.GetIsDisconnected() && pi.IsImpostor != 1) || pcontrol.myLight_ != 0)
                         {
@@ -955,19 +976,29 @@ namespace AmongUsCapture
                     if (CurrentOffsets.ShipStatusPtr != null)
                     {
                         var shipStatusPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ShipStatusPtr);
-                        var doorsPtr = (IntPtr)ProcessMemory.getInstance().Read<Int32>((IntPtr)shipStatusPtr, CurrentOffsets.DoorsPtr);
+                        ShipStatus shipStatus = CurrentOffsets.StructVersion == 0? ProcessMemory.getInstance().Read< Struct_2020_12_9s.v_ShipStatus>(shipStatusPtr) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_ShipStatus>(shipStatusPtr);
+                        var doorsPtr = shipStatus.AllDoors;
                         int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, 0xC);
                         var doorsListPtr = doorsPtr + 0x10;
-
+                        if (playMap == PlayerData.PlayMap.Skeld && doorNum > 20) playMap = PlayerData.PlayMap.AirShip;
                         if (doors == null || doors.Length != doorNum) doors = new Door[doorNum];
+
+                        bool[] doorOpen = new bool[doorNum];
                         for (int i = 0; i < doorNum; i++)
                         {
                             doors[i] = ProcessMemory.getInstance().Read<Door>(doorsListPtr, 4 * i, 0);
+                            doorOpen[doors[i].Id] = doors[i].Open;
                         }
                         if (playMap == PlayerData.PlayMap.Skeld)
                             doorsUint = Doors.skeld.Doors2Uint(doors);
                         else if (playMap == PlayerData.PlayMap.Polus)
                             doorsUint = Doors.polus.Doors2Uint(doors);
+                        else if (playMap == PlayerData.PlayMap.AirShip)
+                        {
+                            var platform = ProcessMemory.getInstance().Read<Doors.airship.MovingPlatformBehaviour>(shipStatus.GapPlatform);
+                            IsLeft = platform.IsLeft;
+                            doorsUint = Doors.airship.Doors2Uint(doors, IsLeft);
+                        }
                     }
 
                     if (state != cachedOldState)
@@ -996,12 +1027,12 @@ namespace AmongUsCapture
                         if (loadLastchatNextturn)
                         {
                             var msgPtrList = ProcessMemory.getInstance().ReadArray(lastChatBubblePtr + 0x1C, 2);
-                            var msgPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], 0x70);
-                            var senderPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], 0x70);
+                            var msgPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], CurrentOffsets.TextMeshPtr);
+                            var senderPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], CurrentOffsets.TextMeshPtr);
                             if (senderPtr != IntPtr.Zero || msgPtr != IntPtr.Zero)
                             {
-                                var msgText = ProcessMemory.getInstance().ReadString(msgPtr, 0x10, 0x14);
-                                var msgSender = ProcessMemory.getInstance().ReadString(senderPtr, 0x10, 0x14);
+                                var msgText = ProcessMemory.getInstance().ReadString(msgPtr);
+                                var msgSender = ProcessMemory.getInstance().ReadString(senderPtr);
                                 ChatMessageAdded?.Invoke(this, new ChatMessageEventArgs
                                 {
                                     time = gametimeMili,
@@ -1074,9 +1105,9 @@ namespace AmongUsCapture
                                     {
                                         var msgPtrList = ProcessMemory.getInstance().ReadArray(chatBubblePtrs[i] + 0x1C, 2);
                                         var msgText = ProcessMemory.getInstance()
-                                            .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], 0x70), 0x10, 0x14);
+                                            .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], CurrentOffsets.TextMeshPtr));
                                         var msgSender = ProcessMemory.getInstance()
-                                            .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], 0x70), 0x10, 0x14);
+                                            .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], CurrentOffsets.TextMeshPtr));
                                         ChatMessageAdded?.Invoke(this, new ChatMessageEventArgs
                                         {
                                             time = gametimeMili,
@@ -1184,7 +1215,10 @@ namespace AmongUsCapture
 
                     //game start check and init
                     //if (oldAllImposterNum != AllImposterNum)
-
+                    if (testflag)
+                    {
+                        AllImposterNum = 1;
+                    }
                     {
                         if (state == GameState.MENU || state == GameState.LOBBY)
                         {
@@ -1290,6 +1324,7 @@ namespace AmongUsCapture
 
             var allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
             var playerAddrPtr = allPlayers + 0x10;
+            var PlayerInfoPtrList = ProcessMemory.getInstance().ReadArray(playerAddrPtr, playerCount);
 
             uint[] HatIds = new uint[PlayerData.MaxPlayerNum];
             uint[] PetIds = new uint[PlayerData.MaxPlayerNum];
@@ -1302,7 +1337,15 @@ namespace AmongUsCapture
                 ImposterNum = 0;
                 for (var i = 0; i < playerCount; i++)
                 {
-                    PlayerInfo pi = CurrentOffsets.before20201209s ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(playerAddrPtr, 0, 0) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(playerAddrPtr, 0, 0);
+                    PlayerInfo pi;
+                    if (CurrentOffsets.StructVersion == 0)
+                        pi = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                    else if (CurrentOffsets.StructVersion == 1)
+                        pi = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                    else
+                        pi = ProcessMemory.getInstance().Read<Struct_2021_3_31_3s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+
+
                     playerAddrPtr += 4;
                     IdList[pi.PlayerId] = i;
                     PlayerNames[i] = pi.GetPlayerName();
@@ -1326,7 +1369,7 @@ namespace AmongUsCapture
                     PetIds[i] = pi.PetId;
                     SkinIds[i] = pi.SkinId;
 
-                    PlayerControl pcontrol = CurrentOffsets.before20201209s ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object);
+                    PlayerControl pcontrol = CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object);
 
                     int offset = 0x3C;
                     if (pcontrol.myLight_ != 0) offset = 0x50;
@@ -1351,7 +1394,8 @@ namespace AmongUsCapture
                     allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
                     allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
                     playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
-                    playerAddrPtr = allPlayers + 0x10; 
+                    playerAddrPtr = allPlayers + 0x10;
+                    PlayerInfoPtrList = ProcessMemory.getInstance().ReadArray(playerAddrPtr, playerCount);
                 }
             }
 
@@ -1364,6 +1408,14 @@ namespace AmongUsCapture
             }
             Console.WriteLine(s);
             playMap = (PlayerData.PlayMap)ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.PlayMapOffsets);
+            if (CurrentOffsets.ShipStatusPtr != null)
+            {
+                var shipStatusPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ShipStatusPtr);
+                ShipStatus shipStatus = CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_ShipStatus>(shipStatusPtr) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_ShipStatus>(shipStatusPtr);
+                var doorsPtr = shipStatus.AllDoors;
+                int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, 0xC);
+                if (playMap == PlayerData.PlayMap.Skeld && doorNum > 20) playMap = PlayerData.PlayMap.AirShip;
+            }
 
                 var move = new PlayerMoveArgs
             {

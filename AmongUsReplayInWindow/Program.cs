@@ -19,6 +19,8 @@ namespace AmongUsReplayInWindow
         static public string exePath;
         static public string exeFolder;
 
+        public const bool testflag = false;
+
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>
@@ -32,6 +34,7 @@ namespace AmongUsReplayInWindow
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             //AllocConsole();
+            if (testflag) AmongUsCapture.GameMemReader.testflag = true;
             try
             {
                 var form = new StartWindow();

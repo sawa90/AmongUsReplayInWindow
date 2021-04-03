@@ -319,14 +319,26 @@ namespace AmongUsReplayInWindow
             }
             int killed = 0, ejjected = 0, disconnected = 0;
 
-            if (map.Id == 0 || map.Id == 2)
+            if (map.Id != 1)
             {
                 using (Pen pen = new Pen(Color.Black, dsize * 3))
                 using (Pen pen2 = new Pen(Color.White, dsize * 2))
                 {
                     float[][] doors;
-                    if (map.Id == 0) doors = Doors.skeld.Doors;
-                    else doors = Doors.polus.Doors;
+                    switch (map.Id)
+                    {
+                        case 0:
+                        case 3:
+                            doors = Doors.skeld.Doors;
+                            break;
+                        case 2:
+                            doors = Doors.polus.Doors;
+                            break;
+                        case 4:
+                        default:
+                            doors = Doors.airship.Doors;
+                            break;
+                    }
                     uint doorsUint = move.doorsUint;
                     int doorNum = doors.Length;
                     for (int i = 0; i < doorNum; i++)
@@ -338,6 +350,22 @@ namespace AmongUsReplayInWindow
                             paint.Graphics.DrawLine(pen, mapLocation.X + (point[0] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[1] * map.ys + map.yp) * mapSize.Height, mapLocation.X + (point[2] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[3] * map.ys + map.yp) * mapSize.Height);
                             paint.Graphics.DrawLine(pen2, mapLocation.X + (point[0] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[1] * map.ys + map.yp) * mapSize.Height, mapLocation.X + (point[2] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[3] * map.ys + map.yp) * mapSize.Height);
 
+                        }
+                    }
+                    if (map.Id == 4)
+                    {
+                        using (Pen pen3 = new Pen(Color.Black, dsize * 5))
+                        using (Pen pen4 = new Pen(Color.LightGray, dsize * 4))
+                            for (int i = doorNum - 2; i < doorNum; i++)
+                        {
+                            if ((doorsUint >> i & 1) != 0)
+                            {
+                                float[] point = doors[i];
+
+                                paint.Graphics.DrawLine(pen3, mapLocation.X + (point[0] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[1] * map.ys + map.yp) * mapSize.Height, mapLocation.X + (point[2] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[3] * map.ys + map.yp) * mapSize.Height);
+                                paint.Graphics.DrawLine(pen4, mapLocation.X + (point[0] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[1] * map.ys + map.yp) * mapSize.Height, mapLocation.X + (point[2] * map.xs + map.xp) * mapSize.Width, mapLocation.Y + (-point[3] * map.ys + map.yp) * mapSize.Height);
+
+                            }
                         }
                     }
                 }
@@ -358,6 +386,7 @@ namespace AmongUsReplayInWindow
                 //draw living crew
                 for (int i = 0; i < move.PlayerNum; i++)
                 {
+                    if (Program.testflag) move.PlayerColors[i] = Color.FromArgb(move.PlayerColors[i].ToArgb());
                     if (move.IsImpostor[i] || move.PlayerColors == null || move.PlayerIsDead[i] != 0) continue;
 
                     using (var brush = new SolidBrush(move.PlayerColors[i]))

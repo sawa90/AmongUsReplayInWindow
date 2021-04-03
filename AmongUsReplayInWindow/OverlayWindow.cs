@@ -50,7 +50,7 @@ namespace AmongUsReplayInWindow
         string filename = null;
         bool Playing = true;
         int discussionTime = -1000;
-        public bool showDisconnect = true;
+        public bool showDisconnect = false;
 
 
         public List<int[]> discFrames = new List<int[]>();
@@ -345,9 +345,10 @@ namespace AmongUsReplayInWindow
                     else
                         SetKeyboardEnable(Playing, false);
                 }
-
+                SetKeyboardEnable(Playing, true);
             }
-
+            if (Program.testflag)
+                Invoke(new voidDelegate(StartDraw));
         }
 
         bool setpopup(string fname)
@@ -446,19 +447,18 @@ namespace AmongUsReplayInWindow
         {
             if (mapId == newMapId) return;
             mapId = newMapId;
-            float h = Height;
-            float w = Width;
+            float h = Height * (1 - Map.Maps[mapId].ypad);
+            float w = Width * (1 - Map.Maps[mapId].xpad);
             float hw = Map.Maps[mapId].hw;
             if (h / w > hw)
             {
                 h = w * hw;
-                mapLocation = new Point(0, (int)((Height - h) * 0.5));
             }
             else
             {
                 w = h / hw;
-                mapLocation = new Point((int)((Width - w) * 0.5), 0);
             }
+            mapLocation = new Point((int)((Width - w) * 0.5), (int)((Height - h) * 0.5));
             mapSize = new Size((int)w, (int)h);
             backgroundMap.ChangeMapId(mapId, ClientSize, mapLocation, mapSize);
             Invalidate();
@@ -466,14 +466,23 @@ namespace AmongUsReplayInWindow
         private void Draw(object sender, PaintEventArgs paint)
         {
             if (Width <= 0 || Height <= 0) return;
-            if (!Playing)
+            if (Program.testflag)
+            {
+                //backgroundMap?.Draw(paint.Graphics);
+                lock (lockObject)
+                {
+                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
+                }
+            }
+            else if (!Playing)
             {
                 backgroundMap?.Draw(paint.Graphics);
                 lock (lockObject)
                 {
                     DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
                 }
-            }else
+            }
+            else if(showDisconnect)
             {
                 paint.Graphics.FillRectangle(Brushes.Snow, paint.ClipRectangle);
                 if(moveArg!=null && moveArg.state == GameState.DISCUSSION)
@@ -563,19 +572,18 @@ namespace AmongUsReplayInWindow
         #endregion
         public void SizeChangedHandler(object sender, EventArgs ev)
         {
-            float h = Height;
-            float w = Width;
+            float h = Height * (1 - Map.Maps[mapId].ypad);
+            float w = Width * (1 - Map.Maps[mapId].xpad);
             float hw = Map.Maps[mapId].hw;
             if (h / w > hw)
             {
                 h = w * hw;
-                mapLocation = new Point(0, (int)((Height - h) * 0.5));
             }
             else
             {
                 w = h / hw;
-                mapLocation = new Point((int)((Width - w) * 0.5), 0);
             }
+            mapLocation = new Point((int)((Width - w) * 0.5), (int)((Height - h) * 0.5));
             mapSize = new Size((int)w, (int)h);
             backgroundMap.ChangeSize(Size, mapLocation, mapSize);
             trackwin.Size = new Size(Width, 30);

@@ -10,16 +10,16 @@ namespace AmongUsReplayInWindow
 {
     public static class Map
     {
-        static string[] mapFilename = new string[4] { "skeld.png", "mira.png", "polus.png", "airship.png" };
+        static string[] mapFilename = new string[5] { "skeld.png", "mira.png", "polus.png", "skeld.png", "airship.png" };
         static public string mapFolder = "color";
         public struct MapScale
         {
             public int Id;
-            public float hw, xs, ys, xp, yp;
+            public float hw, xs, ys, xp, yp, xpad, ypad;
             public Vector2 centerOfTable;
         }
 
-        static public MapScale[] Maps = new MapScale[4]
+        static public MapScale[] Maps = new MapScale[5]
         { new MapScale
             {
                 Id = 0,
@@ -28,6 +28,8 @@ namespace AmongUsReplayInWindow
                 ys = 0.038f,
                 xp = 0.554f,
                 yp = 0.292f,
+                xpad = 0,
+                ypad = 0,
                 centerOfTable = new Vector2(-1.0f, 1.1f)
             },
             new MapScale
@@ -38,6 +40,8 @@ namespace AmongUsReplayInWindow
                 ys = 0.0305f,
                 xp = 0.30f,
                 yp = 0.83f,
+                xpad = 0,
+                ypad = 0,
                 centerOfTable = new Vector2(24.03f,2.625f)
             },
             new MapScale
@@ -48,18 +52,34 @@ namespace AmongUsReplayInWindow
                 ys = 0.0335f,
                 xp = 0.021f,
                 yp = 0.093f,
+                xpad = 0,
+                ypad = 0,
                 centerOfTable = new Vector2(19.5f,-16.876f)
             },
             new MapScale
             {
                 Id = 3,
-                hw = 0.69f,
-                xs = 0.0232f,
-                ys = 0.0335f,
-                xp = 0.021f,
-                yp = 0.093f,
-                centerOfTable = new Vector2(19.5f,-16.876f)
-            }
+                hw = 0.58f,
+                xs = 0.022f,
+                ys = 0.038f,
+                xp = 0.554f,
+                yp = 0.292f,
+                xpad = 0,
+                ypad = 0,
+                centerOfTable = new Vector2(-1.0f, 1.1f)
+            },
+            new MapScale
+            {
+                Id = 4,
+                hw = 0.53f,
+                xs =  0.0154f,
+                ys = 0.0288f,
+                xp = 0.390f,
+                yp = 0.5025f,
+                xpad = 0.05f,
+                ypad = 0.05f,//0.29f,
+                centerOfTable = new Vector2(-1.0f, 1.1f)
+            },
         };
 
         static public Image setMapImage(int mapId)
@@ -92,7 +112,10 @@ namespace AmongUsReplayInWindow
                     MapImage = Properties.Resources.polus;
                     break;
                 case 3:
-                    MapImage = Properties.Resources.polus;
+                    MapImage = Properties.Resources.skeld;
+                    break;
+                case 4:
+                    MapImage = Properties.Resources.airship;
                     break;
                 default:
                     Console.WriteLine($"Not found map image ID={mapId}");

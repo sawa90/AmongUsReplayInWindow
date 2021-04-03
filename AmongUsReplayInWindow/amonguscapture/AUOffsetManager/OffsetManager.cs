@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace AUOffsetManager
 {
@@ -37,7 +38,6 @@ namespace AUOffsetManager
             {
                 OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
             }
-
         }
         public async Task RefreshIndex()
         {
@@ -101,7 +101,9 @@ namespace AUOffsetManager
             }
             else
             {
-                if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash) || OffsetIndex[hash].offsetListVersion < 1) 
+                if (AmongUsCapture.GameMemReader.testflag)
+                    OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
+                if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash) || !OffsetIndex.ContainsKey("3E01974A43431BF7BA7E88570DB8E19954D256C37DB9917C4905963CBD006099") || OffsetIndex["31E1F0C1D7370071F96514B8A76DE72FF0EE130F870A1BC157D63E0FBDA979D1"].offsetListVersion < 2) 
                 {
                     indexTask = RefreshIndex();
                     indexTask.Wait();
@@ -109,16 +111,37 @@ namespace AUOffsetManager
                 var offsets = OffsetIndex.ContainsKey(sha256Hash) ? OffsetIndex[sha256Hash] : null;
                 if (offsets is not null)
                 {
+
+                    if (OffsetIndex[sha256Hash].StructVersion == 0)
+                    {
+                        var datelist = Regex.Matches(offsets.Description, "[0-9]+");
+                        int date = 30000000;
+                        if (datelist!=null && datelist.Count >= 3)
+                        {
+                            date = int.Parse(datelist[0].Value) * 10000 + int.Parse(datelist[1].Value) * 100 + int.Parse(datelist[2].Value);
+                        }
+                        if (date < 20210305) OffsetIndex[sha256Hash].StructVersion = 0;
+                        else if (date < 20210331) OffsetIndex[sha256Hash].StructVersion = 1;
+                        else OffsetIndex[sha256Hash].StructVersion = 2;
+                    }
+
                     Console.WriteLine($"Loaded offsets: {OffsetIndex[sha256Hash].Description}");
-                    OffsetIndex[sha256Hash].before20201209s = HashList_until20201209s.Contains(sha256Hash);
                     if (OffsetIndex[sha256Hash].PlayerVoteAreaListPtr == 0) OffsetIndex[sha256Hash].PlayerVoteAreaListPtr = 0x60;
-                    if (OffsetIndex[sha256Hash].before20201209s)
+                    if (OffsetIndex[sha256Hash].StructVersion == 0)
                     {
                         if (OffsetIndex[sha256Hash].DoorsPtr == 0) OffsetIndex[sha256Hash].DoorsPtr = 0x7c;
                     }
                     else
                     {
-                        if (OffsetIndex[sha256Hash].DoorsPtr == 0) OffsetIndex[sha256Hash].DoorsPtr = 0x84;  
+                        if (OffsetIndex[sha256Hash].DoorsPtr == 0) OffsetIndex[sha256Hash].DoorsPtr = 0x84;
+                        if (OffsetIndex[sha256Hash].StructVersion == 1)
+                        {
+                            if (OffsetIndex[sha256Hash].TextMeshPtr == 0) OffsetIndex[sha256Hash].TextMeshPtr = 0x70;
+                        }
+                        else
+                        {
+                            if (OffsetIndex[sha256Hash].TextMeshPtr == 0) OffsetIndex[sha256Hash].TextMeshPtr = 0x80;
+                        }
                     }
                 }
                 return offsets;
@@ -152,6 +175,7 @@ namespace AUOffsetManager
             "4BFEB19A37634C94017824F0D71B1C4651173C4B9242FF4EF6FAFFA593DFD91D",
             "windows_store"
         };
+
     }
 
     public class GameOffsets
@@ -160,6 +184,8 @@ namespace AUOffsetManager
         public string Description = "";
 
         public int offsetListVersion { get; set; }
+
+        public int StructVersion { get; set; }
 
         public int AmongUsClientOffset { get; set; }
 
@@ -194,10 +220,11 @@ namespace AUOffsetManager
         public int[] PlayMapOffsets { get; set; }
         public int[] StringOffsets { get; set; }
         public int[] ShipStatusPtr { get; set; }
-        public bool before20201209s { get; set; }
         public int DoorsPtr { get; set; }
         public int PlayerVoteAreaListPtr { get; set; }
         public int[] ChatControllerPtr { get; set; }
+        public int GapPlatformPtr { get; set; }
+        public int TextMeshPtr { get; set; }
     }
 
 }
