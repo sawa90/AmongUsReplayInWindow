@@ -80,8 +80,8 @@ DLLAPI void SetKeyboardEnable(BOOL gPlaying, BOOL gEnable) {
     playing = gPlaying;
     enable = gEnable;
     if (!enable) {
-        if(hwnd != NULL) ShowWindow(hwnd, SW_HIDE);
-        if(trackhwnd != NULL)ShowWindow(trackhwnd, SW_HIDE);
+        if(hwnd != NULL) ShowWindowAsync(hwnd, SW_HIDE);
+        if(trackhwnd != NULL)ShowWindowAsync(trackhwnd, SW_HIDE);
     }
 }
 
@@ -97,13 +97,13 @@ DLLAPI LRESULT CALLBACK MyHookProc(int nCode, WPARAM wp, LPARAM lp)
 
     if (wp == keycode && (((UINT32)lp >> 30) == 0)) {
         if (IsWindowVisible(hwnd)) {
-            ShowWindow(hwnd, SW_HIDE);
-            ShowWindow(trackhwnd, SW_HIDE);
+            ShowWindowAsync(hwnd, SW_HIDE);
+            ShowWindowAsync(trackhwnd, SW_HIDE);
         }
         else {
-            ShowWindow(hwnd, SW_SHOWNA);
+            ShowWindowAsync(hwnd, SW_SHOWNA);
             if(!playing)
-                ShowWindow(trackhwnd, SW_SHOW);
+                ShowWindowAsync(trackhwnd, SW_SHOW);
         }
     } 
 
