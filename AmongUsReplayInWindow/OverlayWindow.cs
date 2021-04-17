@@ -345,7 +345,6 @@ namespace AmongUsReplayInWindow
                     else
                         SetKeyboardEnable(Playing, false);
                 }
-                SetKeyboardEnable(Playing, true);
             }
             if (Program.testflag)
                 Invoke(new voidDelegate(StartDraw));

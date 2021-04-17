@@ -113,7 +113,7 @@ namespace AmongUsCapture
             AirShip = 4,
         }
 
-        public static Vector2[] centerOfTable = { new Vector2(-1.0f, 1.1f), new Vector2(24.03f, 2.625f), new Vector2(19.5f, -16.876f), new Vector2(-1.0f, 1.1f), new Vector2(-1.0f, 1.1f) };
+        public static Vector2[] centerOfTable = { new Vector2(-1.0f, 1.1f), new Vector2(24.03f, 2.625f), new Vector2(19.5f, -16.876f), new Vector2(-1.0f, 1.1f), new Vector2(11, 15) };
 
         public const int notVote = 14;
     }
@@ -980,7 +980,6 @@ namespace AmongUsCapture
                         var doorsPtr = shipStatus.AllDoors;
                         int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, 0xC);
                         var doorsListPtr = doorsPtr + 0x10;
-                        if (playMap == PlayerData.PlayMap.Skeld && doorNum > 20) playMap = PlayerData.PlayMap.AirShip;
                         if (doors == null || doors.Length != doorNum) doors = new Door[doorNum];
 
                         bool[] doorOpen = new bool[doorNum];
@@ -1408,14 +1407,6 @@ namespace AmongUsCapture
             }
             Console.WriteLine(s);
             playMap = (PlayerData.PlayMap)ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.PlayMapOffsets);
-            if (CurrentOffsets.ShipStatusPtr != null)
-            {
-                var shipStatusPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ShipStatusPtr);
-                ShipStatus shipStatus = CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_ShipStatus>(shipStatusPtr) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_ShipStatus>(shipStatusPtr);
-                var doorsPtr = shipStatus.AllDoors;
-                int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, 0xC);
-                if (playMap == PlayerData.PlayMap.Skeld && doorNum > 20) playMap = PlayerData.PlayMap.AirShip;
-            }
 
                 var move = new PlayerMoveArgs
             {

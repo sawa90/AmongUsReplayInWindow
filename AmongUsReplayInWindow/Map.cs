@@ -78,7 +78,7 @@ namespace AmongUsReplayInWindow
                 yp = 0.5025f,
                 xpad = 0.05f,
                 ypad = 0.05f,//0.29f,
-                centerOfTable = new Vector2(-1.0f, 1.1f)
+                centerOfTable = new Vector2(11, 15)
             },
         };
 
