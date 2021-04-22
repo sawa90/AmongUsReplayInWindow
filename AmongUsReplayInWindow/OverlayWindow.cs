@@ -50,7 +50,7 @@ namespace AmongUsReplayInWindow
         string filename = null;
         bool Playing = true;
         int discussionTime = -1000;
-        public bool showDisconnect = false;
+        public static bool ShowDisconnect = false;
 
 
         public List<int[]> discFrames = new List<int[]>();
@@ -341,7 +341,7 @@ namespace AmongUsReplayInWindow
                 else
                 {
                     if (newState == GameState.DISCUSSION)
-                        SetKeyboardEnable(Playing, showDisconnect);
+                        SetKeyboardEnable(Playing, ShowDisconnect);
                     else
                         SetKeyboardEnable(Playing, false);
                 }
@@ -481,7 +481,7 @@ namespace AmongUsReplayInWindow
                     DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
                 }
             }
-            else if(showDisconnect)
+            else if(ShowDisconnect)
             {
                 paint.Graphics.FillRectangle(Brushes.Snow, paint.ClipRectangle);
                 if(moveArg!=null && moveArg.state == GameState.DISCUSSION)

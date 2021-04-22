@@ -293,6 +293,9 @@ namespace AmongUsReplayInWindow
 
             [DefaultValue(false)]
             public bool PopupTextLog = false;
+
+            [DefaultValue(false)]
+            public bool ShowDisconnect = false;
         }
 
         void applySettings()
@@ -322,6 +325,7 @@ namespace AmongUsReplayInWindow
             StartWindow.SetHotKey(hotkey);
             OverlayWindow.OutputTextLog = settings.OutputTextLog;
             OverlayWindow.PopupTextLog = settings.PopupTextLog;
+            OverlayWindow.ShowDisconnect = settings.ShowDisconnect;
         }
 
         public static Dictionary<string, UInt32> hotKeyDict = new Dictionary<string, uint>()
