@@ -1,4 +1,6 @@
 # AmongUsReplayInWindow
+![license MIT](https://img.shields.io/badge/license-MIT-green)
+![Downloads num](https://img.shields.io/github/downloads/sawa90/AmongUsReplayInWindow/total)  
 ![screenshot](https://github.com/sawa90/AmongUsReplayInWindow/blob/images/scrnshot3.png)
 
 This project add a simple replay feature to Among Us (Steam version). The replay will appear in the game window when you return to the lobby after the game.

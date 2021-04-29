@@ -1,4 +1,6 @@
 # AmongUsReplayInWindow
+![license MIT](https://img.shields.io/badge/license-MIT-green)
+![Downloads num](https://img.shields.io/github/downloads/sawa90/AmongUsReplayInWindow/total)  
 ![screenshot](https://github.com/sawa90/AmongUsReplayInWindow/blob/images/scrnshot3.png)
 
 Among Us (Steam version)に簡易的なリプレイ機能を追加するツールです。リプレイはゲーム終了後ゲームウィンドウ内に表示され、コントロールキーで開閉することができます。
