@@ -47,10 +47,10 @@ namespace AmongUsReplayInWindow
 
         ~StartWindow()
         {
-            StartWindow_FormClosed(null, null);
+            StartWindow_FormClosing(null, null);
         }
 
-        private void StartWindow_FormClosed(object sender, FormClosedEventArgs ev)
+        private void StartWindow_FormClosing(object sender, FormClosingEventArgs ev)
         {
             closed = true;
             if (settings != null)
@@ -61,6 +61,7 @@ namespace AmongUsReplayInWindow
                         sw.Write(JsonConvert.SerializeObject(settings));
                 } catch(Exception e) { }
             }
+            if(OverlayWindow.open) overlayForm?.Close();
             try { tokenSource?.Cancel(); } catch (ObjectDisposedException e) { }
             try { createWindowTask?.Wait(); }
             catch (System.AggregateException exc)
@@ -127,6 +128,7 @@ namespace AmongUsReplayInWindow
         {
             overlayForm = new OverlayWindow(this, tokenSource, process);
         }
+
 
         private void GetAmongUsWindow_Click(object sender, EventArgs ev)
         {
@@ -294,6 +296,9 @@ namespace AmongUsReplayInWindow
             [DefaultValue(false)]
             public bool PopupTextLog = false;
 
+            [DefaultValue("Snow")]
+            public Color backgroundColor = Color.Snow;
+
             [DefaultValue(false)]
             public bool ShowDisconnect = false;
         }
@@ -312,6 +317,7 @@ namespace AmongUsReplayInWindow
             DrawMove.TaskBarVisible = settings.TaskBarVisible;
             DrawMove.PlayerNameVisible = settings.PlayerNameVisible;
             DrawMove.VoteVisible = settings.VoteVisible;
+            DrawMove.backgroundColor = settings.backgroundColor;
 
             Map.mapFolder = settings.MapImageFolder;
 
@@ -345,5 +351,6 @@ namespace AmongUsReplayInWindow
             SettingDialog settingDialog = new SettingDialog(this);
             settingDialog.ShowDialog();
         }
+
     }
 }

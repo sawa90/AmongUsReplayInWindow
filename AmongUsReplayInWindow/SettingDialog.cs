@@ -110,5 +110,16 @@ namespace AmongUsReplayInWindow
             startWindow.settings.PopupTextLog = textLogPopupCheckBox.Checked;
             OverlayWindow.PopupTextLog = textLogPopupCheckBox.Checked;
         }
+
+        private void backgroundColorButton_Click(object sender, EventArgs e)
+        {
+            if(backgroundColorDialog.ShowDialog() == DialogResult.OK)
+            {
+                DrawMove.backgroundColor = backgroundColorDialog.Color;
+                startWindow.settings.backgroundColor = backgroundColorDialog.Color;
+                foreach (var wind in fromFile.fromFileList)
+                    wind.changeColor();
+            }
+        }
     }
 }

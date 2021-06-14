@@ -61,6 +61,7 @@ namespace AmongUsReplayInWindow
                 return;
             }
             setTrackBarHandler();
+            trackBar1.BackColor = DrawMove.backgroundColor;
             fromFileList.Add(this);
         }
 
@@ -135,7 +136,7 @@ namespace AmongUsReplayInWindow
                 mapId = (int)logReader.startArgs.PlayMap;
                 hw = Map.Maps[mapId].hw;
                 SizeChangedHandler(null, null);
-                backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId);
+                backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId,false);
                 Invalidate();
                 getFrameData();
             }
@@ -330,6 +331,11 @@ namespace AmongUsReplayInWindow
 
 
         #region Draw
+        public void changeColor()
+        {
+            backgroundMap.RedrawMap();
+            trackBar1.BackColor = DrawMove.backgroundColor;
+        }
         private void DrawBar(object sender, System.Windows.Forms.PaintEventArgs paint)
         {
             if (logReader?.reader == null) return;

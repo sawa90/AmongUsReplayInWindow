@@ -122,7 +122,7 @@ namespace AmongUsReplayInWindow
             Paint += new PaintEventHandler(Draw);
             FormClosing += new FormClosingEventHandler(overlay_FormClosing);
             trackwin = new TrackBarWin(this);
-            backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId);
+            backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId, true);
             drawTimer = new System.Windows.Forms.Timer();
             drawTimer.Interval = startWindow.interval;
             drawTimer.Tick += new EventHandler(DrawTimerHandler);

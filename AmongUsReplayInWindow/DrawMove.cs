@@ -15,6 +15,7 @@ namespace AmongUsReplayInWindow
         public static bool VoteVisible = true;
         public static float playerSize = 1.0f;
         public static bool drawIcon = true;
+        public static Color backgroundColor = Color.Snow;
 
         public class IconDict
         {

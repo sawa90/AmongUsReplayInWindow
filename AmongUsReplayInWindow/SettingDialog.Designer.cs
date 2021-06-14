@@ -42,6 +42,8 @@ namespace AmongUsReplayInWindow
             this.VoteCheckBox = new System.Windows.Forms.CheckBox();
             this.textLogCheckBox = new System.Windows.Forms.CheckBox();
             this.textLogPopupCheckBox = new System.Windows.Forms.CheckBox();
+            this.backgroundColorDialog = new System.Windows.Forms.ColorDialog();
+            this.backgroundColorButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.PlayerSizeBar)).BeginInit();
             this.SuspendLayout();
             // 
@@ -179,11 +181,22 @@ namespace AmongUsReplayInWindow
             this.textLogPopupCheckBox.UseVisualStyleBackColor = true;
             this.textLogPopupCheckBox.CheckedChanged += new System.EventHandler(this.textLogPopupCheckBox_CheckedChanged);
             // 
+            // backgroundColorButton
+            // 
+            this.backgroundColorButton.Location = new System.Drawing.Point(181, 40);
+            this.backgroundColorButton.Name = "backgroundColorButton";
+            this.backgroundColorButton.Size = new System.Drawing.Size(121, 23);
+            this.backgroundColorButton.TabIndex = 21;
+            this.backgroundColorButton.Text = "Background Color";
+            this.backgroundColorButton.UseVisualStyleBackColor = true;
+            this.backgroundColorButton.Click += new System.EventHandler(this.backgroundColorButton_Click);
+            // 
             // SettingDialog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(327, 312);
+            this.Controls.Add(this.backgroundColorButton);
             this.Controls.Add(this.textLogPopupCheckBox);
             this.Controls.Add(this.textLogCheckBox);
             this.Controls.Add(this.VoteCheckBox);
@@ -220,5 +233,7 @@ namespace AmongUsReplayInWindow
         private System.Windows.Forms.CheckBox VoteCheckBox;
         private System.Windows.Forms.CheckBox textLogCheckBox;
         private System.Windows.Forms.CheckBox textLogPopupCheckBox;
+        private System.Windows.Forms.ColorDialog backgroundColorDialog;
+        private System.Windows.Forms.Button backgroundColorButton;
     }
 }

@@ -136,13 +136,18 @@ namespace AmongUsReplayInWindow
             Size formClientSize;
             Point location;
             Size size;
+            bool IsOverlay;
 
             const int SRCCOPY = 0x00CC0020;
 
-            public backgroundMap(Size formClientSize, Point location, Size size, int mapId)
+            public backgroundMap(Size formClientSize, Point location, Size size, int mapId, bool IsOverlay)
             {
+                this.IsOverlay = IsOverlay;
                 instanceList.Add(this);
                 this.mapId = mapId;
+                this.formClientSize = formClientSize;
+                this.location = location;
+                this.size = size;
                 MapImage = setMapImage(mapId);
                 ChangeSize(formClientSize, location, size);
             }
@@ -196,6 +201,11 @@ namespace AmongUsReplayInWindow
                 return result;
             }
 
+            public void RedrawMap()
+            {
+                ChangeSize(formClientSize, location, size);
+            }
+
             public void ChangeSize(Size formClientSize, Point location, Size size)
             {
                 if (size.Width <= 0 || size.Width <= 0) return;
@@ -211,7 +221,15 @@ namespace AmongUsReplayInWindow
                 var interpolation = mapGraphics.InterpolationMode;
                 mapGraphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
                 mapGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                mapGraphics.FillRectangle(Brushes.Snow, 0, 0, w, h);
+                if (IsOverlay)
+                {
+                    mapGraphics.FillRectangle(Brushes.Snow, 0, 0, w, h);
+                }
+                else
+                {
+                    using (Brush brush = new SolidBrush(DrawMove.backgroundColor))
+                        mapGraphics.FillRectangle(brush, 0, 0, w, h);
+                }
                 mapGraphics.DrawImage(MapImage, location.X, location.Y, size.Width, size.Height);
                 mapGraphics.SmoothingMode = smoothing;
                 mapGraphics.InterpolationMode = interpolation;

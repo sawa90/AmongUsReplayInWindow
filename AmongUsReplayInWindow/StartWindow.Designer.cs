@@ -145,7 +145,7 @@ namespace AmongUsReplayInWindow
             this.Controls.Add(this.GetAmongUsWindow);
             this.Name = "StartWindow";
             this.Text = "AmongUsReplayInWindow";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.StartWindow_FormClosed);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.StartWindow_FormClosing);
             ((System.ComponentModel.ISupportInitialize)(this.replaySpeedTrackBar)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.mapAlphaUpdown)).EndInit();
             this.ResumeLayout(false);
