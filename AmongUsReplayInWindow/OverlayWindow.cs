@@ -421,10 +421,11 @@ namespace AmongUsReplayInWindow
             float wPerFrame = (float)pictureBox2.ClientSize.Width / logReader.maxMoveNum;
 
             g.FillRectangle(Brushes.LightGray, 0, 0, pictureBox2.ClientSize.Width, pictureBox2.ClientSize.Height);
-            foreach (var ij in discFrames)
-            {
-                g.FillRectangle(Brushes.Gray, wPerFrame * ij[0], 0, wPerFrame * (ij[1] - ij[0]), pictureBox2.ClientSize.Height);
-            }
+            using (var brush = new SolidBrush(DrawMove.DiscussionColor))
+                foreach (var ij in discFrames)
+                {
+                    g.FillRectangle(brush, wPerFrame * ij[0], 0, wPerFrame * (ij[1] - ij[0]), pictureBox2.ClientSize.Height);
+                }
 
             float circleSize = mapSize.Height / 39.0f;
             float dsize = Math.Max(1.0f, circleSize / 5.0f);

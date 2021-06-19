@@ -38,36 +38,66 @@ namespace AmongUsCapture
         public const int MaxPlayerNum = 15;
         public const int MaxTaskNum = 15;
 
-        static public Color[] ColorList = new Color[12]
-{
-            Color.Red,
-            Color.Blue,
-            Color.Green,
-            Color.HotPink,
-            Color.Orange,
-            Color.Yellow,
-            Color.Black,
-            Color.White,
-            Color.BlueViolet,
-            Color.Brown,
-            Color.Cyan,
-            Color.Lime
-};
-
-        static public Dictionary<int, string> ColorNameDict = new Dictionary<int, string>
+        public const int PlayerColorNum = 18;
+        static readonly public Color[] ColorList = new Color[PlayerColorNum]{
+            Color.FromArgb(245, 30, 34),//Color.Red,
+            Color.FromArgb(29, 60, 233),//Color.Blue,
+            Color.FromArgb(27, 145, 62),//Color.Green,
+            Color.FromArgb(237, 84, 186),//Color.HotPink,
+            Color.FromArgb(255, 141, 28),//Color.Orange,
+            Color.FromArgb(255, 255, 103),//Color.Yellow,
+            Color.FromArgb(30,  31,  38),//Color.FromArgb(63, 71, 78),//Color.Black,
+            Color.FromArgb(255, 255, 255),//Color.White,
+            Color.FromArgb(107, 49, 188),//Color.BlueViolet,
+            Color.FromArgb(113, 73, 30),//Color.Brown,
+            Color.FromArgb(68, 253, 245),//Color.Cyan,
+            Color.FromArgb(80, 239, 57),//Color.Lime,
+            Color.FromArgb(115, 27, 19),    //Maroon
+            Color.FromArgb(236, 192, 211),//Rose = 13
+            Color.FromArgb(255, 253, 190),  //Banana = 14
+            Color.FromArgb(112, 132, 151),//Gray = 15
+            Color.FromArgb(146, 135, 118),//Tan = 16
+            Color.FromArgb(236, 117, 120),//Coral = 17
+            };
+        
+        static readonly public Dictionary<int, Color> oldColor2newColorDict = new Dictionary<int, Color>
             {
-                { Color.Red.ToArgb(),"Red" },
-                { Color.Blue.ToArgb(),"Blue" },
-                { Color.Green.ToArgb(),"Green" },
-                { Color.HotPink.ToArgb(),"Pink" },
-                { Color.Orange.ToArgb(),"Orange" },
-                { Color.Yellow.ToArgb(),"Yellow" },
-                { Color.Black.ToArgb(),"Black" },
-                { Color.White.ToArgb(),"White" },
-                { Color.BlueViolet.ToArgb(),"Purple" },
-                { Color.Brown.ToArgb(), "Brown" },
-                { Color.Cyan.ToArgb(),"Cyan" },
-                { Color.Lime.ToArgb(),"Lime" },
+                { Color.Red.ToArgb(),ColorList[0] },
+                { Color.Blue.ToArgb(),ColorList[1] },
+                { Color.Green.ToArgb(),ColorList[2] },
+                { Color.HotPink.ToArgb(),ColorList[3]},
+                { Color.Orange.ToArgb(),ColorList[4]},
+                { Color.Yellow.ToArgb(),ColorList[5]},
+                { Color.Black.ToArgb(),ColorList[6] },
+                { Color.White.ToArgb(),ColorList[7]},
+                { Color.BlueViolet.ToArgb(),ColorList[8]},
+                { Color.Brown.ToArgb(), ColorList[9]},
+                { Color.Cyan.ToArgb(),ColorList[10]},
+                { Color.Lime.ToArgb(),ColorList[11] }
+            };
+
+        static readonly public Dictionary<int, string> ColorNameDict = new Dictionary<int, string>
+            {
+                { ColorList[0].ToArgb(),"Red" },
+                { ColorList[1].ToArgb(),"Blue" },
+                { ColorList[2].ToArgb(),"Green" },
+                { ColorList[3].ToArgb(),"Pink" },
+                { ColorList[4].ToArgb(),"Orange" },
+                { ColorList[5].ToArgb(),"Yellow" },
+                { ColorList[6].ToArgb(),"Black" },
+                { ColorList[7].ToArgb(),"White" },
+                { ColorList[8].ToArgb(),"Purple" },
+                { ColorList[9].ToArgb(), "Brown" },
+                { ColorList[10].ToArgb(),"Cyan" },
+                { ColorList[11].ToArgb(),"Lime" },
+                { ColorList[12].ToArgb(),"Maroon" },
+                { ColorList[13].ToArgb(),"Rose" },
+                { ColorList[14].ToArgb(), "Banana" },
+                { ColorList[15].ToArgb(),"Gray" },
+                { ColorList[16].ToArgb(),"Tan" },
+                { ColorList[17].ToArgb(),"Coral"},
+                { Color.Empty.ToArgb(),"Empty"}
+
             };
 
         public enum PlayerAction
@@ -94,7 +124,13 @@ namespace AmongUsCapture
             Purple = 8,
             Brown = 9,
             Cyan = 10,
-            Lime = 11
+            Lime = 11,
+            Maroon = 12,
+            Rose = 13,
+            Banana = 14,
+            Gray = 15,
+            Tan = 16,
+            Coral = 17
         }
 
         public enum PlayRegion
@@ -115,7 +151,8 @@ namespace AmongUsCapture
 
         public static Vector2[] centerOfTable = { new Vector2(-1.0f, 1.1f), new Vector2(24.03f, 2.625f), new Vector2(19.5f, -16.876f), new Vector2(-1.0f, 1.1f), new Vector2(11, 15) };
 
-        public const int notVote = 14;
+        public static int notVote = -1;
+        public static int notVoteEnd = -2;
     }
 
     public class GameMemReader
@@ -486,28 +523,36 @@ namespace AmongUsCapture
                                             if (votedId >= 0 && votedId < PlayerData.MaxPlayerNum) votedId = (sbyte)IdList[votedId];
                                             voteList[id] = votedId;
                                         }
-                                        else voteList[id] = -3;
+                                        else
+                                        {
+                                            if (voteArea.votedFor == PlayerData.notVoteEnd) voteList[id] = voteArea.votedFor;
+                                            else voteList[id] = (sbyte)PlayerData.notVote;
+                                        }
                                         if (voteArea.didReport) voteList[id] += 32;
                                     }
                                 }
                                 else
                                 {
                                     var voteAreaPtrList = ProcessMemory.getInstance().ReadArray(voteInfoPtr, votePlayerCount);
-                                    Struct_2021_3_5s.v_PlayerVoteArea voteArea;
+                                    PlayerVoteArea voteArea;
                                     for (int i = 0; i < votePlayerCount; i++)
                                     {
-                                        voteArea = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerVoteArea>(voteAreaPtrList[i], 0);
+                                        voteArea = CurrentOffsets.StructVersion <3 ?ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerVoteArea>(voteAreaPtrList[i], 0) : ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerVoteArea>(voteAreaPtrList[i], 0);
 
                                         int id = IdList[voteArea.Id_];
                                         //if (id != i)
                                         //    Console.Write($"{id}!={ i}   ");
-                                        if (voteArea.didVote)
+                                        if (CurrentOffsets.StructVersion >= 3 || voteArea.didVote)
                                         {
                                             sbyte votedId = voteArea.votedFor;
                                             if (votedId >= 0 && votedId < PlayerData.MaxPlayerNum) votedId = (sbyte)IdList[votedId];
                                             voteList[id] = votedId;
                                         }
-                                        else voteList[id] = -3;
+                                        else
+                                        {
+                                            if(voteArea.votedFor == PlayerData.notVoteEnd) voteList[id] = voteArea.votedFor;
+                                            else voteList[id] = (sbyte)PlayerData.notVote;
+                                        }
                                         if (voteArea.didReport) voteList[id] += 32;
                                     }
                                 }
@@ -515,7 +560,7 @@ namespace AmongUsCapture
                         }
                         else
                         {
-                            for (int i = 0; i < PlayerData.MaxPlayerNum; i++) voteList[i] = -3;
+                            for (int i = 0; i < PlayerData.MaxPlayerNum; i++) voteList[i] = (sbyte)PlayerData.notVote;
                         }
                     }
 
@@ -535,14 +580,14 @@ namespace AmongUsCapture
                             if (votedId > 20) votedId -= 32;
                             if (playerIsDead[i] == 0)
                             {
-                                if (votedId == PlayerData.notVote || votedId == -2)
+                                if (votedId == PlayerData.notVote || votedId == PlayerData.notVoteEnd)
                                     votingresult = $"->Not Vote";
 
                                 else if (votedId >= PlayerData.MaxPlayerNum)
                                     votingresult = $"->Error ID:{votedId}";
                                 else if (votedId >= 0)
                                     votingresult = $"->{PlayerNames[votedId]}/{PlayerColorsInt[votedId]}";
-                                else if (votedId == -1)
+                                else if (votedId == -3)
                                     votingresult = $"->Skip";
                                 else
                                     votingresult = $"->Error ID:{votedId}";
@@ -552,6 +597,7 @@ namespace AmongUsCapture
                                     Sender = PlayerNames[i],
                                     Message = votingresult
                                 });
+                                if (testflag) Console.WriteLine(PlayerNames[i] + votingresult);
                             }
 
                         }
@@ -576,8 +622,10 @@ namespace AmongUsCapture
                                 pi = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
                             else if (CurrentOffsets.StructVersion == 1)
                                 pi = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                            else
+                            else if (CurrentOffsets.StructVersion < 3)
                                 pi = ProcessMemory.getInstance().Read<Struct_2021_3_31_3s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                            else
+                                pi = ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
 
 
 
@@ -741,8 +789,10 @@ namespace AmongUsCapture
                             pi = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
                         else if(CurrentOffsets.StructVersion == 1)
                             pi = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                        else 
+                        else if (CurrentOffsets.StructVersion < 3)
                             pi = ProcessMemory.getInstance().Read<Struct_2021_3_31_3s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                        else
+                            pi = ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
 
                         //string playerName = pi.GetPlayerName();
                         //if (playerName == null) playerName = "";
@@ -756,7 +806,7 @@ namespace AmongUsCapture
                         }
 
 
-                        PlayerControl pcontrol = CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object);
+                        PlayerControl pcontrol = CurrentOffsets.StructVersion >= 3 ? ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerControl>(pi._object):(CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object));
 
                         if ((!pi.GetIsDisconnected() && pi.IsImpostor != 1) || pcontrol.myLight_ != 0)
                         {
@@ -976,7 +1026,7 @@ namespace AmongUsCapture
                     if (CurrentOffsets.ShipStatusPtr != null)
                     {
                         var shipStatusPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ShipStatusPtr);
-                        ShipStatus shipStatus = CurrentOffsets.StructVersion == 0? ProcessMemory.getInstance().Read< Struct_2020_12_9s.v_ShipStatus>(shipStatusPtr) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_ShipStatus>(shipStatusPtr);
+                        ShipStatus shipStatus = CurrentOffsets.StructVersion >=3 ? ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_ShipStatus>(shipStatusPtr) : (CurrentOffsets.StructVersion == 0? ProcessMemory.getInstance().Read< Struct_2020_12_9s.v_ShipStatus>(shipStatusPtr) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_ShipStatus>(shipStatusPtr));
                         var doorsPtr = shipStatus.AllDoors;
                         int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, 0xC);
                         var doorsListPtr = doorsPtr + 0x10;
@@ -1341,8 +1391,10 @@ namespace AmongUsCapture
                         pi = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
                     else if (CurrentOffsets.StructVersion == 1)
                         pi = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                    else
+                    else if (CurrentOffsets.StructVersion <3)
                         pi = ProcessMemory.getInstance().Read<Struct_2021_3_31_3s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                    else
+                        pi = ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
 
 
                     playerAddrPtr += 4;
@@ -1352,7 +1404,7 @@ namespace AmongUsCapture
                     PlayerName2IDdict[PlayerNames[i]] = i;
                     IsImpostorLis[i] = pi.IsImpostor == 1;
                     var col = (int)pi.GetPlayerColor();
-                    if (col >= 0 && col < 12)
+                    if (col >= 0 && col < PlayerData.PlayerColorNum)
                     {
                         PlayerColors[i] = PlayerData.ColorList[col];
                         PlayerColorsInt[i] = (PlayerData.PlayerColor)col;
@@ -1368,7 +1420,7 @@ namespace AmongUsCapture
                     PetIds[i] = pi.PetId;
                     SkinIds[i] = pi.SkinId;
 
-                    PlayerControl pcontrol = CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object);
+                    PlayerControl pcontrol = CurrentOffsets.StructVersion >=3 ? ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerControl>(pi._object) : (CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object));
 
                     int offset = 0x3C;
                     if (pcontrol.myLight_ != 0) offset = 0x50;
@@ -1434,6 +1486,7 @@ namespace AmongUsCapture
                 LobbyCode = LobbyCode,
                 PlayMap = playMap,
                 PlayerMove = move,
+                PlayerColorsInt = PlayerColorsInt,
                 HatIds = HatIds,
                 PetIds = PetIds,
                 SkinIds =SkinIds
@@ -1512,6 +1565,7 @@ namespace AmongUsCapture
         public string LobbyCode;
         public PlayerData.PlayMap PlayMap;
         public PlayerMoveArgs PlayerMove;
+        public PlayerData.PlayerColor[] PlayerColorsInt;
         public uint[] HatIds;
         public uint[] PetIds;
         public uint[] SkinIds;

@@ -128,6 +128,64 @@ namespace AmongUsCapture
         }
     }
 
+    static partial class Struct_2021_6_15s
+    {
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct v_ShipStatus : ShipStatus
+        {
+            // ShipStatus in 2021.3.5s
+
+            [FieldOffset(0x24)] public UInt32 CameraColor;
+            [FieldOffset(0x34)] public float MaxLightRadius; // [marker]
+            [FieldOffset(0x38)] public float MinLightRadius;
+            [FieldOffset(0x3c)] public float MapScale;
+            [FieldOffset(0x40)] public IntPtr MapPrefab;
+            [FieldOffset(0x44)] public IntPtr ExileCutscenePrefab;
+            [FieldOffset(0x48)] public IntPtr EmergencyOverlay;
+            [FieldOffset(0x4c)] public IntPtr ReportOverlay;
+            [FieldOffset(0x48)] public Vector2 InitialSpawnCenter;
+            [FieldOffset(0x58)] public Vector2 MeetingSpawnCenter;
+            [FieldOffset(0x60)] public Vector2 MeetingSpawnCenter2;
+            [FieldOffset(0x68)] public float SpawnRadius;
+            [FieldOffset(0x6c)] public IntPtr CommonTasks;
+            [FieldOffset(0x70)] public IntPtr LongTasks;
+            [FieldOffset(0x74)] public IntPtr NormalTasks;
+            [FieldOffset(0x78)] public IntPtr SpecialTasks;
+            [FieldOffset(0x7c)] public IntPtr DummyLocations;
+            [FieldOffset(0x80)] public IntPtr AllCameras;
+            [FieldOffset(0x84)] public IntPtr AllDoors;
+            [FieldOffset(0x88)] public IntPtr AllConsoles;
+            [FieldOffset(0x8c)] public IntPtr Systems;
+            [FieldOffset(0x90)] public IntPtr SystemNames;
+            [FieldOffset(0x94)] public IntPtr _DJLENIPKKGM_k__BackingField;
+            [FieldOffset(0x98)] public IntPtr _GCGACPGKENC_k__BackingField;
+            [FieldOffset(0x9c)] public IntPtr _dic_LJFDDJHBOGF_GCGACPGKENC_k__BackingField;
+            [FieldOffset(0xa0)] public IntPtr _OPPMFCFACJB_k__BackingField;
+            [FieldOffset(0xa4)] public IntPtr SabotageSound;
+            [FieldOffset(0xa8)] public IntPtr WeaponFires;
+            [FieldOffset(0xac)] public IntPtr WeaponsImage;
+            [FieldOffset(0xb0)] public IntPtr VentMoveSounds;
+            [FieldOffset(0xb4)] public IntPtr VentEnterSound;
+            [FieldOffset(0xb8)] public IntPtr HatchActive;
+            [FieldOffset(0xbc)] public IntPtr Hatch;
+            [FieldOffset(0xc0)] public IntPtr HatchParticles;
+            [FieldOffset(0xc4)] public IntPtr ShieldsActive;
+            [FieldOffset(0xc8)] public IntPtr ShieldsImages;
+            [FieldOffset(0xcc)] public IntPtr ShieldBorder;
+            [FieldOffset(0xd0)] public IntPtr ShieldBorderOn;
+            [FieldOffset(0xd4)] public IntPtr MedScanner;
+            [FieldOffset(0xd8)] public Int32 WeaponFireIdx;
+            [FieldOffset(0xdc)] public float Timer;
+            [FieldOffset(0xe0)] public float EmergencyCooldown;
+            [FieldOffset(0xe4)] public Int32 MapType;
+            [FieldOffset(0xf8)] public IntPtr GapPlatform;
+
+            IntPtr ShipStatus.AllDoors => AllDoors;
+            IntPtr ShipStatus.GapPlatform => GapPlatform;
+        }
+    }
+
     //EEHJPJEBAGP  in 2020.12.9s
     [StructLayout(LayoutKind.Explicit)]
     public struct Door

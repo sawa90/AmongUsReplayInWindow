@@ -34,7 +34,10 @@ namespace AmongUsReplayInWindow
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             //AllocConsole();
-            if (testflag) AmongUsCapture.GameMemReader.testflag = true;
+            if (testflag)
+            {
+                AmongUsCapture.GameMemReader.testflag = true;
+            }
             try
             {
                 var form = new StartWindow();

@@ -205,4 +205,54 @@ namespace AmongUsCapture
         }
     }
 
+    static partial class Struct_2021_6_15s
+    {
+        [StructLayout(LayoutKind.Explicit)]
+        public struct v_PlayerInfo : PlayerInfo
+        {
+            [FieldOffset(0x08)] public byte PlayerId;
+            [FieldOffset(0x0C)] public uint PlayerName;
+            [FieldOffset(0x10)] public bool unknown;
+            [FieldOffset(0x14)] public byte ColorId;
+            [FieldOffset(0x18)] public uint HatId;
+            [FieldOffset(0x1C)] public uint PetId;
+            [FieldOffset(0x20)] public uint SkinId;
+            [FieldOffset(0x24)] public byte Disconnected;
+            [FieldOffset(0x28)] public IntPtr Tasks;
+            [FieldOffset(0x2C)] public byte IsImpostor;
+            [FieldOffset(0x2D)] public byte IsDead;
+            [FieldOffset(0x30)] public IntPtr _object;
+
+            byte PlayerInfo.PlayerId => PlayerId;
+
+            IntPtr PlayerInfo.PlayerName => (IntPtr)PlayerName;
+
+            byte PlayerInfo.ColorId => ColorId;
+
+            uint PlayerInfo.HatId => HatId;
+
+            uint PlayerInfo.PetId => PetId;
+
+            uint PlayerInfo.SkinId => SkinId;
+
+            byte PlayerInfo.Disconnected => Disconnected;
+
+            IntPtr PlayerInfo.Tasks => Tasks;
+
+            byte PlayerInfo.IsImpostor => IsImpostor;
+
+            byte PlayerInfo.IsDead => IsDead;
+
+            IntPtr PlayerInfo._object => _object;
+
+
+            public string GetPlayerName()
+            {
+                if (this.PlayerName == 0) return null;
+                return ProcessMemory.getInstance().ReadString((IntPtr)this.PlayerName);
+            }
+
+        }
+    }
+
 }

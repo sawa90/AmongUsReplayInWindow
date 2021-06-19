@@ -116,33 +116,28 @@ namespace AUOffsetManager
                     {
                         var datelist = Regex.Matches(offsets.Description, "[0-9]+");
                         int date = 30000000;
-                        if (datelist!=null && datelist.Count >= 3)
+                        if (datelist != null && datelist.Count >= 3)
                         {
                             date = int.Parse(datelist[0].Value) * 10000 + int.Parse(datelist[1].Value) * 100 + int.Parse(datelist[2].Value);
                         }
                         if (date < 20210305) OffsetIndex[sha256Hash].StructVersion = 0;
                         else if (date < 20210331) OffsetIndex[sha256Hash].StructVersion = 1;
-                        else OffsetIndex[sha256Hash].StructVersion = 2;
+                        else if (date < 20210615) OffsetIndex[sha256Hash].StructVersion = 2;
+                        else OffsetIndex[sha256Hash].StructVersion = 3;
                     }
 
                     Console.WriteLine($"Loaded offsets: {OffsetIndex[sha256Hash].Description}");
                     if (OffsetIndex[sha256Hash].PlayerVoteAreaListPtr == 0) OffsetIndex[sha256Hash].PlayerVoteAreaListPtr = 0x60;
-                    if (OffsetIndex[sha256Hash].StructVersion == 0)
+
+                    if (OffsetIndex[sha256Hash].StructVersion == 1)
                     {
-                        if (OffsetIndex[sha256Hash].DoorsPtr == 0) OffsetIndex[sha256Hash].DoorsPtr = 0x7c;
+                        if (OffsetIndex[sha256Hash].TextMeshPtr == 0) OffsetIndex[sha256Hash].TextMeshPtr = 0x70;
                     }
                     else
                     {
-                        if (OffsetIndex[sha256Hash].DoorsPtr == 0) OffsetIndex[sha256Hash].DoorsPtr = 0x84;
-                        if (OffsetIndex[sha256Hash].StructVersion == 1)
-                        {
-                            if (OffsetIndex[sha256Hash].TextMeshPtr == 0) OffsetIndex[sha256Hash].TextMeshPtr = 0x70;
-                        }
-                        else
-                        {
-                            if (OffsetIndex[sha256Hash].TextMeshPtr == 0) OffsetIndex[sha256Hash].TextMeshPtr = 0x80;
-                        }
+                        if (OffsetIndex[sha256Hash].TextMeshPtr == 0) OffsetIndex[sha256Hash].TextMeshPtr = 0x80;
                     }
+
                 }
                 return offsets;
             }
@@ -220,7 +215,6 @@ namespace AUOffsetManager
         public int[] PlayMapOffsets { get; set; }
         public int[] StringOffsets { get; set; }
         public int[] ShipStatusPtr { get; set; }
-        public int DoorsPtr { get; set; }
         public int PlayerVoteAreaListPtr { get; set; }
         public int[] ChatControllerPtr { get; set; }
         public int GapPlatformPtr { get; set; }

@@ -183,6 +183,80 @@ namespace AmongUsCapture
         }
     }
 
+    static partial class Struct_2021_6_15s
+    {
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct v_PlayerControl : PlayerControl
+        {
+            [FieldOffset(0x00)] public IntPtr LocalPlayer;
+            [FieldOffset(0x0C)] public uint SpawnId;
+            [FieldOffset(0x10)] public uint NetId;
+            [FieldOffset(0x14)] public uint DirtyBits;
+            [FieldOffset(0x18)] public byte SpawnFlags;
+            [FieldOffset(0x19)] public uint sendMode;
+            [FieldOffset(0x1C)] public uint OwnerId;
+            [FieldOffset(0x20)] public byte NOGGNBJBALN;
+            [FieldOffset(0x24)] public int MKMDLEOKDIN;
+            [FieldOffset(0x28)] public byte PlayerId;
+            [FieldOffset(0x2C)] public float MaxReportDistance;
+            [FieldOffset(0x30)] public bool moveable;
+            [FieldOffset(0x31)] public bool inVent;
+            [FieldOffset(0x34)] public IntPtr _cachedData_;
+            [FieldOffset(0x38)] public IntPtr FootSteps;
+            [FieldOffset(0x3C)] public IntPtr KillSfx;
+            [FieldOffset(0x40)] public IntPtr KillAnimations;
+            [FieldOffset(0x44)] public float killTimer;
+            [FieldOffset(0x48)] public int RemainingEmergencies;
+            [FieldOffset(0x4C)] public IntPtr nameText;
+            [FieldOffset(0x50)] public IntPtr LightPrefab;
+            [FieldOffset(0x54)] public UInt32 myLight_;
+            [FieldOffset(0x58)] public IntPtr Collider;
+            [FieldOffset(0x5C)] public IntPtr MyPhysics;
+            [FieldOffset(0x60)] public IntPtr NetTransform;
+            [FieldOffset(0x64)] public IntPtr CurrentPet;
+            [FieldOffset(0x68)] public IntPtr HatRenderer;
+            [FieldOffset(0x6C)] public IntPtr myRend_;
+            [FieldOffset(0x70)] public IntPtr MyAnim;
+            [FieldOffset(0x74)] public IntPtr hitBuffer_;
+            [FieldOffset(0x78)] public IntPtr myTasks;
+            [FieldOffset(0x7C)] public IntPtr ScannerAnims;
+            [FieldOffset(0x80)] public IntPtr ScannersImages;
+            [FieldOffset(0x84)] public IntPtr closest_;
+            [FieldOffset(0x88)] public byte isNew_;
+            [FieldOffset(0x8C)] public IntPtr cache_;
+            [FieldOffset(0x90)] public IntPtr itemsInRange_;
+            [FieldOffset(0x94)] public IntPtr newItemsInRange_;
+            [FieldOffset(0x98)] public byte scannerCount_;
+            [FieldOffset(0x99)] public bool infectedSet;
+
+            uint PlayerControl.NetId => NetId;
+            uint PlayerControl.sendMode => sendMode;
+            uint PlayerControl.OwnerId => OwnerId;
+            byte PlayerControl.PlayerId => PlayerId;
+            float PlayerControl.MaxReportDistance => MaxReportDistance;
+            bool PlayerControl.moveable => moveable;
+            bool PlayerControl.inVent => inVent;
+            float PlayerControl.killTimer => killTimer;
+            int PlayerControl.RemainingEmergencies => RemainingEmergencies;
+            IntPtr PlayerControl.nameText => nameText;
+            IntPtr PlayerControl.LightPrefab => LightPrefab;
+            UInt32 PlayerControl.myLight_ => myLight_;
+            IntPtr PlayerControl.Collider => Collider;
+            IntPtr PlayerControl.MyPhysics => MyPhysics;
+            IntPtr PlayerControl.NetTransform => NetTransform;
+            IntPtr PlayerControl.CurrentPet => CurrentPet;
+            IntPtr PlayerControl.myTasks => myTasks;
+            IntPtr PlayerControl.closest_ => closest_;
+            byte PlayerControl.isNew_ => isNew_;
+            IntPtr PlayerControl.cache_ => cache_;
+            IntPtr PlayerControl.itemsInRange_ => itemsInRange_;
+            IntPtr PlayerControl.newItemsInRange_ => newItemsInRange_;
+            byte PlayerControl.scannerCount_ => scannerCount_;
+            bool PlayerControl.infectedSet => infectedSet;
+        }
+    }
+
     //
     [StructLayout(LayoutKind.Explicit)]
     struct CustomNetworkTransform
