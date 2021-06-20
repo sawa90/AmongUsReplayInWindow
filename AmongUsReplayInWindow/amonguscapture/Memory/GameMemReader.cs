@@ -487,7 +487,7 @@ namespace AmongUsCapture
                             .Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
                     var allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
                     var playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
-
+                    if (playerCount > PlayerData.MaxPlayerNum) playerCount = PlayerData.MaxPlayerNum;
                     var playerAddrPtr = allPlayers + 0x10;
                     var PlayerInfoPtrList = ProcessMemory.getInstance().ReadArray(playerAddrPtr, playerCount);
 
@@ -505,6 +505,7 @@ namespace AmongUsCapture
                             if (voteInfoPtr != IntPtr.Zero)
                             {
                                 var votePlayerCount = ProcessMemory.getInstance().Read<int>((IntPtr)voteInfoPtr, 0xC);
+                                if (votePlayerCount > PlayerData.MaxPlayerNum * 2) votePlayerCount = PlayerData.MaxPlayerNum * 2;
                                 voteInfoPtr += 0x10;
                                 if (CurrentOffsets.StructVersion == 0)
                                 {
@@ -813,6 +814,7 @@ namespace AmongUsCapture
                             IntPtr tasklist = (IntPtr)ProcessMemory.getInstance().Read<Int32>((IntPtr)pcontrol.myTasks, 8);
 
                             TaskNum[id] = ProcessMemory.getInstance().Read<Int32>((IntPtr)pi.Tasks, 12);
+                            if (TaskNum[id] > PlayerData.MaxTaskNum) TaskNum[id] = PlayerData.MaxTaskNum;
                             if (TaskNum[id] != 0)
                             {
                                 TaskProgress[id] = 0;
@@ -1029,6 +1031,7 @@ namespace AmongUsCapture
                         ShipStatus shipStatus = CurrentOffsets.StructVersion >=3 ? ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_ShipStatus>(shipStatusPtr) : (CurrentOffsets.StructVersion == 0? ProcessMemory.getInstance().Read< Struct_2020_12_9s.v_ShipStatus>(shipStatusPtr) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_ShipStatus>(shipStatusPtr));
                         var doorsPtr = shipStatus.AllDoors;
                         int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, 0xC);
+                        if (doorNum > 100) doorNum = 100;
                         var doorsListPtr = doorsPtr + 0x10;
                         if (doors == null || doors.Length != doorNum) doors = new Door[doorNum];
 

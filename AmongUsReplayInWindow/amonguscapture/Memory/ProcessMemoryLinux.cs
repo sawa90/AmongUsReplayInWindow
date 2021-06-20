@@ -159,8 +159,15 @@ namespace AmongUsCapture
             if (process == null || address == IntPtr.Zero)
                 return default;
             int stringLength = Read<int>(address + lengthOffset);
-            byte[] rawString = Read(address + rawOffset, stringLength << 1);
-            return Encoding.Unicode.GetString(rawString);
+            if (stringLength < 1000)
+            {
+                byte[] rawString = Read(address + rawOffset, stringLength << 1);
+                return Encoding.Unicode.GetString(rawString);
+            }
+            else {
+                Console.WriteLine($"String over 1000: num {stringLength}");
+                return default;
+            }
         }
 
         public override IntPtr[] ReadArray(IntPtr address, int size)
