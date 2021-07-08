@@ -553,8 +553,8 @@
   },
  "10567748DA8DCF1C07FF29C42C3710BC8203930932C0C58564D6748936340070": {
     "Description": "v2021.6.30s",
-    "offsetListVersion": 2,
-    "StructVersion": 3,
+    "offsetListVersion": 3,
+    "StructVersion": 4,
     "AmongUsClientOffset": 0x1BAA960,
     "GameDataOffset": 0x1BC2EAC,
     "MeetingHudOffset": 0x1B9F7A0,
@@ -610,6 +610,7 @@
     "PlayerVoteAreaListPtr": 0x50,
     "ChatControllerPtr": [0x1B72D6C,0x5C,0,0x30],
     "TextMeshPtr": 0x80,
+    "ChatText":0x20
   }
 }
 

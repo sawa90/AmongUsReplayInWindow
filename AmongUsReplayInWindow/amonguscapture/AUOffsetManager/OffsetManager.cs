@@ -111,19 +111,19 @@ namespace AUOffsetManager
                 var offsets = OffsetIndex.ContainsKey(sha256Hash) ? OffsetIndex[sha256Hash] : null;
                 if (offsets is not null)
                 {
-
+                    var datelist = Regex.Matches(offsets.Description, "[0-9]+");
+                    int date = 30000000;
+                    if (datelist != null && datelist.Count >= 3)
+                    {
+                        date = int.Parse(datelist[0].Value) * 10000 + int.Parse(datelist[1].Value) * 100 + int.Parse(datelist[2].Value);
+                    }
                     if (OffsetIndex[sha256Hash].StructVersion == 0)
                     {
-                        var datelist = Regex.Matches(offsets.Description, "[0-9]+");
-                        int date = 30000000;
-                        if (datelist != null && datelist.Count >= 3)
-                        {
-                            date = int.Parse(datelist[0].Value) * 10000 + int.Parse(datelist[1].Value) * 100 + int.Parse(datelist[2].Value);
-                        }
                         if (date < 20210305) OffsetIndex[sha256Hash].StructVersion = 0;
                         else if (date < 20210331) OffsetIndex[sha256Hash].StructVersion = 1;
                         else if (date < 20210615) OffsetIndex[sha256Hash].StructVersion = 2;
-                        else OffsetIndex[sha256Hash].StructVersion = 3;
+                        else if (date < 20210630) OffsetIndex[sha256Hash].StructVersion = 3;
+                        else OffsetIndex[sha256Hash].StructVersion = 4;
                     }
 
                     Console.WriteLine($"Loaded offsets: {OffsetIndex[sha256Hash].Description}");
@@ -137,7 +137,17 @@ namespace AUOffsetManager
                     {
                         if (OffsetIndex[sha256Hash].TextMeshPtr == 0) OffsetIndex[sha256Hash].TextMeshPtr = 0x80;
                     }
-
+                    if (date == 20210630) OffsetIndex[sha256Hash].StructVersion = 4;
+                    if (OffsetIndex[sha256Hash].ChatText == 0)
+                    {
+                        if (date >= 20210630)
+                        {
+                            OffsetIndex[sha256Hash].ChatText = 0x20;
+                        }
+                        else OffsetIndex[sha256Hash].ChatText = 0x1C;
+                    }
+                    if (OffsetIndex[sha256Hash].ChatControllerPtr == null && OffsetIndex[sha256Hash].HudManagerOffset != 0)
+                        OffsetIndex[sha256Hash].ChatControllerPtr = new int[] { OffsetIndex[sha256Hash].HudManagerOffset, 0x5C, 0, 0x30 };
                 }
                 return offsets;
             }
@@ -219,6 +229,7 @@ namespace AUOffsetManager
         public int[] ChatControllerPtr { get; set; }
         public int GapPlatformPtr { get; set; }
         public int TextMeshPtr { get; set; }
+        public int ChatText { get; set; }
     }
 
 }

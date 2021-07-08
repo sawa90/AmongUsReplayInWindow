@@ -538,7 +538,9 @@ namespace AmongUsCapture
                                     PlayerVoteArea voteArea;
                                     for (int i = 0; i < votePlayerCount; i++)
                                     {
-                                        voteArea = CurrentOffsets.StructVersion <3 ?ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerVoteArea>(voteAreaPtrList[i], 0) : ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerVoteArea>(voteAreaPtrList[i], 0);
+                                        if (CurrentOffsets.StructVersion < 3)  voteArea = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerVoteArea>(voteAreaPtrList[i], 0); 
+                                        else if (CurrentOffsets.StructVersion < 4)  voteArea = ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerVoteArea>(voteAreaPtrList[i], 0);
+                                        else voteArea = ProcessMemory.getInstance().Read<Struct_2021_6_30s.v_PlayerVoteArea>(voteAreaPtrList[i], 0);
 
                                         int id = IdList[voteArea.Id_];
                                         //if (id != i)
@@ -1078,7 +1080,7 @@ namespace AmongUsCapture
                     {
                         if (loadLastchatNextturn)
                         {
-                            var msgPtrList = ProcessMemory.getInstance().ReadArray(lastChatBubblePtr + 0x1C, 2);
+                            var msgPtrList = ProcessMemory.getInstance().ReadArray(lastChatBubblePtr + CurrentOffsets.ChatText, 2);
                             var msgPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], CurrentOffsets.TextMeshPtr);
                             var senderPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], CurrentOffsets.TextMeshPtr);
                             if (senderPtr != IntPtr.Zero || msgPtr != IntPtr.Zero)
@@ -1155,7 +1157,7 @@ namespace AmongUsCapture
 
                                     for (var i = numChatBubbles - newMsgs; i < numChatBubbles - 1; i++)
                                     {
-                                        var msgPtrList = ProcessMemory.getInstance().ReadArray(chatBubblePtrs[i] + 0x1C, 2);
+                                        var msgPtrList = ProcessMemory.getInstance().ReadArray(chatBubblePtrs[i] + CurrentOffsets.ChatText, 2);
                                         var msgText = ProcessMemory.getInstance()
                                             .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], CurrentOffsets.TextMeshPtr));
                                         var msgSender = ProcessMemory.getInstance()

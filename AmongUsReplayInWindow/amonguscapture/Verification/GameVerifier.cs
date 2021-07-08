@@ -39,7 +39,7 @@ namespace AmongUsCapture
                 var steam_api64Cert = AuthenticodeTools.IsTrusted(Path.Join(baseDllFolder, "steam_api64.dll"));
                 //Settings.conInterface.WriteModuleTextColored("GameVerifier",Color.Yellow,$"steam_apiCert: {steam_apiCert}");
                 //Settings.conInterface.WriteModuleTextColored("GameVerifier",Color.Yellow,$"steam_api64Cert: {steam_api64Cert}");
-                return (steam_apiCert) && (steam_api64Cert);
+                return (steam_apiCert) || (steam_api64Cert);
            }
             
            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))

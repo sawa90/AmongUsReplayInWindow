@@ -282,4 +282,49 @@ namespace AmongUsCapture
             bool PlayerVoteArea.resultsShowing => resultsShowing;
         }
     }
+
+    static partial class Struct_2021_6_30s
+    {
+        [StructLayout(LayoutKind.Explicit)]
+        public struct v_PlayerVoteArea : PlayerVoteArea
+        {
+            [FieldOffset(0x08)] public IntPtr m_CachedPtr;
+            [FieldOffset(0x10)] public sbyte Id_;
+            [FieldOffset(0x14)] public IntPtr Buttons;
+            [FieldOffset(0x18)] public IntPtr ConfirmButton;
+            [FieldOffset(0x1C)] public IntPtr CancelButton;
+            [FieldOffset(0x20)] public IntPtr PlayerButton;
+            [FieldOffset(0x24)] public IntPtr PlayerIcon;
+            [FieldOffset(0x28)] public IntPtr Background;
+            [FieldOffset(0x2C)] public IntPtr Flag;
+            [FieldOffset(0x30)] public IntPtr Megaphone;
+            [FieldOffset(0x34)] public IntPtr Overlay;
+            [FieldOffset(0x38)] public IntPtr XMark;
+            [FieldOffset(0x3C)] public IntPtr NameText;
+            [FieldOffset(0x40)] public IntPtr SkipVoteText;
+            [FieldOffset(0x44)] public IntPtr PlatformIcon;
+            [FieldOffset(0x48)] public bool AnimateButtonFromLeft;
+            [FieldOffset(0x49)] public bool isDead;
+            [FieldOffset(0x4a)] public bool didReport;
+            [FieldOffset(0x4b)] public sbyte votedFor;
+            [FieldOffset(0x4c)] public bool voteComplete;
+            [FieldOffset(0x4d)] public bool resultsShowing;
+
+            IntPtr PlayerVoteArea.m_CachedPtr => m_CachedPtr;
+            sbyte PlayerVoteArea.Id_ => Id_;
+            IntPtr PlayerVoteArea.Buttons => Buttons;
+            IntPtr PlayerVoteArea.PlayerIcon => PlayerIcon;
+            IntPtr PlayerVoteArea.Background => Background;
+            IntPtr PlayerVoteArea.Flag => Flag;
+            IntPtr PlayerVoteArea.Megaphone => Megaphone;
+            IntPtr PlayerVoteArea.Overlay => Overlay;
+            IntPtr PlayerVoteArea.NameText => NameText;
+            bool PlayerVoteArea.isDead => isDead;
+            bool PlayerVoteArea.didVote { get { return votedFor != -1 && votedFor != -2; } }
+            bool PlayerVoteArea.didReport => didReport;
+            sbyte PlayerVoteArea.votedFor => votedFor;
+            bool PlayerVoteArea.voteComplete => voteComplete;
+            bool PlayerVoteArea.resultsShowing => resultsShowing;
+        }
+    }
 }
