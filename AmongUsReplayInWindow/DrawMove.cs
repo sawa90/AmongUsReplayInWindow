@@ -195,7 +195,7 @@ namespace AmongUsReplayInWindow
                     if (move.voteList[i] > 20 && icons?.megaphone != null)
                     {
                         float megaphone_w = icons.megaphone.Width / icons.megaphone.Height * mainIconSize;
-                        g.DrawImage(icons.megaphone, x + voteWidth * 0.95f - megaphone_w, y, megaphone_w, mainIconSize);
+                        g.DrawImage(icons.megaphone, x + dvoteWidth * 0.95f - megaphone_w, y, megaphone_w, mainIconSize);
                     }
                 }
 
