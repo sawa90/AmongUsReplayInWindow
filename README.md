@@ -37,4 +37,8 @@ The source code is under the MIT license, but the image files are not, and must 
 [amonguscapture](https://github.com/automuteus/amonguscapture) by Denver Quane  
 [among-us-replay-mod](https://github.com/Smertig/among-us-replay-mod) by Smertig  
 [AmongUsMemory](https://github.com/shlifedev/AmongUsMemory) by shlifedev  
-
+  
+  
+  
+##
+This tool is not affiliated with Among Us or Innersloth LLC, and the content contained therein is not endorsed or otherwise sponsored by Innersloth LLC. Portions of the materials contained herein are property of Innersloth LLC. © Innersloth LLC.
