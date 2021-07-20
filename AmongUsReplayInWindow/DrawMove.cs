@@ -171,7 +171,7 @@ namespace AmongUsReplayInWindow
             float mainIconSize = dvoteHeight * 0.9f;
             float iconSize = mainIconSize * 0.5f;
             float dvoteX;
-            float fontsize = Math.Min(mainIconSize * 0.4f, (dvoteWidth * 0.95f - mainIconSize) / 12);
+            float fontsize = Math.Min(mainIconSize * 0.5f, (dvoteWidth * 0.95f - mainIconSize) / 10);
 
             Color backcolor;
             if (move.state != GameState.DISCUSSION) backcolor = Color.FromArgb(180, 100, 100, 150);
@@ -217,7 +217,7 @@ namespace AmongUsReplayInWindow
             }
             dvoteX = Math.Min((dvoteWidth * 0.95f - mainIconSize) / MaxVoteNum, iconSize);
 
-            using (var fnt = new Font(fontName, fontsize))
+            using (var fnt = new Font(fontName, fontsize,GraphicsUnit.Pixel))
                 for (int i = 0; i < move.PlayerNum; i++)
                 {
                     bool dead = false;
@@ -325,7 +325,7 @@ namespace AmongUsReplayInWindow
             float circleSize = mapSize.Height / 39.0f * playerSize;
             float iconSize = mapSize.Height / 45.0f * playerSize;
             float dsize = Math.Max(1, circleSize / 5.0f);
-            using (var fnt = new Font(fontName, circleSize))
+            using (var fnt = new Font(fontName, circleSize*1.2f, GraphicsUnit.Pixel))
             {
                 int minutes = move.time / 60000;
                 int seconds = move.time / 1000 - minutes * 60;
@@ -333,7 +333,7 @@ namespace AmongUsReplayInWindow
                 paint.Graphics.FillRectangle(Brushes.White, 0, circleSize * 4.5f, circleSize * 18, circleSize * 1.2f);
                 paint.Graphics.FillRectangle(Brushes.White, 0, circleSize * 5.7f, circleSize * 8, circleSize * 1.2f);
                 if (move.Sabotage.TaskType != TaskTypes.SubmitScan && move.state == GameState.TASKS)
-                    using (var fnt2 = new Font(fontName, circleSize, FontStyle.Bold))
+                    using (var fnt2 = new Font(fontName, circleSize*1.1f, FontStyle.Bold, GraphicsUnit.Pixel))
                         paint.Graphics.DrawString(move.Sabotage.TaskType.ToString(), fnt2, Brushes.Red, 0, circleSize * 4.5f);
                 else
                     paint.Graphics.DrawString(move.state.ToString(), fnt, Brushes.Black, 0, circleSize * 4.5f);
@@ -400,7 +400,7 @@ namespace AmongUsReplayInWindow
 
 
 
-            using (var fnt = new Font(fontName, circleSize * 0.8f, FontStyle.Bold))
+            using (var fnt = new Font(fontName, circleSize * 0.9f, FontStyle.Bold, GraphicsUnit.Pixel))
             {
                 //set dead order
                 for (int i = 0; i < move.PlayerNum; i++)
