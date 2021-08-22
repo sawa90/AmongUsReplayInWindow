@@ -15,12 +15,18 @@ namespace AUOffsetManager
         private Dictionary<string, GameOffsets> OffsetIndex = new Dictionary<string, GameOffsets>();
         private Dictionary<string, GameOffsets> LocalOffsetIndex = new Dictionary<string, GameOffsets>();
         public string indexURL;
-        private string StorageLocation = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsCapture\\index.json");
-        private string StorageLocationCache = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsCapture\\indexCache.json");
+        private string StorageFolder = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsReplayInWindow");
+        private string StorageLocation = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsReplayInWindow\\index.json");
+        private string StorageLocationCache = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsReplayInWindow\\indexCache.json");
         string hash;
         public Task indexTask;
         public OffsetManager()
         {
+            if (!Directory.Exists(StorageFolder))
+            {
+                Directory.CreateDirectory(StorageFolder);
+            }
+
             if (File.Exists(StorageLocation))
             {
                  LocalOffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(File.ReadAllText(StorageLocation));

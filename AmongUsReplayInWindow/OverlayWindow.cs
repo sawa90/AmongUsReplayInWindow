@@ -129,6 +129,7 @@ namespace AmongUsReplayInWindow
             Visible = false;
             SizeChanged += SizeChangedHandler;
             Move += MoveHandler;
+            if (Program.testflag) drawPlaying = true;
         }
 
   
