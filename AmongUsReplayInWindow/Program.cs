@@ -30,6 +30,7 @@ namespace AmongUsReplayInWindow
             exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             if (exePath != null) exeFolder = System.IO.Path.GetDirectoryName(exePath);
             if (exeFolder == null || exeFolder == string.Empty) exeFolder = "";
+            MoveLogFile.ClearTemp();
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

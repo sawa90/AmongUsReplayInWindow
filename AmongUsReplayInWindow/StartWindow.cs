@@ -86,6 +86,14 @@ namespace AmongUsReplayInWindow
             createWindowTask = null;
             iconDict = null;
             tokenSource = null;
+
+            for(int i = MoveLogFile.writeMoves.Count - 1; i >= 0;i--)
+            {
+                try
+                {
+                    MoveLogFile.writeMoves[i]?.UnexpectedClose();
+                }catch(ObjectDisposedException e) { }
+            }
         }
 
         private void openFileDialogButton_Click(object sender, EventArgs ev)

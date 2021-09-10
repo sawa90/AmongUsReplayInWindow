@@ -152,7 +152,7 @@ namespace AmongUsReplayInWindow
             catch (ObjectDisposedException e) { }
             removeReader();
             drawTimer?.Dispose();
-            writer?.Close();
+            writer?.UnexpectedClose();
             SizeChanged -= SizeChangedHandler;
             Move -= MoveHandler;
             backgroundMap?.Dispose();

@@ -12,6 +12,53 @@ namespace AmongUsReplayInWindow
 {
     static public class MoveLogFile
     {
+        public static List<WriteMoveLogFile> writeMoves = new List<WriteMoveLogFile>();
+        private static string tempStorageFolder = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsReplayInWindow\\temp");
+        public static bool ClearTemp()
+        {   
+            if (Directory.Exists(tempStorageFolder) && !(Program.exeFolder == null || Program.exeFolder == string.Empty || Program.exeFolder == ""))
+            {
+                var directoryInfo = new DirectoryInfo(tempStorageFolder);
+                directoryInfo.Attributes |= System.IO.FileAttributes.Hidden;
+                directoryInfo.Attributes |= System.IO.FileAttributes.System;
+                string folderPass = Program.exeFolder + "\\replay";
+                if (!Directory.Exists(folderPass))
+                {
+                    Console.WriteLine($"create folder {folderPass}");
+                    Directory.CreateDirectory(folderPass);
+                }
+                string[] tempfiles = Directory.GetFiles(tempStorageFolder);
+                foreach(string tempfile in tempfiles)
+                {
+                    string name = Path.GetFileNameWithoutExtension(tempfile);
+                    string time = name.Substring(0, 16);
+                    try
+                    {
+                        DateTime filetime = DateTime.ParseExact(time, "yyyyMMdd_HHmm_ss", null);
+                        if (filetime.AddMinutes(15) < DateTime.Now)
+                        {
+                            string destname = folderPass + "\\" + Path.GetFileName(tempfile);
+                            if(File.Exists(destname)){
+                                int num = 0;
+                                string pathAndname = folderPass + "\\" + name + "(";
+                                string ext =")" + Path.GetExtension(tempfile);
+                                while (File.Exists(destname)){
+                                    num++;
+                                    destname = pathAndname + num.ToString() + ext;
+                                }
+                            }
+                            try
+                            {
+                                File.Move(tempfile, destname, false);
+                            }catch(Exception e) { Console.WriteLine(e); }
+                        }
+                    }
+                    catch(FormatException e){ Console.WriteLine(e); }
+                    
+                }
+            }
+            return true;
+        }
 
         public class WriteMoveLogFile
         {
@@ -29,6 +76,7 @@ namespace AmongUsReplayInWindow
             {
                 lock (lockObject)
                 {
+                    writeMoves.Add(this);
                     if (startArgs == null || startArgs.PlayerMove == null) return;
                     folderPass = Program.exeFolder + "\\replay";
                     move = startArgs.PlayerMove;
@@ -40,13 +88,20 @@ namespace AmongUsReplayInWindow
                             AllImposorNum++;
                         }
                     }
+                    if (!Directory.Exists(tempStorageFolder))
+                    {
+                        Directory.CreateDirectory(tempStorageFolder);
+                        var directoryInfo = new DirectoryInfo(tempStorageFolder);
+                        directoryInfo.Attributes |= System.IO.FileAttributes.Hidden;
+                        directoryInfo.Attributes |= System.IO.FileAttributes.System;
+                    }
                     if (!Directory.Exists(folderPass))
                     {
                         Console.WriteLine($"create folder {folderPass}");
                         Directory.CreateDirectory(folderPass);
                     }
                     this.filename = folderPass + "\\" + startArgs.filename + ".dat";
-                    tempfilename = folderPass + "\\" + DateTime.Now.ToString("yyyyMMdd_HHmm_ss") + ".dat";
+                    tempfilename = tempStorageFolder + "\\" + DateTime.Now.ToString("yyyyMMdd_HHmm_ss") + ".dat";
                     try
                     {
                         stream = File.Create(tempfilename);
@@ -67,10 +122,11 @@ namespace AmongUsReplayInWindow
 
             ~WriteMoveLogFile()
             {
-                Close();
+                UnexpectedClose();
             }
 
-            public virtual void Close()
+
+            public virtual void UnexpectedClose()
             {
                 lock (lockObject)
                 {
@@ -81,12 +137,27 @@ namespace AmongUsReplayInWindow
                         stream?.Close();
                         writer = null;
                         stream = null;
-                        if (File.Exists(tempfilename))
-                            File.Move(tempfilename, filename);
-                    } catch (ObjectDisposedException e)
+                    }
+                    catch (ObjectDisposedException e)
                     {
                         writer = null;
                         stream = null;
+                    }
+                    writeMoves.Remove(this);
+                }
+            }
+
+            public virtual void Close()
+            {
+                UnexpectedClose();
+                lock (lockObject)
+                {
+                    try
+                    {
+                        if (File.Exists(tempfilename))
+                            File.Move(tempfilename, filename);
+                    } catch (Exception e)
+                    {
                     }
                 }
             }
@@ -465,18 +536,36 @@ namespace AmongUsReplayInWindow
                 }
             }
 
+            ~WriteMoveLogFile_chatLogFile()
+            {
+                UnexpectedClose();
+            }
+            override public void UnexpectedClose()
+            {
+                base.UnexpectedClose();
+                lock (lockObject)
+                {
+                    try{
+                        chatwriter?.Close();
+                        chatstream?.Close();
+                        chatwriter = null;
+                        chatstream = null;
+                    } catch (ObjectDisposedException e) { }
+                }
+            }
 
             override public void Close()
             {
                 base.Close();
+                UnexpectedClose();
                 lock (lockObject)
                 {
-                    chatwriter?.Close();
-                    chatstream?.Close();
-                    chatwriter = null;
-                    chatstream = null;
-                    if (File.Exists(tempChatfilename))
-                        File.Move(tempChatfilename, chatfilename);
+                    try
+                    {
+                        if (File.Exists(tempChatfilename))
+                            File.Move(tempChatfilename, chatfilename);
+                    }
+                    catch (Exception e) { }
                 }
             }
         }
