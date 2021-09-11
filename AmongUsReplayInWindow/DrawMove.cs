@@ -152,7 +152,8 @@ namespace AmongUsReplayInWindow
                 for (int i=0;i<move.PlayerNum;i++)
                 {
                     sbyte vote = move.voteList[i];
-                    if (move.PlayerIsDead[i]==0 && vote >= -1 && (vote < PlayerData.MaxPlayerNum || vote >= 31)) voted = true;
+                    if (vote > 20) vote -= 32;
+                    if (move.PlayerIsDead[i] == 0 && (vote <= -2 || vote >= 0) && vote < PlayerData.MaxPlayerNum) voted = true;
                 }
                 if (!voted) return;
             }
