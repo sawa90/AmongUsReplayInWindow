@@ -11,3 +11,5 @@ DLLAPI BOOL ResetKeyboardHook();
 DLLAPI void SetKeyboardEnable(BOOL gPlaying, BOOL gEnable);
 DLLAPI void SetZorder();
 DLLAPI void SetHotKey(UINT32 key);
+DLLAPI void togglePause();
+DLLAPI BOOL getPause();

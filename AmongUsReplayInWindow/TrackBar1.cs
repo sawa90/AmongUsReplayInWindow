@@ -84,7 +84,6 @@ namespace AmongUsReplayInWindow
             }
 
         }
-
         private void trackBar_KeyDown(object sender, KeyEventArgs e)
         {
             bool skipflag = false;
@@ -92,7 +91,8 @@ namespace AmongUsReplayInWindow
             {
                 int[] oldij = new int[2] { 0, 0 };
                 if (trackBar0.Value == trackBar0.Maximum && e.KeyCode == Keys.Down) trackBar0.Value = 0;
-                else {
+                else
+                {
                     foreach (int[] ij in OwnerForm.discFrames)
                     {
                         if (trackBar0.Value <= ij[0] + 3)
@@ -117,15 +117,17 @@ namespace AmongUsReplayInWindow
                         else trackBar0.Value = trackBar0.Maximum;
                     }
                 }
-                
+
                 trackBar_Scroll(null, null);
                 e.Handled = true;
-            } else if(checkKey(e.KeyCode))
+            }
+            else if (checkKey(e.KeyCode))
             {
                 giveFocus();
                 OwnerForm.Visible = false;
                 Visible = false;
             }
+            else if (e.KeyCode == Keys.Space) NativeMethods.togglePause();
 
         }
         const uint VK_CONTROL = 0x11;
@@ -151,7 +153,7 @@ namespace AmongUsReplayInWindow
         private void Update(object sender, EventArgs ev)
         {
             if (OwnerForm.logReader?.reader == null) return;
-            if ((Control.MouseButtons & MouseButtons.Left) != MouseButtons.Left || !trackBar0.Focused)
+            if (((Control.MouseButtons & MouseButtons.Left) != MouseButtons.Left || !trackBar0.Focused) && !NativeMethods.getPause())
             {
                 int value = trackBar0.Value + step;
                 if (value < trackBar0.Maximum)
@@ -222,6 +224,11 @@ namespace AmongUsReplayInWindow
 
             public const int SW_HIDE = 0;
             public const int SW_SHOWNA = 8;
+
+            [DllImport("KeyboardHook.dll")]
+            public static extern void togglePause();
+            [DllImport("KeyboardHook.dll")]
+            public static extern bool getPause();
         }
 
 

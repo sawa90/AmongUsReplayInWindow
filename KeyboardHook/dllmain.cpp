@@ -15,6 +15,7 @@ HWND hwnd = NULL;
 HWND trackhwnd = NULL;
 HWND hOwnerWnd = NULL;
 UINT32 keycode = VK_CONTROL;
+BOOL pauseflag = false;
 #pragma data_seg()
 
 HINSTANCE hInst;
@@ -106,6 +107,7 @@ DLLAPI LRESULT CALLBACK MyHookProc(int nCode, WPARAM wp, LPARAM lp)
                 ShowWindowAsync(trackhwnd, SW_SHOW);
         }
     } 
+    if (wp == VK_SPACE && (((UINT32)lp >> 30) == 0)) pauseflag = !pauseflag;
 
     return CallNextHookEx(hMyKeyboardHook, nCode, wp, lp);
 }
@@ -179,4 +181,11 @@ DLLAPI void SetZorder() {
     }
 }
 
+DLLAPI void togglePause() {
+    pauseflag = !pauseflag;
+}
+
+DLLAPI BOOL getPause() {
+    return pauseflag;
+}
 

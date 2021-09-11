@@ -275,7 +275,7 @@ namespace AmongUsReplayInWindow
             Invalidate();
 
         }
-
+        bool pauseflag = false;
         private void trackBar_KeyDown(object sender, KeyEventArgs e)
         {
             bool skipflag = false;
@@ -312,14 +312,14 @@ namespace AmongUsReplayInWindow
                 trackBar_Scroll(null, null);
                 e.Handled = true;
             }
-
+            if (e.KeyCode == Keys.Space) pauseflag = !pauseflag;
         }
 
 
         private void Update(object sender, EventArgs ev)
         {
             if (logReader?.reader == null) return;
-            if (((Control.MouseButtons & MouseButtons.Left) != MouseButtons.Left) || !trackBar1.Focused)
+            if ((((Control.MouseButtons & MouseButtons.Left) != MouseButtons.Left) || !trackBar1.Focused) && !pauseflag)
             {
                 int value = trackBar1.Value + step;
                 if (value < trackBar1.Maximum)
