@@ -19,10 +19,6 @@ namespace AmongUsCapture
                 {
                     instance = new ProcessMemoryWindows();
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    instance = new ProcessMemoryLinux();
-                }
                 else
                 {
                     throw new PlatformNotSupportedException();
@@ -30,7 +26,7 @@ namespace AmongUsCapture
             }
             return instance;
         }
-        protected bool is64Bit;
+        public bool is64Bit;
         public Process process;
         public List<Module> modules;
         public bool IsHooked { get; protected set; }
@@ -41,6 +37,8 @@ namespace AmongUsCapture
 
         public abstract string ReadString(IntPtr address, int lengthOffset = 0x8, int rawOffset = 0xC);
         public abstract IntPtr[] ReadArray(IntPtr address, int size);
+        public abstract byte[] ReadByteArray(IntPtr address, int size);
+        public abstract int OffsetAddress(ref IntPtr address, params int[] offsets);
 
         public class Module
         {

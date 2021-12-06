@@ -224,6 +224,10 @@ namespace AmongUsReplayInWindow
                 if (IsOverlay)
                 {
                     mapGraphics.FillRectangle(Brushes.Snow, 0, 0, w, h);
+                    var oldInterpolation = mapGraphics.InterpolationMode;
+                    mapGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    mapGraphics.DrawImage(Properties.Resources.stamp, w * 0.95f, h * 0.12f, w * 0.05f, w * 0.05f);
+                    mapGraphics.InterpolationMode = oldInterpolation;
                 }
                 else
                 {

@@ -33,7 +33,7 @@ namespace AmongUsReplayInWindow
 
         public List<int[]> discFrames = new List<int[]>();
         List<int[]> deadList = new List<int[]>();
-        List<int> deadOrderList = new List<int>();
+        List<DrawMove.DeadPos> deadOrderList = new List<DrawMove.DeadPos>();
 
 
         public const int ULW_COLORKEY = 1;
@@ -45,7 +45,7 @@ namespace AmongUsReplayInWindow
         public const int WS_EX_TOPMOST = 0x00000008;
         StartWindow startWindow;
         internal int step = 1;
-
+        int version = 0;
         #endregion
 
         #region Initialize
@@ -133,12 +133,16 @@ namespace AmongUsReplayInWindow
                     logReader = null;
                     return false;
                 }
+                version = logReader.version;
                 mapId = (int)logReader.startArgs.PlayMap;
                 hw = Map.Maps[mapId].hw;
                 SizeChangedHandler(null, null);
                 backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId,false);
                 Invalidate();
-                getFrameData();
+                discFrames = logReader.discFrames;
+                deadList = logReader.deadList;
+                deadOrderList = logReader.deadOrderList;
+                e = logReader.e;
             }
             drawTrackBar = new PaintEventHandler(DrawBar);
             pictureBox2.Paint += drawTrackBar;
@@ -169,52 +173,6 @@ namespace AmongUsReplayInWindow
             deadOrderList.Clear();
         }
 
-        private void getFrameData()
-        {
-
-            if (logReader?.reader == null) return;
-            discFrames.Clear();
-            deadList.Clear();
-            deadOrderList.Clear();
-
-
-            long readerPos = logReader.reader.BaseStream.Position;
-            logReader.seek(0);
-
-            GameState oldState = GameState.UNKNOWN;
-
-
-            int playerNum = logReader.e.PlayerNum;
-            int[] oldPlayerIsDead = new int[playerNum];
-
-
-            int discFrame = 0;
-            for (int i = 0; i <= logReader.maxMoveNum; i++)
-            {
-                e = logReader.ReadFrombFileMove();
-                if (oldState != e.state)
-                {
-                    if (e.state == GameState.DISCUSSION)
-                        discFrame = i;
-                    else if (oldState == GameState.DISCUSSION)
-                        discFrames.Add(new int[2] { discFrame, i });
-
-                }
-                oldState = e.state;
-                for (int j = 0; j < playerNum; j++)
-                {
-                    if (e.PlayerIsDead[j] != 0 && oldPlayerIsDead[j] == 0)
-                    {
-                        deadList.Add(new int[2] { i, j });
-                        deadOrderList.Add(j);
-                    }
-                    oldPlayerIsDead[j] = e.PlayerIsDead[j];
-                }
-            }
-            if (e.state == GameState.DISCUSSION)
-                discFrames.Add(new int[2] { discFrame, (int)logReader.maxMoveNum });
-            logReader.reader.BaseStream.Position = readerPos;
-        }
 
         #endregion
 
@@ -364,7 +322,7 @@ namespace AmongUsReplayInWindow
             backgroundMap?.Draw(paint.Graphics);
             lock (lockObject)
             {
-                DrawMove.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
+                DrawMove.DrawMove_Icon(paint, e, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize, version);
 
             }
             

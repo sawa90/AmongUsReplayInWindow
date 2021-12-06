@@ -25,7 +25,7 @@ namespace AmongUsReplayInWindow
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        public static void Main()
         {
             exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             if (exePath != null) exeFolder = System.IO.Path.GetDirectoryName(exePath);

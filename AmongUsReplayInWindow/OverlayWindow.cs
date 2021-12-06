@@ -50,12 +50,12 @@ namespace AmongUsReplayInWindow
         string filename = null;
         bool Playing = true;
         int discussionTime = -1000;
-        public static bool ShowDisconnect = false;
+        int version = 0;
 
 
         public List<int[]> discFrames = new List<int[]>();
         List<int[]> deadList = new List<int[]>();
-        List<int> deadOrderList = new List<int>();
+        List<DrawMove.DeadPos> deadOrderList = new List<DrawMove.DeadPos>();
 
 
 
@@ -67,7 +67,6 @@ namespace AmongUsReplayInWindow
         public const int WS_EX_LAYERED = 0x00080000;
         public const int WS_EX_TOPMOST = 0x00000008;
         internal StartWindow startWindow;
-
         #endregion
 
         #region Initialize
@@ -185,8 +184,11 @@ namespace AmongUsReplayInWindow
                     Console.WriteLine("Failed to set reader");
                     return false;
                 }
+                version = logReader.version;
                 MapChange((int)logReader.startArgs.PlayMap);
-                getFrameData();
+                discFrames = logReader.discFrames;
+                deadList = logReader.deadList;
+                deadOrderList = logReader.deadOrderList;
                 logReader.seek(0);
                 moveArg = logReader.ReadFrombFileMove();
             }
@@ -227,54 +229,6 @@ namespace AmongUsReplayInWindow
             deadOrderList.Clear();
         }
 
-        private void getFrameData()
-        {
-
-            if (logReader?.reader == null) return;
-            discFrames.Clear();
-            deadList.Clear();
-            deadOrderList.Clear();
-
-
-            long readerPos = logReader.reader.BaseStream.Position;
-            logReader.seek(0);
-
-            GameState oldState = GameState.UNKNOWN;
-
-
-            int playerNum = logReader.e.PlayerNum;
-            int[] oldPlayerIsDead = new int[playerNum];
-
-
-            int discFrame = 0;
-            for (int i = 0; i <= logReader.maxMoveNum; i++)
-            {
-                moveArg = logReader.ReadFrombFileMove();
-                if (oldState != moveArg.state)
-                {
-                    if (moveArg.state == GameState.DISCUSSION)
-                        discFrame = i;
-                    else if (oldState == GameState.DISCUSSION)
-                        discFrames.Add(new int[2] { discFrame, i });
-
-                }
-                oldState = moveArg.state;
-                for (int j = 0; j < playerNum; j++)
-                {
-                    if (moveArg.PlayerIsDead[j] != 0 && oldPlayerIsDead[j] == 0)
-                    {
-                        deadList.Add(new int[2] { i, j });
-                        deadOrderList.Add(j);
-                    }
-                    oldPlayerIsDead[j] = moveArg.PlayerIsDead[j];
-                }
-            }
-            if (moveArg.state == GameState.DISCUSSION)
-                discFrames.Add(new int[2] { discFrame, (int)logReader.maxMoveNum });
-            logReader.reader.BaseStream.Position = readerPos;
-            moveArg = logReader.ReadFrombFileMove();
-
-        }
 
         #endregion
 
@@ -341,9 +295,6 @@ namespace AmongUsReplayInWindow
                 }
                 else
                 {
-                    if (newState == GameState.DISCUSSION)
-                        SetKeyboardEnable(Playing, ShowDisconnect);
-                    else
                         SetKeyboardEnable(Playing, false);
                 }
             }
@@ -472,7 +423,7 @@ namespace AmongUsReplayInWindow
                 //backgroundMap?.Draw(paint.Graphics);
                 lock (lockObject)
                 {
-                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
+                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize, version);
                 }
             }
             else if (!Playing)
@@ -480,28 +431,7 @@ namespace AmongUsReplayInWindow
                 backgroundMap?.Draw(paint.Graphics);
                 lock (lockObject)
                 {
-                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize);
-                }
-            }
-            else if(ShowDisconnect)
-            {
-                paint.Graphics.FillRectangle(Brushes.Snow, paint.ClipRectangle);
-                if(moveArg!=null && moveArg.state == GameState.DISCUSSION)
-                {
-                    float circleSize = Height / 39.0f;
-                    paint.Graphics.FillRectangle(Brushes.White, 0, Height / 5, Width / 2, circleSize * 10);
-                    string disconnect = "DISCONNECT:\n";
-                    for(int i = 0; i < moveArg.PlayerNum; i++)
-                    {
-                        if(moveArg.PlayerIsDead[i] == -10)
-                        {
-                            disconnect += "\t" + moveArg.PlayerNames[i] + "/" + PlayerData.ColorNameDict.GetValueOrDefault(moveArg.PlayerColors[i].ToArgb()) + "\n";
-                        }
-                    }
-                    using (var fnt = new Font("Times New Roman", circleSize, FontStyle.Bold))
-                    {
-                        paint.Graphics.DrawString(disconnect, fnt, Brushes.Black, 0, Height / 5);
-                    }
+                    DrawMove.DrawMove_Icon(paint, moveArg, deadOrderList, Map.Maps[mapId], startWindow.iconDict, mapLocation, mapSize, version);
                 }
             }
 

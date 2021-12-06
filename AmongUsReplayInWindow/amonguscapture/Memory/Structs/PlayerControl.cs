@@ -1,11 +1,53 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Numerics;
-
+using AUOffsetManager;
 
 
 namespace AmongUsCapture
 {
+    public class PlayerControl
+    {
+        public uint NetId;
+        public byte PlayerId;
+        public bool inVent;
+        public bool protectedByGuardian;
+        public int RemainingEmergencies;
+        public IntPtr nameText;
+        public UInt32 myLight_;
+        public IntPtr NetTransform;
+        public IntPtr myTasks;
+
+        public PlayerControl(IntPtr _objectPtr, ProcessMemory MemInstance, GameOffsets CurrentOffsets)
+        {
+            PlayerControlOffsets offsets = CurrentOffsets.PlayerControlOffsets;
+            var intPtrSize = MemInstance.is64Bit ? 8 : 4;
+            int size = ((int)Math.Ceiling((decimal)((intPtrSize + offsets.myTasks) / 8.0))) * 8; //Find the nearest multiple of 8
+            byte[] buffer = MemInstance.ReadByteArray(_objectPtr, size);
+            if (buffer != null)
+            {
+                NetId = BitConverter.ToUInt32(buffer, offsets.NetId);
+                PlayerId = buffer[offsets.PlayerId];
+                inVent = BitConverter.ToBoolean(buffer, offsets.inVent);
+                protectedByGuardian = BitConverter.ToBoolean(buffer, offsets.protectedByGuardian);
+                RemainingEmergencies = BitConverter.ToInt32(buffer, offsets.RemainingEmergencies);
+                myLight_ = BitConverter.ToUInt32(buffer, offsets.myLight_);
+                if (MemInstance.is64Bit)
+                {
+                    nameText = (IntPtr)BitConverter.ToInt64(buffer, offsets.nameText);
+                    NetTransform = (IntPtr)BitConverter.ToInt64(buffer, offsets.NetTransform);
+                    myTasks = (IntPtr)BitConverter.ToInt64(buffer, offsets.myTasks);
+                }
+                else
+                {
+                    nameText = (IntPtr)BitConverter.ToInt32(buffer, offsets.nameText);
+                    NetTransform = (IntPtr)BitConverter.ToInt32(buffer, offsets.NetTransform);
+                    myTasks = (IntPtr)BitConverter.ToInt32(buffer, offsets.myTasks);
+                }
+            }
+        }
+    }
+    /*
     public interface PlayerControl
     {
         public abstract uint NetId { get; }
@@ -266,5 +308,5 @@ namespace AmongUsCapture
         [FieldOffset(0x50)] public Vector2 prevPosSent_;
         [FieldOffset(0x58)] public Vector2 prevVelSent_;
     }
-
+    */
 }

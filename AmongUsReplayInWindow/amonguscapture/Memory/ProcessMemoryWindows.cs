@@ -120,6 +120,28 @@ namespace AmongUsCapture
             return ints;
         }
 
+        public override byte[] ReadByteArray(IntPtr address, int size)
+        {
+            byte[] bytes = Read(address, size);
+            return bytes;
+        }
+
+        public override int OffsetAddress(ref IntPtr address, params int[] offsets)
+        {
+            byte[] buffer = new byte[is64Bit ? 8 : 4];
+            for (int i = 0; i < offsets.Length - 1; i++)
+            {
+                WinAPI.ReadProcessMemory(process.Handle, address + offsets[i], buffer, buffer.Length, out int bytesRead);
+                if (is64Bit)
+                    address = (IntPtr)BitConverter.ToUInt64(buffer, 0);
+                else
+                    address = (IntPtr)BitConverter.ToUInt32(buffer, 0);
+                if (address == IntPtr.Zero)
+                    break;
+            }
+            return offsets.Length > 0 ? offsets[offsets.Length - 1] : 0;
+        }
+
         private byte[] Read(IntPtr address, int numBytes)
         {
             byte[] buffer = new byte[numBytes];
@@ -129,27 +151,7 @@ namespace AmongUsCapture
             WinAPI.ReadProcessMemory(process.Handle, address, buffer, numBytes, out int bytesRead);
             return buffer;
         }
-        private int OffsetAddress(ref IntPtr address, params int[] offsets)
-        {
-            byte[] buffer = new byte[is64Bit ? 8 : 4];
-            for (int i = 0; i < offsets.Length - 1; i++)
-            {
-                WinAPI.ReadProcessMemory(process.Handle, address + offsets[i], buffer, buffer.Length, out int bytesRead);
-                if (is64Bit)
-                {
-                    var uintaddr = BitConverter.ToUInt64(buffer, 0);
-                    address = uintaddr <= Int64.MaxValue ?(IntPtr)uintaddr : IntPtr.Zero;
-                }
-                else
-                {
-                    var uintaddr = BitConverter.ToUInt32(buffer, 0);
-                    address = uintaddr <= Int32.MaxValue ? (IntPtr)uintaddr : IntPtr.Zero;
-                }
-                if (address == IntPtr.Zero)
-                    break;
-            }
-            return offsets.Length > 0 ? offsets[offsets.Length - 1] : 0;
-        }
+
         private static class WinAPI
         {
             [DllImport("kernel32.dll", SetLastError = true)]

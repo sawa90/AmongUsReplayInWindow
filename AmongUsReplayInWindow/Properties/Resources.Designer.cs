@@ -73,9 +73,29 @@ namespace AmongUsReplayInWindow.Properties {
         /// <summary>
         ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
         /// </summary>
+        internal static System.Drawing.Bitmap Angel {
+            get {
+                object obj = ResourceManager.GetObject("Angel", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
         internal static System.Drawing.Bitmap dead {
             get {
                 object obj = ResourceManager.GetObject("dead", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap emergencyButton {
+            get {
+                object obj = ResourceManager.GetObject("emergencyButton", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -96,6 +116,16 @@ namespace AmongUsReplayInWindow.Properties {
         internal static System.Drawing.Bitmap megaphone {
             get {
                 object obj = ResourceManager.GetObject("megaphone", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap megaphone_edge {
+            get {
+                object obj = ResourceManager.GetObject("megaphone_edge", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -145,9 +175,29 @@ namespace AmongUsReplayInWindow.Properties {
         /// <summary>
         ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
         /// </summary>
+        internal static System.Drawing.Bitmap protectedByGuardian {
+            get {
+                object obj = ResourceManager.GetObject("protectedByGuardian", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
         internal static System.Drawing.Bitmap skeld {
             get {
                 object obj = ResourceManager.GetObject("skeld", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   型 System.Drawing.Bitmap のローカライズされたリソースを検索します。
+        /// </summary>
+        internal static System.Drawing.Bitmap stamp {
+            get {
+                object obj = ResourceManager.GetObject("stamp", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

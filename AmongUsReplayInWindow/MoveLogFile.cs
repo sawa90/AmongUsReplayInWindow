@@ -62,7 +62,7 @@ namespace AmongUsReplayInWindow
 
         public class WriteMoveLogFile
         {
-            static int version = 2;
+            static int version = 3;
             string folderPass;
             private Stream stream;
             private BinaryWriter writer;
@@ -179,6 +179,8 @@ namespace AmongUsReplayInWindow
                         for (int i = 0; i < startArgs.PlayerMove.PlayerNum; i++)
                         {
                             writer.Write(startArgs.PlayerMove.PlayerNames[i]);
+                            writer.Write((byte)startArgs.RoleType[i]);
+                            writer.Write((sbyte)move.RemainingEmergencies[i]);
                             writer.Write((Int32)startArgs.PlayerColorsInt[i]);
                             writer.Write(startArgs.PlayerMove.IsImpostor[i]);
                             writer.Write((Int32)startArgs.HatIds[i]);
@@ -201,19 +203,39 @@ namespace AmongUsReplayInWindow
                         writer.Write((Int32)e.time);
                         writer.Write((byte)e.state);
                         writer.Write((byte)e.Sabotage.TaskType);
-                        writer.Write((byte)0);
+                        if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote) writer.Write((sbyte)e.ReportTarget);
+                        else writer.Write((sbyte)Math.Max(sbyte.MinValue, Math.Ceiling(e.EmergencyCooldown)));
                         writer.Write((UInt32)e.doorsUint);
-                        for (int i = 0; i < AllImposorNum; i++) writer.Write((bool)e.InVent[i]);
-
+                        //for (int i = 0; i < AllImposorNum; i++) writer.Write((bool)e.InVent[i]);
+                        uint inVent = 0;
+                        uint isGuardian = 0;
+                        uint protectedByGuardian = 0;
+                        for (int i = 0; i < e.PlayerNum; i++)
+                        {
+                            if(e.InVent[i]) inVent |= ((uint)1 << i);
+                            if(e.IsGuardian[i]) isGuardian |= ((uint)1 << i);
+                            if(e.protectedByGuardian[i])protectedByGuardian |= ((uint)1 << i);
+                        }
+                        writer.Write(inVent);
+                        writer.Write(isGuardian);
+                        writer.Write(protectedByGuardian);
                         for (int i = 0; i < e.PlayerNum; i++)
                         {
                             writer.Write(e.PlayerPoses[i].X);
                             writer.Write(e.PlayerPoses[i].Y);
                             writer.Write((sbyte)(e.PlayerIsDead[i]));
                             if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote)
+                            { 
                                 writer.Write((sbyte)e.voteList[i]);
+                                writer.Write(e.RemainingEmergencies[i]);
+
+                            }
                             else
+                            { 
                                 writer.Write((byte)(e.TaskProgress[i] * 255));
+                                writer.Write(e.shapeId[i]);
+                            }
+                            
                         }
                         return true;
                     }
@@ -229,7 +251,7 @@ namespace AmongUsReplayInWindow
 
             public string filename;
 
-            int version;
+            public int version;
             int PlayerNum;
             int AllImposorNum;
             public PlayerMoveArgs e;
@@ -237,6 +259,11 @@ namespace AmongUsReplayInWindow
             public long maxMoveNum;
             long PlayerDataByte;
             public GameStartEventArgs startArgs;
+
+            public List<int[]> discFrames = new List<int[]>();
+            public List<int[]> deadList = new List<int[]>();
+            public List<DrawMove.DeadPos> deadOrderList = new List<DrawMove.DeadPos>();
+            public bool[] displayVote;
 
             public ReadMoveLogFile(string filename)
             {
@@ -266,6 +293,7 @@ namespace AmongUsReplayInWindow
                     startArgs.HatIds = new uint[PlayerData.MaxPlayerNum];
                     startArgs.PetIds = new uint[PlayerData.MaxPlayerNum];
                     startArgs.SkinIds = new uint[PlayerData.MaxPlayerNum];
+                    startArgs.RoleType = new RoleTypes[PlayerData.MaxPlayerNum];
 
                     e.PlayerNames = new string[PlayerData.MaxPlayerNum];
 
@@ -278,12 +306,32 @@ namespace AmongUsReplayInWindow
                     e.InVent = new bool[PlayerData.MaxPlayerNum];
                     e.TaskProgress = new float[PlayerData.MaxPlayerNum];
                     e.Sabotage = new TaskInfo();
+                    e.IsGuardian = new bool[PlayerData.MaxPlayerNum];
+                    e.protectedByGuardian = new bool[PlayerData.MaxPlayerNum];
+                    e.shapeId = new sbyte[PlayerData.MaxPlayerNum];
+                    e.RemainingEmergencies = new sbyte[PlayerData.MaxPlayerNum];
+                    e.ReportTarget = -1;
+                    e.EmergencyCooldown = 0;
                     if (version > 0) e.voteList = new sbyte[PlayerData.MaxPlayerNum];
 
-                    for (int i = 0; i < AllImposorNum; i++) e.ImpostorId[i] = reader.ReadInt32();
+                    for (int i = 0; i < PlayerNum; i++)
+                    {
+                        startArgs.RoleType[i] = RoleTypes.Crewmate;
+                        e.shapeId[i] = -1;
+                    }
+                    for (int i = 0; i < AllImposorNum; i++)
+                    {
+                        e.ImpostorId[i] = reader.ReadInt32();
+                        startArgs.RoleType[e.ImpostorId[i]] = RoleTypes.Impostor;
+                    }
                     for (int i = 0; i < PlayerNum; i++)
                     {
                         e.PlayerNames[i] = reader.ReadString();
+                        if (version > 2)
+                        {
+                            startArgs.RoleType[i] = (RoleTypes)reader.ReadByte();
+                            e.RemainingEmergencies[i] = reader.ReadSByte();
+                        }
                         if (version >= 2) {
                             int colorid = reader.ReadInt32();
                             if (colorid >= 0 && colorid < PlayerData.PlayerColorNum)
@@ -298,17 +346,19 @@ namespace AmongUsReplayInWindow
                         startArgs.HatIds[i] = (uint)reader.ReadInt32();
                         startArgs.PetIds[i] = (uint)reader.ReadInt32();
                         startArgs.SkinIds[i] = (uint)reader.ReadInt32();
-
                     }
                     if (version == 0)
                         bytePerMove = 8 + AllImposorNum + 10 * PlayerNum;
                     else if (version == 1)
                         bytePerMove = 10 + AllImposorNum + 10 * PlayerNum;
-                    else
+                    else if (version == 2)
                         bytePerMove = 11 + AllImposorNum + 10 * PlayerNum;
+                    else if (version > 2)
+                        bytePerMove = 23 + 11 * PlayerNum;
                     PlayerDataByte = stream.Position;
                     maxMoveNum = (stream.Length - PlayerDataByte) / bytePerMove - 1;
-
+                    displayVote = new bool[maxMoveNum + 1];
+                    getFrameData();
                 }
                 else { Console.WriteLine($"BinaryReader is null"); }
             }
@@ -338,7 +388,8 @@ namespace AmongUsReplayInWindow
                 if (reader != null)
                 {
                     if (version <= 1) return ReadFrombFileMove_v0_v1();
-                    else return ReadFrombFileMove_v2();
+                    else if (version == 2) return ReadFrombFileMove_v2();
+                    else return ReadFrombFileMove_v3();
 
                 }
                 return e;
@@ -351,6 +402,7 @@ namespace AmongUsReplayInWindow
                 {
                     try
                     {
+                        e.displayVote = displayVote[getFrame()];
                         e.time = reader.ReadInt32();
                         e.state = (GameState)reader.ReadByte();
                         e.Sabotage.TaskType = (TaskTypes)reader.ReadByte();
@@ -362,7 +414,7 @@ namespace AmongUsReplayInWindow
                         {
                             e.doorsUint = reader.ReadUInt32();
                         }
-                        for (int i = 0; i < AllImposorNum; i++) e.InVent[i] = reader.ReadBoolean();
+                        for (int i = 0; i < AllImposorNum; i++) e.InVent[e.ImpostorId[i]] = reader.ReadBoolean();
                         for (int i = 0; i < PlayerNum; i++)
                         {
                             e.PlayerPoses[i].X = reader.ReadSingle();
@@ -403,12 +455,13 @@ namespace AmongUsReplayInWindow
                 {
                     try
                     {
+                        e.displayVote = displayVote[getFrame()];
                         e.time = reader.ReadInt32();
                         e.state = (GameState)reader.ReadByte();
                         e.Sabotage.TaskType = (TaskTypes)reader.ReadByte();
                         reader.ReadByte();
                         e.doorsUint = reader.ReadUInt32();
-                        for (int i = 0; i < AllImposorNum; i++) e.InVent[i] = reader.ReadBoolean();
+                        for (int i = 0; i < AllImposorNum; i++) e.InVent[e.ImpostorId[i]] = reader.ReadBoolean();
                         for (int i = 0; i < PlayerNum; i++)
                         {
                             e.PlayerPoses[i].X = reader.ReadSingle();
@@ -428,7 +481,123 @@ namespace AmongUsReplayInWindow
                 return e;
             }
 
+            public PlayerMoveArgs ReadFrombFileMove_v3()
+            {
+                if (reader != null)
+                {
+                    try
+                    {
+                        e.displayVote = displayVote[getFrame()];
+                        e.time = reader.ReadInt32();
+                        e.state = (GameState)reader.ReadByte();
+                        e.Sabotage.TaskType = (TaskTypes)reader.ReadByte();
+                        if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote) e.ReportTarget = reader.ReadSByte();
+                        else e.EmergencyCooldown = reader.ReadSByte();
+                        e.doorsUint = reader.ReadUInt32();
+                        uint inVent = reader.ReadUInt32();
+                        uint isGuardian = reader.ReadUInt32();
+                        uint protectedByGuardian = reader.ReadUInt32();
+                        for (int i = 0; i < e.PlayerNum; i++)
+                        {
+                            e.InVent[i] = (inVent & ((uint)1 << i)) != 0;
+                            e.IsGuardian[i] = (isGuardian & ((uint)1 << i)) != 0;
+                            e.protectedByGuardian[i] = (protectedByGuardian & ((uint)1 << i)) != 0;
+                        }
+                        for (int i = 0; i < PlayerNum; i++)
+                        {
+                            e.PlayerPoses[i].X = reader.ReadSingle();
+                            e.PlayerPoses[i].Y = reader.ReadSingle();
+                            e.PlayerIsDead[i] = reader.ReadSByte();
+                            if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote)
+                            {
+                                e.voteList[i] = reader.ReadSByte();
+                                e.RemainingEmergencies[i] = reader.ReadSByte();
+                            }
+                            else
+                            {
+                                e.TaskProgress[i] = reader.ReadByte() / 255.0f;
+                                e.shapeId[i] = reader.ReadSByte();
+                            }
+                            
+                        }
+                    }
+                    catch (EndOfStreamException er)
+                    {
 
+                    }
+                }
+                return e;
+            }
+
+            public int getFrame()
+            {
+                int frame = (int)((reader.BaseStream.Position - PlayerDataByte) / bytePerMove);
+                if (frame < 0) frame = 0;
+                return frame;
+            }
+
+            public void getFrameData()
+            {
+
+                if (reader == null) return;
+                discFrames.Clear();
+                deadList.Clear();
+                deadOrderList.Clear();
+
+
+                long readerPos = reader.BaseStream.Position;
+                seek(0);
+                e = ReadFrombFileMove();
+                seek(0);
+                GameState oldState = GameState.UNKNOWN;
+
+                int playerNum = e.PlayerNum;
+                int[] oldPlayerIsDead = new int[playerNum];
+                displayVote = new bool[maxMoveNum + 1];
+
+
+                int discFrame = 0;
+                for (int i = 0; i <= maxMoveNum; i++)
+                {
+                    e = ReadFrombFileMove();
+                    if (oldState != e.state)
+                    {
+                        if (e.state == GameState.DISCUSSION)
+                            discFrame = i;
+                        else if (oldState == GameState.DISCUSSION)
+                            discFrames.Add(new int[2] { discFrame, i });
+
+                    }
+                    oldState = e.state;
+                    for (int j = 0; j < playerNum; j++)
+                    {
+                        if (e.PlayerIsDead[j] != 0 && oldPlayerIsDead[j] == 0)
+                        {
+                            deadList.Add(new int[2] { i, j });
+                            deadOrderList.Add(new DrawMove.DeadPos(j, e.PlayerPoses[j]));
+                        }
+                        oldPlayerIsDead[j] = e.PlayerIsDead[j];
+                    }
+                    if (e.state == GameState.DISCUSSION && i - discFrame <= 40)
+                    {
+                        bool voted = false;
+                        for (int j = 0; j < e.PlayerNum; j++)
+                        {
+                            sbyte vote = e.voteList[j];
+                            if (vote > 20) vote -= 32;
+                            if (e.PlayerIsDead[j] == 0 && (vote <= -2 || vote >= 0) && vote < PlayerData.MaxPlayerNum) voted = true;
+                        }
+                        displayVote[i] = voted;
+                    }
+                    else if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote)
+                        displayVote[i] = true;
+                    else displayVote[i] = false;
+                }
+                if (e.state == GameState.DISCUSSION)
+                    discFrames.Add(new int[2] { discFrame, (int)maxMoveNum });
+                reader.BaseStream.Position = readerPos;
+                e = ReadFrombFileMove();
+            }
 
         }
 
@@ -470,7 +639,9 @@ namespace AmongUsReplayInWindow
                     sb.Append("☆Impostor:\n");
                     for (int i = 0; i < AllImposorNum; i++)
                     {
-                        sb.Append(m.PlayerNames[m.ImpostorId[i]] + "/" + PlayerData.ColorNameDict[m.PlayerColors[m.ImpostorId[i]].ToArgb()] + "\n");
+                        sb.Append(m.PlayerNames[m.ImpostorId[i]] + "/" + PlayerData.ColorNameDict[m.PlayerColors[m.ImpostorId[i]].ToArgb()]);
+                        if (startArgs.RoleType[m.ImpostorId[i]] != RoleTypes.Impostor) sb.Append("\t :" + startArgs.RoleType[m.ImpostorId[i]].ToString());
+                        sb.Append("\n");
                     }
 
                     sb.Append("\nCrewmate:\n");
@@ -478,13 +649,24 @@ namespace AmongUsReplayInWindow
                     {
                         PlayerName2Id[m.PlayerNames[i]] = i;
                         string nameinfo = m.PlayerNames[i] + "/" + PlayerData.ColorNameDict[m.PlayerColors[i].ToArgb()];
-                        Name2WithInfo[i] = nameinfo + ":\t";
+                        Name2WithInfo[i] = nameinfo + ":";
                         if (!m.IsImpostor[i])
-                            sb.Append(nameinfo + "\n");
+                        {
+                            sb.Append(nameinfo);
+                            if (startArgs.RoleType[i] != RoleTypes.Crewmate)
+                            {
+                                sb.Append("\t :" + startArgs.RoleType[i].ToString());
+                                Name2WithInfo[i] = Name2WithInfo[i] + startArgs.RoleType[i].ToString().Substring(0, 1) + ":";
+                            }
+                            sb.Append("\n");
+                        }
                     }
                     for (int i = 0; i < AllImposorNum; i++)
                     {
-                        Name2WithInfo[m.ImpostorId[i]] = "☆" + Name2WithInfo[m.ImpostorId[i]];
+                        int id = m.ImpostorId[i];
+                        Name2WithInfo[id] = "☆" + Name2WithInfo[id];
+                        if (startArgs.RoleType[id] != RoleTypes.Impostor)
+                            Name2WithInfo[id] = Name2WithInfo[id] + startArgs.RoleType[id].ToString().Substring(0, 1) + ":";
                     }
                     sb.Append("\n\n");
                     chatwriter.Write(sb.ToString());
@@ -506,7 +688,7 @@ namespace AmongUsReplayInWindow
                         int id;
                         if (PlayerName2Id.TryGetValue(chat.Sender, out id))
                         {
-                            string nameinfo = Name2WithInfo[id];
+                            string nameinfo = Name2WithInfo[id] + "\t";
                             if (move.PlayerIsDead[id] != 0) nameinfo += "(Dead) ";
                             chatwriter.WriteLine(timestr + nameinfo + chat.Message);
                             return;
@@ -526,7 +708,7 @@ namespace AmongUsReplayInWindow
                         int id;
                         if (PlayerName2Id.TryGetValue(chat.Sender, out id))
                         {
-                            string nameinfo = Name2WithInfo[id];
+                            string nameinfo = Name2WithInfo[id] + "\t";
                             if (move.PlayerIsDead[id] != 0) nameinfo += "(Dead) ";
                             File.AppendAllText(chatfilename, nameinfo + chat.Message + "\n");
                         }

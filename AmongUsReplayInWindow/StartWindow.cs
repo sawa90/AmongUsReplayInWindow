@@ -308,7 +308,7 @@ namespace AmongUsReplayInWindow
             public Color backgroundColor = Color.Snow;
 
             [DefaultValue(false)]
-            public bool ShowDisconnect = false;
+            public bool AngelVisible = false;
         }
 
         void applySettings()
@@ -325,6 +325,7 @@ namespace AmongUsReplayInWindow
             DrawMove.TaskBarVisible = settings.TaskBarVisible;
             DrawMove.PlayerNameVisible = settings.PlayerNameVisible;
             DrawMove.VoteVisible = settings.VoteVisible;
+            DrawMove.AngelVisible = settings.AngelVisible;
             DrawMove.backgroundColor = settings.backgroundColor;
 
             Map.mapFolder = settings.MapImageFolder;
@@ -339,7 +340,6 @@ namespace AmongUsReplayInWindow
             StartWindow.SetHotKey(hotkey);
             OverlayWindow.OutputTextLog = settings.OutputTextLog;
             OverlayWindow.PopupTextLog = settings.PopupTextLog;
-            OverlayWindow.ShowDisconnect = settings.ShowDisconnect;
         }
 
         public static Dictionary<string, UInt32> hotKeyDict = new Dictionary<string, uint>()

@@ -1,9 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using AUOffsetManager;
 
 namespace AmongUsCapture
 {
+    public class PlayerVoteArea
+    {
+        public byte[] byteArray;
+        public byte Id_;
+        public bool didReport;
+        public sbyte votedFor;
+        public bool set(IntPtr _objectPtr, ProcessMemory MemInstance, GameOffsets CurrentOffsets)
+        {
+            VoteAreaOffsets offsets = CurrentOffsets.VoteAreaOffsets;
+            byte[] byteArray = ProcessMemory.getInstance().ReadByteArray(_objectPtr, 0x56);
+            if (byteArray != null)
+            {
+                Id_ = (byte)byteArray[offsets._Id];
+                didReport = BitConverter.ToBoolean(byteArray, offsets.didReport);
+                votedFor = (sbyte)byteArray[offsets.votedFor];
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+
+        }
+
+    }
+    /*
     public interface PlayerVoteArea
     {
         public IntPtr m_CachedPtr { get; }
@@ -327,4 +355,5 @@ namespace AmongUsCapture
             bool PlayerVoteArea.resultsShowing => resultsShowing;
         }
     }
+    */
 }

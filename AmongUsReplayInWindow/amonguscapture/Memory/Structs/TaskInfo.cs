@@ -1,9 +1,55 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using AUOffsetManager;
 
 namespace AmongUsCapture
 {
-    
+    public class TaskInfo
+    {
+        public SystemTypes StartAt;
+        public TaskTypes TaskType;
+        public UInt32 MinigamePrefab;
+        public bool HasLocatin;
+        public bool LocatinDirty;
+        public byte TaskStep;
+        public byte AllStepNum;
+        public bool set(IntPtr _objectPtr, ProcessMemory MemInstance, GameOffsets CurrentOffsets)
+        {
+            if (_objectPtr == IntPtr.Zero) return false;
+            TaskInfoOffsets offsets = CurrentOffsets.TaskInfoOffsets;
+            var intPtrSize = MemInstance.is64Bit ? 8 : 4;
+            int size = ((int)Math.Ceiling((decimal)((intPtrSize + offsets.AllStepNum) / 8.0))) * 8; //Find the nearest multiple of 8
+            byte[] buffer = MemInstance.ReadByteArray(_objectPtr, size);
+            if (buffer != null)
+            {
+                StartAt = (SystemTypes)buffer[offsets.StartAt];
+                TaskType = (TaskTypes)buffer[offsets.TaskType];
+                MinigamePrefab = BitConverter.ToUInt32(buffer, offsets.MinigamePrefab);
+                HasLocatin = BitConverter.ToBoolean(buffer, offsets.HasLocatin);
+                LocatinDirty = BitConverter.ToBoolean(buffer, offsets.LocatinDirty);
+                TaskStep = buffer[offsets.TaskStep];
+                AllStepNum = buffer[offsets.AllStepNum];
+                return true;
+            }
+            return false;
+        }
+        public bool IsSabotage()
+        {
+            switch (this.TaskType)
+            {
+                case TaskTypes.ResetReactor:
+                case TaskTypes.FixLights:
+                case TaskTypes.RestoreOxy:
+                case TaskTypes.StopCharles:
+                case TaskTypes.FixComms:
+                case TaskTypes.ResetSeismic:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+    }
+    /*
     [StructLayout(LayoutKind.Explicit)]
 
     public struct TaskInfo
@@ -15,7 +61,7 @@ namespace AmongUsCapture
         [FieldOffset(0x25)] public bool LocatinDirty;
         [FieldOffset(0x28)] public byte TaskStep;
         [FieldOffset(0x2C)] public byte AllStepNum;
-    }
+    }*/
 
     public enum TaskTypes : byte
     {

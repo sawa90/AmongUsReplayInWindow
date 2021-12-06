@@ -6,9 +6,24 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Numerics;
 using System.Drawing;
+using AUOffsetManager;
 
 namespace AmongUsCapture
 {
+    public class ShipStatus
+    {
+        public IntPtr AllDoors;
+        public float EmergencyCooldown;
+        public IntPtr GapPlatform;
+        public ShipStatus(IntPtr baseAddr, ProcessMemory MemInstance, GameOffsets CurrentOffsets)
+        {
+            var shipStatusPtr = MemInstance.Read<IntPtr>(baseAddr, CurrentOffsets.ShipStatusOffsets.ShipStatusPtr);
+            AllDoors = MemInstance.Read<IntPtr>(shipStatusPtr, CurrentOffsets.ShipStatusOffsets.AllDoors);
+            EmergencyCooldown = MemInstance.Read<float>(shipStatusPtr, CurrentOffsets.ShipStatusOffsets.EmergencyCooldown);
+            GapPlatform = MemInstance.Read<IntPtr>(shipStatusPtr, CurrentOffsets.ShipStatusOffsets.GapPlatform);
+        }
+    }
+    /*
     public interface ShipStatus
     {
         public abstract IntPtr AllDoors { get; }
@@ -185,6 +200,7 @@ namespace AmongUsCapture
             IntPtr ShipStatus.GapPlatform => GapPlatform;
         }
     }
+    */
 
     //EEHJPJEBAGP  in 2020.12.9s
     [StructLayout(LayoutKind.Explicit)]

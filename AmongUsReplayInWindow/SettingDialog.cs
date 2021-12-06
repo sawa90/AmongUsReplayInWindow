@@ -33,6 +33,7 @@ namespace AmongUsReplayInWindow
             PlayerNameCheckBox.Checked = setting.PlayerNameVisible;
             TaskBarCheckBox.Checked = setting.TaskBarVisible;
             VoteCheckBox.Checked = setting.VoteVisible;
+            AngelCheckBox.Checked = setting.AngelVisible;
 
             foreach (var key in StartWindow.hotKeyDict.Keys)
                 HotKeyBox.Items.Add(key);
@@ -120,6 +121,12 @@ namespace AmongUsReplayInWindow
                 foreach (var wind in fromFile.fromFileList)
                     wind.changeColor();
             }
+        }
+
+        private void AngelCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            startWindow.settings.AngelVisible = AngelCheckBox.Checked;
+            DrawMove.AngelVisible = AngelCheckBox.Checked;
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace AUOffsetManager
 {
@@ -29,20 +30,11 @@ namespace AUOffsetManager
 
             if (File.Exists(StorageLocation))
             {
-                 LocalOffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(File.ReadAllText(StorageLocation));
-                 if (LocalOffsetIndex is null)
-                 {
-                     LocalOffsetIndex = new Dictionary<string, GameOffsets>();
-                 }
-            }
-            
-            if (File.Exists(StorageLocationCache))
-            {
-                OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(File.ReadAllText(StorageLocationCache));
-            }
-            else
-            {
-                OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
+                LocalOffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(File.ReadAllText(StorageLocation));
+                if (LocalOffsetIndex is null)
+                {
+                    LocalOffsetIndex = new Dictionary<string, GameOffsets>();
+                }
             }
         }
         public async Task RefreshIndex()
@@ -65,14 +57,14 @@ namespace AUOffsetManager
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                try
+                if (File.Exists(StorageLocationCache))
                 {
-                    OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
+                    OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(File.ReadAllText(StorageLocationCache));
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
+            }
+            if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash))
+            {
+                OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
             }
             if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash))
             {
@@ -89,11 +81,6 @@ namespace AUOffsetManager
                     Console.WriteLine(e);
                     Console.WriteLine("If you are reading this that means that the site is down. If github still exists in the future, try again in 30 minutes.");
                 }
-
-                if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash))
-                {
-                    OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
-                }
             }
         }
 
@@ -107,57 +94,46 @@ namespace AUOffsetManager
             }
             else
             {
-                if (AmongUsCapture.GameMemReader.testflag)
-                    OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
-                if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash) || !OffsetIndex.ContainsKey("3E01974A43431BF7BA7E88570DB8E19954D256C37DB9917C4905963CBD006099") || OffsetIndex["31E1F0C1D7370071F96514B8A76DE72FF0EE130F870A1BC157D63E0FBDA979D1"].offsetListVersion < 2) 
-                {
-                    indexTask = RefreshIndex();
-                    indexTask.Wait();
-                }
+                indexTask = RefreshIndex();
+                indexTask.Wait();
                 var offsets = OffsetIndex.ContainsKey(sha256Hash) ? OffsetIndex[sha256Hash] : null;
                 if (offsets is not null)
                 {
-                    var datelist = Regex.Matches(offsets.Description, "[0-9]+");
-                    int date = 30000000;
-                    if (datelist != null && datelist.Count >= 3)
-                    {
-                        date = int.Parse(datelist[0].Value) * 10000 + int.Parse(datelist[1].Value) * 100 + int.Parse(datelist[2].Value);
-                    }
-                    if (OffsetIndex[sha256Hash].StructVersion == 0)
-                    {
-                        if (date < 20210305) OffsetIndex[sha256Hash].StructVersion = 0;
-                        else if (date < 20210331) OffsetIndex[sha256Hash].StructVersion = 1;
-                        else if (date < 20210615) OffsetIndex[sha256Hash].StructVersion = 2;
-                        else if (date < 20210630) OffsetIndex[sha256Hash].StructVersion = 3;
-                        else OffsetIndex[sha256Hash].StructVersion = 4;
-                    }
-
                     Console.WriteLine($"Loaded offsets: {OffsetIndex[sha256Hash].Description}");
-                    if (OffsetIndex[sha256Hash].PlayerVoteAreaListPtr == 0) OffsetIndex[sha256Hash].PlayerVoteAreaListPtr = 0x60;
-
-                    if (OffsetIndex[sha256Hash].StructVersion == 1)
+                    if (offsets.StructVersion == 0)
                     {
-                        if (OffsetIndex[sha256Hash].TextMeshPtr == 0) OffsetIndex[sha256Hash].TextMeshPtr = 0x70;
-                    }
-                    else
-                    {
-                        if (OffsetIndex[sha256Hash].TextMeshPtr == 0) OffsetIndex[sha256Hash].TextMeshPtr = 0x80;
-                    }
-                    if (date == 20210630) OffsetIndex[sha256Hash].StructVersion = 4;
-                    if (OffsetIndex[sha256Hash].ChatText == 0)
-                    {
-                        if (date >= 20210630)
+                        GameOffsets newest_offsets = offsets;
+                        float newest_date = 0;
+                        foreach (var sets in OffsetIndex.Values)
                         {
-                            OffsetIndex[sha256Hash].ChatText = 0x20;
+                            if (sets != offsets)
+                            {
+                                var datelist = Regex.Matches(sets.Description, "[0-9]+");
+                                if (datelist != null && datelist.Count >= 3)
+                                {
+                                    float date = int.Parse(datelist[0].Value) * 10000 + int.Parse(datelist[1].Value) * 100 + int.Parse(datelist[2].Value);
+                                    if (datelist.Count > 3) date += int.Parse(datelist[3].Value) * 0.1f;
+                                    if (date >= newest_date && sets.StructVersion != 0)
+                                    {
+                                        newest_offsets = sets;
+                                        newest_date = date;
+                                    }
+                                }
+                            }
                         }
-                        else OffsetIndex[sha256Hash].ChatText = 0x1C;
+
+                        PropertyInfo[] properties = offsets.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+                        foreach (PropertyInfo info in properties)
+                        {
+                            if (info.GetValue(offsets) == null) 
+                                info.SetValue(offsets, info.GetValue(newest_offsets));
+                        }
+                        Console.WriteLine($"Complemented the missing offsets with {newest_offsets.Description}");
                     }
-                    if (OffsetIndex[sha256Hash].ChatControllerPtr == null && OffsetIndex[sha256Hash].HudManagerOffset != 0)
-                        OffsetIndex[sha256Hash].ChatControllerPtr = new int[] { OffsetIndex[sha256Hash].HudManagerOffset, 0x5C, 0, 0x30 };
                 }
                 return offsets;
             }
-                
+
         }
 
         public void refreshLocal()
@@ -167,25 +143,13 @@ namespace AUOffsetManager
                 LocalOffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(File.ReadAllText(StorageLocation));
             }
         }
-        public void AddToLocalIndex(string gameHash,GameOffsets offset)
+        public void AddToLocalIndex(string gameHash, GameOffsets offset)
         {
             using StreamWriter sw = File.CreateText(StorageLocation);
             LocalOffsetIndex[gameHash] = offset;
             var serialized = JsonConvert.SerializeObject(LocalOffsetIndex, Formatting.Indented);
             sw.Write(serialized);
         }
-
-        public static List<string> HashList_until20201209s = new List<string>()
-        {
-            "FF1DAE62454312FCE09A39061999C26FD26440FDA5F36C1E6424290A34D05B08",
-            "38119B8551718D9016BAFEEDC105610D5B3AED5B0036D1A6060B8E2ABE523C02",
-            "5AB7B3419ED29AF0728E66AE8F1A207AEDD6456280128060FEDF74621B287BE6",
-            "9BD96553424D3313700E4CB06F0FFECA346B96F731DA57C00F6B78BC3CE81902",
-            "1393240B74D9E27741E7FBA13D67C843E5CE0C3D0EF7ABBEE24179CB97C29918",
-            "0B010BD3195D39C089DC018D834B2EBD26BA67D2F49C4EBEA608A804FC0975B7",
-            "4BFEB19A37634C94017824F0D71B1C4651173C4B9242FF4EF6FAFFA593DFD91D",
-            "windows_store"
-        };
 
     }
 
@@ -211,7 +175,7 @@ namespace AUOffsetManager
         public int ServerManagerOffset { get; set; }
 
         public int TempDataOffset { get; set; }
-        
+
         public int GameOptionsOffset { get; set; }
 
         public int[] MeetingHudPtr { get; set; }
@@ -230,12 +194,124 @@ namespace AUOffsetManager
         public int[] PlayRegionOffsets { get; set; }
         public int[] PlayMapOffsets { get; set; }
         public int[] StringOffsets { get; set; }
-        public int[] ShipStatusPtr { get; set; }
+
+
+
+
+        public bool isEpic { get; set; }
+        public int AddPlayerPtr { get; set; }
+        public int PlayerListPtr { get; set; }
+
+        public PlayerInfoStructOffsets PlayerInfoStructOffsets { get; set; }
+        public WinningPlayerDataStructOffsets WinningPlayerDataStructOffsets { get; set; }
+        public PlayerOutfitStructOffsets PlayerOutfitStructOffsets { get; set; }
+
+        public VoteAreaOffsets VoteAreaOffsets { get; set; }
+        public NetTransformOffsets NetTransformOffsets { get; set; }
+        public ChatOffsets ChatOffsets { get; set; }
+        public PlayerControlOffsets PlayerControlOffsets { get; set; }
+        public TaskInfoOffsets TaskInfoOffsets { get; set; }
+
+        public ShipStatusOffsets ShipStatusOffsets;
+        public MeetingRoomManagerOffsets MeetingRoomManagerOffsets;
+    }
+
+    public class PlayerInfoStructOffsets
+    {
+        public int PlayerIDOffset { get; set; }
+        public int[] OutfitsOffset { get; set; }
+        public int PlayerLevelOffset { get; set; }
+        public int DisconnectedOffset { get; set; }
+        public int[] RoleTypeOffset { get; set; }
+        public int[] RoleTeamTypeOffset { get; set; }
+        public int TasksOffset { get; set; }
+        public int IsDeadOffset { get; set; }
+        public int ObjectOffset { get; set; }
+    }
+
+    public class WinningPlayerDataStructOffsets
+    {
+        public int IsYouOffset { get; set; }
+        public int IsImposterOffset { get; set; }
+        public int IsDeadOffset { get; set; }
+    }
+
+    public class PlayerOutfitStructOffsets
+    {
+        public int dontCensorNameOffset { get; set; }
+        public int ColorIDOffset { get; set; }
+        public int HatIDOffset { get; set; }
+        public int PetIDOffset { get; set; }
+        public int SkinIDOffset { get; set; }
+        public int VisorIDOffset { get; set; }
+        public int NamePlateIDOffset { get; set; }
+        public int PlayerNameOffset { get; set; }
+        public int PreCensorNameOffset { get; set; }
+        public int PostCensorNameOffset { get; set; }
+    }
+
+    public class VoteAreaOffsets
+    {
         public int PlayerVoteAreaListPtr { get; set; }
-        public int[] ChatControllerPtr { get; set; }
-        public int GapPlatformPtr { get; set; }
+        public int _Id { get; set; }
+        public int didReport { get; set; }
+        public int votedFor { get; set; }
+    }
+
+    public class NetTransformOffsets
+    {
+        public int targetSyncPosition { get; set; }
+        public int prevPosSent { get; set; }
+    }
+
+    public class ShipStatusOffsets
+    {
+        public int[] ShipStatusPtr { get; set; }
+        public int AllDoors { get; set; }
+        public int EmergencyCooldown { get; set; }
+        public int GapPlatform { get; set; }
+    }
+
+    public class ChatOffsets
+    {
+        public int[] chatControllerPtr { get; set; }
+        public int chatPoolPtr { get; set; }
+        public int chatBubblesPtr { get; set; }
+        public int chatBubblesAddrPtr { get; set; }
+        public int numChatBubblesPtr { get; set; }
+        public int chatBubsVersionPtr { get; set; }
         public int TextMeshPtr { get; set; }
         public int ChatText { get; set; }
     }
 
+    public class PlayerControlOffsets
+    {
+        public int NetId { get; set; }
+        public int PlayerId { get; set; }
+        public int inVent { get; set; }
+        public int protectedByGuardian { get; set; }
+        public int RemainingEmergencies { get; set; }
+        public int nameText { get; set; }
+        public int myLight_ { get; set; }
+        public int NetTransform { get; set; }
+        public int myTasks { get; set; }
+    }
+
+    public class TaskInfoOffsets
+    {
+        public int StartAt;
+        public int TaskType;
+        public int MinigamePrefab;
+        public int HasLocatin;
+        public int LocatinDirty;
+        public int TaskStep;
+        public int AllStepNum;
+    }
+
+    public class MeetingRoomManagerOffsets
+    {
+        public int[] MeetingRoomManager_Offsets { get; set; }
+        public int reporter { get; set; }
+        public int target { get; set; }
+    }
 }

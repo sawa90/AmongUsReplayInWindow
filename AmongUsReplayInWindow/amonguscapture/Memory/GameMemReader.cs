@@ -36,9 +36,10 @@ namespace AmongUsCapture
     public static class PlayerData
     {
         public const int MaxPlayerNum = 15;
-        public const int MaxTaskNum = 15;
+        public const int MaxTaskNum = 30;
 
-        public const int PlayerColorNum = 18;
+        public const int PlayerColorDefaultNum = 18;
+        public const int PlayerColorNum = 35;
         static readonly public Color[] ColorList = new Color[PlayerColorNum]{
             Color.FromArgb(245, 30, 34),//Color.Red,
             Color.FromArgb(29, 60, 233),//Color.Blue,
@@ -58,6 +59,23 @@ namespace AmongUsCapture
             Color.FromArgb(112, 132, 151),//Gray = 15
             Color.FromArgb(146, 135, 118),//Tan = 16
             Color.FromArgb(236, 117, 120),//Coral = 17
+            Color.FromArgb(239, 191, 192),//Salmon = 18,
+            Color.FromArgb(109, 7, 26),//Bordeaux = 19,
+            Color.FromArgb(154, 140, 61),//Olive = 20,
+            Color.FromArgb(22, 132, 176),//Turqoise = 21,
+            Color.FromArgb(111, 192, 156),//Mint = 22,
+            Color.FromArgb(173, 126, 201),//Lavender = 23,
+            Color.FromArgb(160, 101, 56),//Nougat = 24,
+            Color.FromArgb(255, 164, 119),//Peach = 25,
+            Color.FromArgb(112, 143, 46),//Wasabi = 26,
+            Color.FromArgb(255, 51, 102),//Hot_Pink = 27,
+            Color.FromArgb(0, 99, 105),//Petrol = 28,
+            Color.FromArgb(0xDB, 0xFD, 0x2F),//Lemon = 29,
+            Color.FromArgb(0xF7, 0x44, 0x17),//Signal_Orange = 30,
+            Color.FromArgb(0x25, 0xB8, 0xBF),//Teal = 31,
+            Color.FromArgb(0x59, 0x3C, 0xD6),//Blurple = 32,
+            Color.FromArgb(0xFF, 0xCA, 0x19),//Sunrise = 33,
+            Color.FromArgb(0xA8, 0xDF, 0xFF),//Ice = 34
             };
         
         static readonly public Dictionary<int, Color> oldColor2newColorDict = new Dictionary<int, Color>
@@ -96,9 +114,25 @@ namespace AmongUsCapture
                 { ColorList[15].ToArgb(),"Gray" },
                 { ColorList[16].ToArgb(),"Tan" },
                 { ColorList[17].ToArgb(),"Coral"},
+                { ColorList[18].ToArgb(),"Salmon"},
+                { ColorList[19].ToArgb(),"Bordeaux" },
+                { ColorList[20].ToArgb(),"Olive"},
+                { ColorList[21].ToArgb(),"Turqoise"},
+                { ColorList[22].ToArgb(),"Mint"},
+                { ColorList[23].ToArgb(),"Lavender"},
+                { ColorList[24].ToArgb(),"Nougat"},
+                { ColorList[25].ToArgb(),"Peach"},
+                { ColorList[26].ToArgb(),"Wasabi"},
+                { ColorList[27].ToArgb(),"Hot_Pink"},
+                { ColorList[28].ToArgb(),"Petrol"},
+                { ColorList[29].ToArgb(),"Lemon"},
+                { ColorList[30].ToArgb(),"Signal_Orange"},
+                { ColorList[31].ToArgb(),"Teal"},
+                { ColorList[32].ToArgb(),"Blurple"},
+                { ColorList[33].ToArgb(),"Sunrise"},
+                { ColorList[34].ToArgb(),"Ice"},
                 { Color.Empty.ToArgb(),"Empty"}
-
-            };
+        };
 
         public enum PlayerAction
         {
@@ -113,6 +147,7 @@ namespace AmongUsCapture
 
         public enum PlayerColor
         {
+            Empty = -1,
             Red = 0,
             Blue = 1,
             Green = 2,
@@ -130,7 +165,24 @@ namespace AmongUsCapture
             Banana = 14,
             Gray = 15,
             Tan = 16,
-            Coral = 17
+            Coral = 17,
+            Salmon = 18,
+            Bordeaux = 19,
+            Olive = 20,
+            Turqoise = 21,
+            Mint = 22,
+            Lavender = 23,
+            Nougat = 24,
+            Peach = 25,
+            Wasabi = 26,
+            Hot_Pink = 27,
+            Petrol = 28,
+            Lemon = 29,
+            Signal_Orange = 30,
+            Teal = 31,
+            Blurple = 32,
+            Sunrise = 33,
+            Ice = 34
         }
 
         public enum PlayRegion
@@ -151,8 +203,27 @@ namespace AmongUsCapture
 
         public static Vector2[] centerOfTable = { new Vector2(-1.0f, 1.1f), new Vector2(24.03f, 2.625f), new Vector2(19.5f, -16.876f), new Vector2(-1.0f, 1.1f), new Vector2(11, 15) };
 
-        public static int notVote = -1;
-        public static int notVoteEnd = -2;
+        public enum VoteState : sbyte
+        {
+            HasNotVoted = -1,
+            MissedVote = -2,
+            SkippedVote = -3,
+            DeadVote = -4,
+        }
+        //public static int notVote = -1;
+        //public static int notVoteEnd = -2;
+
+        public enum DeadState
+        {
+            Disconnect = 10,
+            Disconnected = -10,
+            ejected = -11,
+            eject = 11,
+            killer_offset = 20,
+            killedBySomeone = 15,
+            living = 0,
+            killed_now = 1,
+        }
     }
 
     public class GameMemReader
@@ -164,27 +235,12 @@ namespace AmongUsCapture
         private bool shouldReadLobby = false;
         private string LobbyCode = "";
         private IntPtr GameAssemblyPtr = IntPtr.Zero;
-        /*
-        public Dictionary<string, PlayerInfo>
-            newPlayerInfos =
-                new Dictionary<string, PlayerInfo>(
-                    10); // container for new player infos. Also has capacity 10 already assigned so no internal resizing of the data structure is needed
-        */
-        private LobbyEventArgs latestLobbyEventArgs = null;
-        /*
-        public Dictionary<string, PlayerInfo>
-            oldPlayerInfos =
-                new Dictionary<string, PlayerInfo>(
-                    10); // Important: this is making the assumption that player names are unique. They are, but for better tracking of players and to eliminate any ambiguity the keys of this probably need to be the players' network IDs instead
 
-        private Dictionary<string, ImmutablePlayer> CachedPlayerInfos = new Dictionary<string, ImmutablePlayer>();
-        */
+        private LobbyEventArgs latestLobbyEventArgs = null;
+        
         private GameState oldState = GameState.UNKNOWN;
 
         private int prevChatBubsVersion;
-        //private bool shouldForceTransmitState;
-        //private bool shouldForceUpdatePlayers;
-        //private bool shouldTransmitLobby;
 
         public static GameMemReader getInstance()
         {
@@ -271,23 +327,37 @@ namespace AmongUsCapture
         IntPtr lastChatBubblePtr = IntPtr.Zero;
         bool loadLastchatNextturn = false;
         bool firstdisc = false;
+
+        RoleTypes[] RoleType = new RoleTypes[PlayerData.MaxPlayerNum];
+        bool[] IsGuardian = new bool[PlayerData.MaxPlayerNum];
+        bool[] protectedByGuardian = new bool[PlayerData.MaxPlayerNum];
+        sbyte[] shapeId = new sbyte[PlayerData.MaxPlayerNum];
+        Dictionary<PlayerData.PlayerColor,sbyte> Color2Id = new Dictionary<PlayerData.PlayerColor, sbyte>();
+        sbyte[] RemainingEmergencies = new sbyte[PlayerData.MaxPlayerNum];
+        float EmergencyCooldown;
+        int Reporter;
+        int ReportTarget;
+        bool discussion_end;
+        long discussionStartTime = 100000;
         #endregion
 
         public GameMemReader()
         {
             DeadLog.memReader = this;
-            initConInfo();
+            initInfo();
         }
 
 
-        private void initConInfo()
+        private void initInfo()
         {
             for (int i = 0; i < PlayerData.MaxPlayerNum; i++)
             {
-                playerIsDead[i] = 0;
+                playerIsDead[i] = (int)PlayerData.DeadState.living;
                 PlayerColors[i] = Color.Empty;
+                PlayerColorsInt[i] = PlayerData.PlayerColor.Empty;
                 IsImpostorLis[i] = false;
                 taskInfos[i] = new TaskInfo[PlayerData.MaxTaskNum];
+                for (int j = 0; j < PlayerData.MaxTaskNum; j++) taskInfos[i][j] = new TaskInfo();
                 TaskProgress[i] = 0;
                 Taskcompleted[i] = false;
                 TaskNum[i] = 0;
@@ -295,6 +365,11 @@ namespace AmongUsCapture
                 voteList[i] = -3;
                 discussionEndTime = -10000;
                 IdList[i] = i;
+                RoleType[i] = RoleTypes.Crewmate;
+                IsGuardian[i] = false;
+                protectedByGuardian[i] = false;
+                shapeId[i] = -1;
+                RemainingEmergencies[i] = 0;
             }
             Sabotage = new TaskInfo();
             DeadBodyPosList.Clear();
@@ -303,6 +378,12 @@ namespace AmongUsCapture
             gameOverReason = GameOverReason.Unknown;
             doorsUint = 0;
             lastChatBubblePtr = IntPtr.Zero;
+            Color2Id.Clear();
+            EmergencyCooldown = 0;
+            ReportTarget = -1;
+            Reporter = -1;
+            discussion_end = true;
+            discussionStartTime = 100000;
         }
 
 
@@ -410,8 +491,7 @@ namespace AmongUsCapture
                                 {
                                 }
 
-                                // prevGameOverReason = ProcessMemory.getInstance().Read<GameOverReason>(GameAssemblyPtr, _gameOffsets.TempDataOffset, 0x5c, 4);
-                            }
+                                 }
                             catch
                             {
                                 Console.WriteLine("Outdated version of the game.", "ERROR");
@@ -488,83 +568,98 @@ namespace AmongUsCapture
                     var allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
                     var playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
                     if (playerCount > PlayerData.MaxPlayerNum) playerCount = PlayerData.MaxPlayerNum;
-                    var playerAddrPtr = allPlayers + 0x10;
-                    var PlayerInfoPtrList = ProcessMemory.getInstance().ReadArray(playerAddrPtr, playerCount);
+                    var playerAddrPtr = allPlayers + CurrentOffsets.PlayerListPtr;
 
                     Int32 gametimeMili = (Int32)((DateTime.Now.Ticks - gameStartTime) / TimeSpan.TicksPerMillisecond);
 
-                    //get voting state
-                    if (state == GameState.DISCUSSION || (state == GameState.TASKS && (gametimeMili - discussionEndTime) < 7000))
-                    {
 
-                        if (state == GameState.DISCUSSION) discussionEndTime = gametimeMili;
+                    //get voting state and report
+                    if (state == GameState.DISCUSSION || (state == GameState.TASKS && !discussion_end ))
+                    {
+                        if (state == GameState.DISCUSSION)
+                        {
+                            discussionEndTime = gametimeMili;
+                        }
                         else state = GameState.VotingResult;
                         if (meetingHud != IntPtr.Zero)
                         {
-                            var voteInfoPtr = ProcessMemory.getInstance().Read<IntPtr>(meetingHud, CurrentOffsets.PlayerVoteAreaListPtr);
+                            var voteInfoPtr = ProcessMemory.getInstance().Read<IntPtr>(meetingHud, CurrentOffsets.VoteAreaOffsets.PlayerVoteAreaListPtr);
                             if (voteInfoPtr != IntPtr.Zero)
                             {
-                                var votePlayerCount = ProcessMemory.getInstance().Read<int>((IntPtr)voteInfoPtr, 0xC);
+                                var votePlayerCount = ProcessMemory.getInstance().Read<int>((IntPtr)voteInfoPtr, CurrentOffsets.PlayerCountOffsets);
                                 if (votePlayerCount > PlayerData.MaxPlayerNum * 2) votePlayerCount = PlayerData.MaxPlayerNum * 2;
-                                voteInfoPtr += 0x10;
-                                if (CurrentOffsets.StructVersion == 0)
+                                voteInfoPtr += CurrentOffsets.PlayerListPtr;
                                 {
                                     var voteAreaPtrList = ProcessMemory.getInstance().ReadArray(voteInfoPtr, votePlayerCount);
-                                    Struct_2020_12_9s.v_PlayerVoteArea voteArea;
+                                    PlayerVoteArea voteArea = new PlayerVoteArea();
                                     for (int i = 0; i < votePlayerCount; i++)
                                     {
-                                        voteArea = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerVoteArea>(voteAreaPtrList[i], 0);
+                                        voteArea.set(voteAreaPtrList[i], ProcessMemory.getInstance(), CurrentOffsets); 
 
-                                        int id = IdList[voteArea.Id_];
-                                        //if (id != i)
-                                        //    Console.Write($"{id}!={ i}   ");
-                                        if (voteArea.didVote)
-                                        {
+                                         int id = IdList[voteArea.Id_];
+
                                             sbyte votedId = voteArea.votedFor;
                                             if (votedId >= 0 && votedId < PlayerData.MaxPlayerNum) votedId = (sbyte)IdList[votedId];
                                             voteList[id] = votedId;
-                                        }
-                                        else
-                                        {
-                                            if (voteArea.votedFor == PlayerData.notVoteEnd) voteList[id] = voteArea.votedFor;
-                                            else voteList[id] = (sbyte)PlayerData.notVote;
-                                        }
-                                        if (voteArea.didReport) voteList[id] += 32;
-                                    }
-                                }
-                                else
-                                {
-                                    var voteAreaPtrList = ProcessMemory.getInstance().ReadArray(voteInfoPtr, votePlayerCount);
-                                    PlayerVoteArea voteArea;
-                                    for (int i = 0; i < votePlayerCount; i++)
-                                    {
-                                        if (CurrentOffsets.StructVersion < 3)  voteArea = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerVoteArea>(voteAreaPtrList[i], 0); 
-                                        else if (CurrentOffsets.StructVersion < 4)  voteArea = ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerVoteArea>(voteAreaPtrList[i], 0);
-                                        else voteArea = ProcessMemory.getInstance().Read<Struct_2021_6_30s.v_PlayerVoteArea>(voteAreaPtrList[i], 0);
 
-                                        int id = IdList[voteArea.Id_];
-                                        //if (id != i)
-                                        //    Console.Write($"{id}!={ i}   ");
-                                        if (CurrentOffsets.StructVersion >= 3 || voteArea.didVote)
+                                        if (voteArea.didReport)
                                         {
-                                            sbyte votedId = voteArea.votedFor;
-                                            if (votedId >= 0 && votedId < PlayerData.MaxPlayerNum) votedId = (sbyte)IdList[votedId];
-                                            voteList[id] = votedId;
+                                            Reporter = id;
+                                            voteList[id] += 32;
                                         }
-                                        else
-                                        {
-                                            if(voteArea.votedFor == PlayerData.notVoteEnd) voteList[id] = voteArea.votedFor;
-                                            else voteList[id] = (sbyte)PlayerData.notVote;
-                                        }
-                                        if (voteArea.didReport) voteList[id] += 32;
                                     }
                                 }
                             }
                         }
                         else
                         {
-                            for (int i = 0; i < PlayerData.MaxPlayerNum; i++) voteList[i] = (sbyte)PlayerData.notVote;
+                            for (int i = 0; i < PlayerData.MaxPlayerNum; i++) voteList[i] = (sbyte)PlayerData.VoteState.HasNotVoted;
                         }
+
+                        //get report
+                        if (discussion_end && gametimeMili - discussionStartTime > 500 && state == GameState.DISCUSSION && oldState == GameState.DISCUSSION)
+                        {
+                            discussion_end = false;
+                            if (CurrentOffsets.MeetingRoomManagerOffsets != null)
+                            {
+                                var MeetingRoomManagerPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.MeetingRoomManagerOffsets.MeetingRoomManager_Offsets);
+                                String Sender = null;
+                                if (Reporter >= 0 && Reporter < PlayerData.MaxPlayerNum) Sender = PlayerNames[Reporter];
+
+                                //get target
+                                var targetInfoPtr = ProcessMemory.getInstance().Read<IntPtr>(MeetingRoomManagerPtr, CurrentOffsets.MeetingRoomManagerOffsets.target);
+                                ReportTarget = -1;
+                                PlayerInfo targetInfo = null;
+                                if (targetInfoPtr != IntPtr.Zero)
+                                {
+                                    targetInfo = new PlayerInfo(MeetingRoomManagerPtr + CurrentOffsets.MeetingRoomManagerOffsets.target, ProcessMemory.getInstance(), CurrentOffsets);
+                                    if (targetInfo.PlayerId >= 0 && targetInfo.PlayerId < PlayerData.MaxPlayerNum) ReportTarget = IdList[targetInfo.PlayerId];
+                                }
+                                    if (ReportTarget == -1)
+                                    {
+                                        if (Reporter != myId && Reporter >= 0 && Reporter < PlayerData.MaxPlayerNum)
+                                            RemainingEmergencies[Reporter] -= 1;
+                                     /*
+                                        TextLogEvent?.Invoke(this, new ChatMessageEventArgs
+                                        {
+                                            time = -1,
+                                            Sender = Sender,
+                                            Message = "called an emergency meeting"
+                                        });
+                                     */
+                                    }else{
+                                    /*
+                                        TextLogEvent?.Invoke(this, new ChatMessageEventArgs
+                                        {
+                                            time = -1,
+                                            Sender = Sender,
+                                            Message = "reported " + targetInfo?.PlayerName + "/" + targetInfo?.ColorId.ToString() + "'s body"
+                                        });
+                                    */
+                                    }
+                            }
+                        }
+
                     }
 
                     // check if exile causes end
@@ -581,16 +676,16 @@ namespace AmongUsCapture
                         {
                             int votedId = voteList[i];
                             if (votedId > 20) votedId -= 32;
-                            if (playerIsDead[i] == 0)
+                            if (playerIsDead[i] == (int)PlayerData.DeadState.living)
                             {
-                                if (votedId == PlayerData.notVote || votedId == PlayerData.notVoteEnd)
+                                if (votedId == (int)PlayerData.VoteState.HasNotVoted || votedId == (int)PlayerData.VoteState.MissedVote)
                                     votingresult = $"->Not Vote";
 
                                 else if (votedId >= PlayerData.MaxPlayerNum)
                                     votingresult = $"->Error ID:{votedId}";
                                 else if (votedId >= 0)
                                     votingresult = $"->{PlayerNames[votedId]}/{PlayerColorsInt[votedId]}";
-                                else if (votedId == -3)
+                                else if (votedId == (int)PlayerData.VoteState.SkippedVote)
                                     votingresult = $"->Skip";
                                 else
                                     votingresult = $"->Error ID:{votedId}";
@@ -620,16 +715,7 @@ namespace AmongUsCapture
 
                         for (var i = 0; i < playerCount; i++)
                         {
-                            PlayerInfo pi;
-                            if (CurrentOffsets.StructVersion == 0)
-                                pi = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                            else if (CurrentOffsets.StructVersion == 1)
-                                pi = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                            else if (CurrentOffsets.StructVersion < 3)
-                                pi = ProcessMemory.getInstance().Read<Struct_2021_3_31_3s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                            else
-                                pi = ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-
+                            PlayerInfo pi = new PlayerInfo(playerAddrPtr+ CurrentOffsets.AddPlayerPtr*i, ProcessMemory.getInstance(), CurrentOffsets);
 
 
                             var id = IdList[pi.PlayerId];
@@ -643,10 +729,10 @@ namespace AmongUsCapture
                                     Disconnected = pi.GetIsDisconnected(),
                                     Color = pi.GetPlayerColor()
                                 });
-                                if (playerIsDead[id] != 11 && playerIsDead[id] != -11)
+                                if (playerIsDead[id] != (int)PlayerData.DeadState.eject && playerIsDead[id] != (int)PlayerData.DeadState.ejected)
                                 {
                                     disconnect = false;
-                                    playerIsDead[id] = 11;
+                                    playerIsDead[id] = (int)PlayerData.DeadState.eject;
                                     DeadLogList.Add(new DeadLog(gameStartTime, id, centerOfTable[(int)playMap]));
                                     if (playing)
                                     {
@@ -658,16 +744,16 @@ namespace AmongUsCapture
                                         });
                                     }
                                 }
-                                else playerIsDead[id] = -11;
+                                else playerIsDead[id] = (int)PlayerData.DeadState.ejected;
 
                             }
-                            else if (playerIsDead[id] > 0) playerIsDead[id] = -playerIsDead[id];
+                            else if (playerIsDead[id] > (int)PlayerData.DeadState.living) playerIsDead[id] = -playerIsDead[id];
 
                             // skip invalid, dead and exiled players
-                            if (pi.PlayerName == IntPtr.Zero || pi.PlayerId == exiledPlayerId || pi.IsDead == 1 ||
-                                pi.Disconnected == 1) continue;
+                            if (pi.PlayerName == null || pi.PlayerId == exiledPlayerId || pi.IsDead ||
+                                pi.Disconnected ) continue;
 
-                            if (pi.IsImpostor == 1)
+                            if (pi.IsImpostor)
                                 impostorCount++;
                             else
                                 innocentCount++;
@@ -700,14 +786,7 @@ namespace AmongUsCapture
                         GameStateChanged?.Invoke(this, new GameStateChangedEventArgs { NewState = state });
                         Console.WriteLine($"GameState Changed: {state}");
                     }
-                    /*
-                    if (state == oldState || shouldForceTransmitState)
-                    {
-                        GameStateChanged?.Invoke(this, new GameStateChangedEventArgs { NewState = state });
-                        shouldForceTransmitState = false;
-                        Console.WriteLine($"GameState Changed: {state}");
-                    }
-                    */
+                    
                     if (state != oldState && state == GameState.LOBBY)
                     {
                         shouldReadLobby = true; // will eventually transmit
@@ -719,56 +798,7 @@ namespace AmongUsCapture
                         int rawGameOverReason = ProcessMemory.getInstance()
                             .Read<int>(GameAssemblyPtr, CurrentOffsets.RawGameOverReasonOffsets);
                         gameOverReason = (GameOverReason)rawGameOverReason;
-                        /*
-                        bool humansWon = rawGameOverReason <= 1 || rawGameOverReason == 5;
-                        if (humansWon) // we will be reading humans data, so set all to simps
-                        {
-                            foreach (string playerName in CachedPlayerInfos.Keys)
-                            {
-                                try
-                                {
-                                    CachedPlayerInfos[playerName].IsImpostor = true;
-                                }
-                                catch (KeyNotFoundException e)
-                                {
-                                    Console.WriteLine($"Could not find User: \"{playerName}\" in CachedPlayerinfos");
-                                }
-
-                            }
-                        }
-
-                        var winningPlayersPtr = ProcessMemory.getInstance()
-                            .Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.WinningPlayersPtrOffsets);
-                        var winningPlayers = ProcessMemory.getInstance().Read<IntPtr>(winningPlayersPtr, CurrentOffsets.WinningPlayersOffsets);
-                        var winningPlayerCount = ProcessMemory.getInstance().Read<int>(winningPlayersPtr, CurrentOffsets.WinningPlayerCountOffsets);
-
-                        var winnerAddrPtr = winningPlayers + 0x10;
-
-                        for (var i = 0; i < winningPlayerCount; i++)
-                        {
-                            WinningPlayerData wpi = ProcessMemory.getInstance()
-                                .Read<WinningPlayerData>(winnerAddrPtr, 0, 0);
-                            winnerAddrPtr += 4;
-                            try
-                            {
-                                CachedPlayerInfos[wpi.GetPlayerName()].IsImpostor = wpi.IsImpostor;
-                            }
-                            catch (KeyNotFoundException e)
-                            {
-                                Console.WriteLine($"Could not find player with name \"{wpi.GetPlayerName()}\" in CachedPlayerInfos. JSON: {JsonConvert.SerializeObject(CachedPlayerInfos, Formatting.Indented)}");
-                            }
-
-                        }
-
-                        ImmutablePlayer[] endingPlayerInfos = new ImmutablePlayer[CachedPlayerInfos.Count];
-                        CachedPlayerInfos.Values.CopyTo(endingPlayerInfos, 0);
-
-                        GameOver?.Invoke(this, new GameOverEventArgs
-                        {
-                            GameOverReason = gameOverReason,
-                            PlayerInfos = endingPlayerInfos
-                        });
-                        */
+                        
                         Console.WriteLine($"{gameOverReason}");
                     }
 
@@ -779,71 +809,70 @@ namespace AmongUsCapture
 
                     //newPlayerInfos.Clear();
                     #endregion
-                    playerAddrPtr = allPlayers + 0x10;
+                    playerAddrPtr = allPlayers + CurrentOffsets.PlayerListPtr;
                     AllImposterNum = 0;
 
 
-
-
+                    //get current state
                     for (var i = 0; i < playerCount; i++)
                     {
-                        PlayerInfo pi;
-                        if (CurrentOffsets.StructVersion == 0)
-                            pi = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                        else if(CurrentOffsets.StructVersion == 1)
-                            pi = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                        else if (CurrentOffsets.StructVersion < 3)
-                            pi = ProcessMemory.getInstance().Read<Struct_2021_3_31_3s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                        else
-                            pi = ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                        PlayerInfo pi = new PlayerInfo(playerAddrPtr + CurrentOffsets.AddPlayerPtr * i, ProcessMemory.getInstance(), CurrentOffsets);
 
-                        //string playerName = pi.GetPlayerName();
-                        //if (playerName == null) playerName = "";
-                        //if (playerName.Length == 0) continue;
                         int id = IdList[pi.PlayerId];
-                        if (Math.Abs(playerIsDead[id]) < 10)
+                        if (Math.Abs(playerIsDead[id]) < (int)PlayerData.DeadState.Disconnect)
                         {
-                            if (pi.GetIsDead()) playerIsDead[id] = 1;
-                            else if (pi.GetIsDisconnected()) playerIsDead[id] = 10;
-                            else playerIsDead[id] = 0;
+                            if (pi.GetIsDead()) playerIsDead[id] = (int)PlayerData.DeadState.killed_now;
+                            else if (pi.GetIsDisconnected()) playerIsDead[id] = (int)PlayerData.DeadState.Disconnect;
+                            else playerIsDead[id] = (int)PlayerData.DeadState.living;
                         }
-
-
-                        PlayerControl pcontrol = CurrentOffsets.StructVersion >= 3 ? ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerControl>(pi._object):(CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object));
-
-                        if ((!pi.GetIsDisconnected() && pi.IsImpostor != 1) || pcontrol.myLight_ != 0)
+                        if (pi.shaping) shapeId[id] = Color2Id.GetValueOrDefault<PlayerData.PlayerColor, sbyte>(pi.shapeColorId, -1);
+                        else shapeId[id] = -1;
+                        if (pi.ColorId != PlayerColorsInt[id]) shapeId[id] = Color2Id.GetValueOrDefault<PlayerData.PlayerColor,sbyte>(pi.ColorId, -1);
+                        if (pi.RoleType == RoleTypes.GuardianAngel)
                         {
-                            IntPtr tasklist = (IntPtr)ProcessMemory.getInstance().Read<Int32>((IntPtr)pcontrol.myTasks, 8);
+                            if (pi.Disconnected) IsGuardian[id] = false ;
+                            else
+                            {
+                                if (!IsGuardian[id])
+                                {
+                                    IsGuardian[id] = true;
+                                    TextLogEvent?.Invoke(this, new ChatMessageEventArgs
+                                    {
+                                        time = gametimeMili,
+                                        Sender = PlayerNames[id],
+                                        Message = $" became a Guardian Angel"
+                                    });
+                                }
+                            }
+                        }
+                        else IsGuardian[id] = false;
 
-                            TaskNum[id] = ProcessMemory.getInstance().Read<Int32>((IntPtr)pi.Tasks, 12);
+                        PlayerControl pcontrol = new PlayerControl(pi._object, ProcessMemory.getInstance(), CurrentOffsets);
+                        protectedByGuardian[id] = pcontrol.protectedByGuardian;
+                        if (id == myId)
+                        {
+                            RemainingEmergencies[id] = (sbyte)pcontrol.RemainingEmergencies;
+                        }
+                        InVent[id] = pcontrol.inVent;
+                        if ((!pi.GetIsDisconnected() && !pi.IsImpostor) || pcontrol.myLight_ != 0)
+                        {
+                            IntPtr tasklist = (IntPtr)ProcessMemory.getInstance().Read<Int32>((IntPtr)pcontrol.myTasks, CurrentOffsets.AllPlayersOffsets);
+
+                            TaskNum[id] = ProcessMemory.getInstance().Read<Int32>((IntPtr)pi.Tasks, CurrentOffsets.PlayerCountOffsets);
                             if (TaskNum[id] > PlayerData.MaxTaskNum) TaskNum[id] = PlayerData.MaxTaskNum;
                             if (TaskNum[id] != 0)
                             {
                                 TaskProgress[id] = 0;
-                                var TaskPtrList = ProcessMemory.getInstance().ReadArray(tasklist + 0x10, TaskNum[id] + 3);
+                                var TaskPtrList = ProcessMemory.getInstance().ReadArray(tasklist + CurrentOffsets.PlayerListPtr, TaskNum[id] + 3);
                                 var IdxOffset = 0;
                                 if (pcontrol.myLight_ != 0)
                                 {
-                                    if (pi.GetIsDead())
-                                        IdxOffset += 1;
-                                    if (pi.GetIsDead() && pi.IsImpostor == 1)
-                                    {
-                                        IntPtr p = TaskPtrList[IdxOffset];
-                                        Sabotage = ProcessMemory.getInstance().Read<TaskInfo>(p);
-                                    }
-                                    else
-                                    {
-                                        var p = TaskPtrList[IdxOffset + TaskNum[id] + pi.IsImpostor];
-                                        Sabotage = ProcessMemory.getInstance().Read<TaskInfo>(p);
-                                        if (Sabotage.TaskType != TaskTypes.SubmitScan && TaskNum[id] != 0 && Sabotage.TaskType == taskInfos[id][TaskNum[id] - 1].TaskType)
-                                        {
-                                            IdxOffset += 1;
-                                            p = TaskPtrList[IdxOffset + TaskNum[id] + pi.IsImpostor];
-                                            Sabotage = ProcessMemory.getInstance().Read<TaskInfo>(p);
-                                        }
-                                    }
+                                    int sabotage_task = ProcessMemory.getInstance().Read<int>((IntPtr)pcontrol.myTasks, CurrentOffsets.PlayerCountOffsets);
+                                    if (sabotage_task > 0 && sabotage_task <= TaskNum[id] + 3) Sabotage.set(TaskPtrList[sabotage_task - 1], ProcessMemory.getInstance(), CurrentOffsets);
+                                    else Sabotage.TaskType = TaskTypes.SubmitScan;
+                                    if (!Sabotage.IsSabotage()) Sabotage.TaskType = TaskTypes.SubmitScan;
                                 }
-                                if (pi.IsImpostor == 1)
+                                if (pi.IsImpostor)
                                 {
                                     TaskProgress[id] = 1;
                                 }
@@ -853,7 +882,7 @@ namespace AmongUsCapture
                                     {
                                         var p = TaskPtrList[IdxOffset + j];
                                         var oldinfo = taskInfos[id][j].TaskType;
-                                        taskInfos[id][j] = ProcessMemory.getInstance().Read<TaskInfo>(p);
+                                        taskInfos[id][j].set(p, ProcessMemory.getInstance(), CurrentOffsets);
 
 
                                         if (taskInfos[id][j].AllStepNum != 0)
@@ -874,81 +903,17 @@ namespace AmongUsCapture
 
 
 
-                        if (state != GameState.DISCUSSION && !pi.GetIsDisconnected() && (playerIsDead[id] == 0 || playerIsDead[id] < -10 || playerIsDead[id] == 11))
+                        if (state != GameState.DISCUSSION && !pi.GetIsDisconnected())
                         {
-                            int offset = 0x3C;
-                            if (pcontrol.myLight_ != 0) offset = 0x50;
+                            int offset = CurrentOffsets.NetTransformOffsets.targetSyncPosition;
+                            if (pcontrol.myLight_ != 0) offset = CurrentOffsets.NetTransformOffsets.prevPosSent;
                             PlayerPoses[id] = ProcessMemory.getInstance().Read<Vector2>((IntPtr)(pcontrol.NetTransform + offset));
                             newPlayerCon[id] = pcontrol;
                             //IsImpostorLis[id] = pi.IsImpostor == 1;
                         }
-                        if (pi.IsImpostor == 1) AllImposterNum++;
+                        if (pi.IsImpostor) AllImposterNum++;
                         #region amonguscapture
-                        /*
-                        newPlayerInfos[playerName] = pi; // add to new playerinfos for comparison later
-
-                        if (!oldPlayerInfos.ContainsKey(playerName)) // player wasn't here before, they just joined
-                        {
-                            PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
-                            {
-                                Action = PlayerAction.Joined,
-                                Name = playerName,
-                                IsDead = pi.GetIsDead(),
-                                Disconnected = pi.GetIsDisconnected(),
-                                Color = pi.GetPlayerColor()
-                            });
-                            PlayerCosmeticChanged?.Invoke(this, new PlayerCosmeticChangedEventArgs
-                            {
-                                Name = playerName,
-                                HatId = pi.HatId,
-                                SkinId = pi.SkinId,
-                                PetId = pi.PetId
-                            });
-                        }
-                        else
-                        {
-                            // player was here before, we have an old playerInfo to compare against
-                            var oldPlayerInfo = oldPlayerInfos[playerName];
-                            if (!oldPlayerInfo.GetIsDead() && pi.GetIsDead()) // player just died
-                                PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
-                                {
-                                    Action = PlayerAction.Died,
-                                    Name = playerName,
-                                    IsDead = pi.GetIsDead(),
-                                    Disconnected = pi.GetIsDisconnected(),
-                                    Color = pi.GetPlayerColor()
-                                });
-
-                            if (oldPlayerInfo.ColorId != pi.ColorId)
-                                PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
-                                {
-                                    Action = PlayerAction.ChangedColor,
-                                    Name = playerName,
-                                    IsDead = pi.GetIsDead(),
-                                    Disconnected = pi.GetIsDisconnected(),
-                                    Color = pi.GetPlayerColor()
-                                });
-
-                            if (!oldPlayerInfo.GetIsDisconnected() && pi.GetIsDisconnected())
-                                PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
-                                {
-                                    Action = PlayerAction.Disconnected,
-                                    Name = playerName,
-                                    IsDead = pi.GetIsDead(),
-                                    Disconnected = pi.GetIsDisconnected(),
-                                    Color = pi.GetPlayerColor()
-                                });
-
-                            if (oldPlayerInfo.HatId != pi.HatId || oldPlayerInfo.SkinId != pi.SkinId || oldPlayerInfo.PetId != pi.PetId)
-                                PlayerCosmeticChanged?.Invoke(this, new PlayerCosmeticChangedEventArgs
-                                {
-                                    Name = playerName,
-                                    HatId = pi.HatId,
-                                    SkinId = pi.SkinId,
-                                    PetId = pi.PetId
-                                });
-                        }
-                        */
+                       
                     }
                     #endregion
 
@@ -958,8 +923,6 @@ namespace AmongUsCapture
                         for (int i = 0; i < AllImposterNum; i++)
                         {
                             var id = ImpostorId[i];
-
-                            InVent[i] = newPlayerCon[id].inVent;
                         }
 
 
@@ -967,14 +930,14 @@ namespace AmongUsCapture
 
                         for (var i = 0; i < playerCount; i++)
                         {
-                            if (Math.Abs(playerIsDead[i]) == 1)
+                            if (Math.Abs(playerIsDead[i]) == (int)PlayerData.DeadState.killed_now)
                             {
                                 DeadLogList.Add(new DeadLog(gameStartTime, i, PlayerPoses[i]));
                             }
-                            else if (playerIsDead[i] == 10)
+                            else if (playerIsDead[i] == (int)PlayerData.DeadState.Disconnect)
                             {
                                 DeadLogList.Add(new DeadLog(gameStartTime, i, PlayerPoses[i]));
-                                playerIsDead[i] = -10;
+                                playerIsDead[i] = (int)PlayerData.DeadState.Disconnected;
                                 if (playing)
                                     TextLogEvent?.Invoke(this, new ChatMessageEventArgs
                                     {
@@ -983,14 +946,14 @@ namespace AmongUsCapture
                                         Message = $" is disconnected"
                                     });
                             }
-                            if (playerIsDead[i] == 1)
+                            if (playerIsDead[i] == (int)PlayerData.DeadState.killed_now)
                             {
                                 var deadbody = new DeadBodyPos(i, PlayerPoses, ImpostorId, playerIsDead, AllImposterNum);
                                 DeadBodyPosList.Insert(0, deadbody);
                                 int killercount = deadbody.ImpostorDists.Count;
                                 if (killercount == 0)
                                 {
-                                    playerIsDead[i] = 15;
+                                    playerIsDead[i] = (int)PlayerData.DeadState.killedBySomeone;
                                     DeadBodyPosList.RemoveAt(0);
                                     if (playing)
                                         TextLogEvent?.Invoke(this, new ChatMessageEventArgs
@@ -1002,7 +965,7 @@ namespace AmongUsCapture
                                 }
                                 else
                                 {
-                                    playerIsDead[i] = deadbody.ImpostorDists[0].Id + 20;
+                                    playerIsDead[i] = deadbody.ImpostorDists[0].Id + (int)PlayerData.DeadState.killer_offset;
                                     string killer = PlayerNames[deadbody.ImpostorDists[0].Id] + "/" + PlayerColorsInt[deadbody.ImpostorDists[0].Id];
                                     if (killercount > 1)
                                     {
@@ -1026,15 +989,20 @@ namespace AmongUsCapture
                         }
                     }
 
-
-                    if (CurrentOffsets.ShipStatusPtr != null)
+                    if (CurrentOffsets.ShipStatusOffsets == null)
                     {
-                        var shipStatusPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ShipStatusPtr);
-                        ShipStatus shipStatus = CurrentOffsets.StructVersion >=3 ? ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_ShipStatus>(shipStatusPtr) : (CurrentOffsets.StructVersion == 0? ProcessMemory.getInstance().Read< Struct_2020_12_9s.v_ShipStatus>(shipStatusPtr) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_ShipStatus>(shipStatusPtr));
+                        if ((gametimeMili - discussionEndTime) < 7000) discussion_end = true;
+                    }
+                    else
+                    {
+                        var shipStatusPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ShipStatusOffsets.ShipStatusPtr);
+                        ShipStatus shipStatus = new ShipStatus(GameAssemblyPtr, ProcessMemory.getInstance(), CurrentOffsets);
+                        if (EmergencyCooldown < shipStatus.EmergencyCooldown) discussion_end = true;
+                        EmergencyCooldown = shipStatus.EmergencyCooldown;
                         var doorsPtr = shipStatus.AllDoors;
-                        int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, 0xC);
+                        int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, CurrentOffsets.PlayerCountOffsets);
                         if (doorNum > 100) doorNum = 100;
-                        var doorsListPtr = doorsPtr + 0x10;
+                        var doorsListPtr = doorsPtr + CurrentOffsets.PlayerListPtr;
                         if (doors == null || doors.Length != doorNum) doors = new Door[doorNum];
 
                         bool[] doorOpen = new bool[doorNum];
@@ -1055,6 +1023,7 @@ namespace AmongUsCapture
                         }
                     }
 
+
                     if (state != cachedOldState)
                     {
                         string statestr = $"GameState:{state}";
@@ -1066,6 +1035,8 @@ namespace AmongUsCapture
                                 Sender = null,
                                 Message = ""
                             });
+                            ReportTarget = -1;
+                            discussionStartTime = gametimeMili;
                         }
                         else if (state == GameState.TASKS) statestr += "\n";
                         TextLogEvent?.Invoke(this, new ChatMessageEventArgs
@@ -1075,14 +1046,16 @@ namespace AmongUsCapture
                             Message = statestr
                         });
                     }
+
                     //get chat
-                    if (CurrentOffsets.ChatControllerPtr != null)
+                    if (CurrentOffsets.HudManagerOffset != 0)
                     {
+                        ChatOffsets offsets = CurrentOffsets.ChatOffsets;
                         if (loadLastchatNextturn)
                         {
-                            var msgPtrList = ProcessMemory.getInstance().ReadArray(lastChatBubblePtr + CurrentOffsets.ChatText, 2);
-                            var msgPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], CurrentOffsets.TextMeshPtr);
-                            var senderPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], CurrentOffsets.TextMeshPtr);
+                            var msgPtrList = ProcessMemory.getInstance().ReadArray(lastChatBubblePtr + offsets.ChatText, 2);
+                            var msgPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], offsets.TextMeshPtr);
+                            var senderPtr = ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], offsets.TextMeshPtr);
                             if (senderPtr != IntPtr.Zero || msgPtr != IntPtr.Zero)
                             {
                                 var msgText = ProcessMemory.getInstance().ReadString(msgPtr);
@@ -1100,22 +1073,23 @@ namespace AmongUsCapture
                             }
                             loadLastchatNextturn = false;
                         }
-                        var chatControllerPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ChatControllerPtr);
+                        
+                        var HudManagerPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.HudManagerOffset);
+                        var chatControllerPtr = ProcessMemory.getInstance().Read<IntPtr>(HudManagerPtr, offsets.chatControllerPtr);
                         if (chatControllerPtr != IntPtr.Zero)
                         {
-                            var chatPoolPtr = ProcessMemory.getInstance().Read<IntPtr>(chatControllerPtr, 0xc);
-                            var chatBubblesPtr = ProcessMemory.getInstance().Read<IntPtr>(chatPoolPtr, 0x14);
-                            var chatBubblesInfos = ProcessMemory.getInstance().ReadArray(chatBubblesPtr + 0x8, 3);
-                            var chatBubsVersion = (int)chatBubblesInfos[2];
+                            var chatPoolPtr = ProcessMemory.getInstance().Read<IntPtr>(chatControllerPtr, offsets.chatPoolPtr);
+                            var chatBubblesPtr = ProcessMemory.getInstance().Read<IntPtr>(chatPoolPtr, offsets.chatBubblesPtr);
+                            var chatBubsVersion =  ProcessMemory.getInstance().Read<int>(chatBubblesPtr, offsets.chatBubsVersionPtr);
                             if (chatBubsVersion != prevChatBubsVersion)
                             {
                                 var poolSize = 20;//ProcessMemory.getInstance().Read<Int32>(chatPoolPtr, 0xc);
-                                var numChatBubbles = (int)chatBubblesInfos[1];
-                                var chatBubblesAddr = chatBubblesInfos[0] + 0x10;
+                                var numChatBubbles = ProcessMemory.getInstance().Read<int>(chatBubblesPtr, offsets.numChatBubblesPtr);
+                                var chatBubblesAddr = ProcessMemory.getInstance().Read<IntPtr>(chatBubblesPtr, offsets.chatBubblesAddrPtr) + CurrentOffsets.PlayerListPtr;
                                 var chatBubblePtrs = ProcessMemory.getInstance().ReadArray(chatBubblesAddr, numChatBubbles);
                                 
                                 var newMsgs = 0;
-                                if (chatBubblesInfos[0] != IntPtr.Zero)
+                                if (chatBubblesAddr != (IntPtr)CurrentOffsets.PlayerListPtr)
                                 {
                                     
                                     if (chatBubsVersion > prevChatBubsVersion) // new message has been sent
@@ -1157,11 +1131,11 @@ namespace AmongUsCapture
 
                                     for (var i = numChatBubbles - newMsgs; i < numChatBubbles - 1; i++)
                                     {
-                                        var msgPtrList = ProcessMemory.getInstance().ReadArray(chatBubblePtrs[i] + CurrentOffsets.ChatText, 2);
+                                        var msgPtrList = ProcessMemory.getInstance().ReadArray(chatBubblePtrs[i] + offsets.ChatText, 2);
                                         var msgText = ProcessMemory.getInstance()
-                                            .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], CurrentOffsets.TextMeshPtr));
+                                            .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], offsets.TextMeshPtr));
                                         var msgSender = ProcessMemory.getInstance()
-                                            .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], CurrentOffsets.TextMeshPtr));
+                                            .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], offsets.TextMeshPtr));
                                         ChatMessageAdded?.Invoke(this, new ChatMessageEventArgs
                                         {
                                             time = gametimeMili,
@@ -1178,80 +1152,6 @@ namespace AmongUsCapture
                         }
                     }
 
-
-                    #region amonguscapture
-                    /*
-                    foreach (var kvp in oldPlayerInfos)
-                    {
-                        var pi = kvp.Value;
-                        var playerName = kvp.Key;
-                        if (!newPlayerInfos.ContainsKey(playerName)) // player was here before, isn't now, so they left
-                            PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
-                            {
-                                Action = PlayerAction.Left,
-                                Name = playerName,
-                                IsDead = pi.GetIsDead(),
-                                Disconnected = pi.GetIsDisconnected(),
-                                Color = pi.GetPlayerColor()
-                            });
-                    }
-
-                    oldPlayerInfos.Clear();
-
-                    var emitAll = false;
-                    if (shouldForceUpdatePlayers)
-                    {
-                        shouldForceUpdatePlayers = false;
-                        emitAll = true;
-                    }
-
-
-                    if (state != cachedOldState && (state == GameState.DISCUSSION || state == GameState.TASKS)
-                    ) // game started, or at least we're still in game
-                    {
-                        CachedPlayerInfos.Clear();
-                        foreach (var kvp in newPlayerInfos
-                        ) // do this instead of assignment so they don't point to the same object
-                        {
-                            var pi = kvp.Value;
-                            string playerName = pi.GetPlayerName();
-                            CachedPlayerInfos[playerName] = new ImmutablePlayer()
-                            {
-                                Name = playerName,
-                                IsImpostor = false
-                            };
-                        }
-                    }
-
-                    foreach (var kvp in newPlayerInfos
-                    ) // do this instead of assignment so they don't point to the same object
-                    {
-                        var pi = kvp.Value;
-                        oldPlayerInfos[kvp.Key] = pi;
-                        if (emitAll)
-                            PlayerChanged?.Invoke(this, new PlayerChangedEventArgs
-                            {
-                                Action = PlayerAction.ForceUpdated,
-                                Name = kvp.Key,
-                                IsDead = pi.GetIsDead(),
-                                Disconnected = pi.GetIsDisconnected(),
-                                Color = pi.GetPlayerColor()
-                            });
-                    }
-
-
-
-                    if (shouldTransmitLobby)
-                    {
-                        if (this.latestLobbyEventArgs != null)
-                        {
-                            JoinedLobby?.Invoke(this, this.latestLobbyEventArgs);
-                        }
-
-                        shouldTransmitLobby = false;
-                    }
-                    */
-                    #endregion
 
                     if (shouldReadLobby)
                     {
@@ -1280,7 +1180,7 @@ namespace AmongUsCapture
                             {
                                 playing = false;
                                 foreach (var log in DeadLogList) Console.WriteLine(log.ToString());
-                                initConInfo();
+                                initInfo();
                             }
                         }
                         else if (!playing && AllImposterNum != 0)
@@ -1323,8 +1223,14 @@ namespace AmongUsCapture
                         Sabotage = Sabotage,
                         myId = myId,
                         doorsUint = doorsUint,
-                        voteList = voteList
-                    };
+                        voteList = voteList,
+                        shapeId = shapeId,
+                        IsGuardian = IsGuardian,
+                        protectedByGuardian = protectedByGuardian,
+                        RemainingEmergencies = RemainingEmergencies,
+                        EmergencyCooldown = EmergencyCooldown,
+                        ReportTarget = ReportTarget
+    };
                     var Millinow = (Int32)((DateTime.Now.Ticks - gameStartTime) / TimeSpan.TicksPerMillisecond);
                     int frame_now = (int)Math.Round(Millinow / 100.0);
 
@@ -1354,7 +1260,7 @@ namespace AmongUsCapture
             bool dataCompleted = false;
             int repeatcount = 0;
             Thread.Sleep(100);
-            initConInfo();
+            initInfo();
             Console.WriteLine("\n\nStart\n\n");
             frame = -1;
             var ImposterNum = 0;
@@ -1377,8 +1283,7 @@ namespace AmongUsCapture
             }
 
             var allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
-            var playerAddrPtr = allPlayers + 0x10;
-            var PlayerInfoPtrList = ProcessMemory.getInstance().ReadArray(playerAddrPtr, playerCount);
+            var playerAddrPtr = allPlayers + CurrentOffsets.PlayerListPtr;
 
             uint[] HatIds = new uint[PlayerData.MaxPlayerNum];
             uint[] PetIds = new uint[PlayerData.MaxPlayerNum];
@@ -1391,23 +1296,13 @@ namespace AmongUsCapture
                 ImposterNum = 0;
                 for (var i = 0; i < playerCount; i++)
                 {
-                    PlayerInfo pi;
-                    if (CurrentOffsets.StructVersion == 0)
-                        pi = ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                    else if (CurrentOffsets.StructVersion == 1)
-                        pi = ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                    else if (CurrentOffsets.StructVersion <3)
-                        pi = ProcessMemory.getInstance().Read<Struct_2021_3_31_3s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
-                    else
-                        pi = ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerInfo>(PlayerInfoPtrList[i], 0);
+                    PlayerInfo pi = new PlayerInfo(playerAddrPtr + CurrentOffsets.AddPlayerPtr * i, ProcessMemory.getInstance(), CurrentOffsets);
 
-
-                    playerAddrPtr += 4;
                     IdList[pi.PlayerId] = i;
                     PlayerNames[i] = pi.GetPlayerName();
                     if (PlayerNames[i] == null) PlayerNames[i] = "";
                     PlayerName2IDdict[PlayerNames[i]] = i;
-                    IsImpostorLis[i] = pi.IsImpostor == 1;
+                    IsImpostorLis[i] = pi.IsImpostor;
                     var col = (int)pi.GetPlayerColor();
                     if (col >= 0 && col < PlayerData.PlayerColorNum)
                     {
@@ -1415,7 +1310,7 @@ namespace AmongUsCapture
                         PlayerColorsInt[i] = (PlayerData.PlayerColor)col;
                     }
                     else PlayerColors[i] = Color.Empty;
-                    if (pi.IsImpostor == 1)
+                    if (pi.IsImpostor)
                     {
                         filename += "_" + PlayerNames[i];
                         ImpostorId[ImposterNum] = i;
@@ -1425,13 +1320,24 @@ namespace AmongUsCapture
                     PetIds[i] = pi.PetId;
                     SkinIds[i] = pi.SkinId;
 
-                    PlayerControl pcontrol = CurrentOffsets.StructVersion >=3 ? ProcessMemory.getInstance().Read<Struct_2021_6_15s.v_PlayerControl>(pi._object) : (CurrentOffsets.StructVersion == 0 ? ProcessMemory.getInstance().Read<Struct_2020_12_9s.v_PlayerControl>(pi._object) : ProcessMemory.getInstance().Read<Struct_2021_3_5s.v_PlayerControl>(pi._object));
+                    RoleType[i] = pi.RoleType;
+                    if (pi.RoleType == RoleTypes.GuardianAngel && !pi.Disconnected) IsGuardian[i] = true;
+                    Color2Id[pi.ColorId] = (sbyte)i;
 
-                    int offset = 0x3C;
-                    if (pcontrol.myLight_ != 0) offset = 0x50;
+                    PlayerControl pcontrol = new PlayerControl(pi._object, ProcessMemory.getInstance(), CurrentOffsets);
+                    
+                    int offset = CurrentOffsets.NetTransformOffsets.targetSyncPosition;
+                    if (pcontrol.myLight_ != 0) offset = CurrentOffsets.NetTransformOffsets.prevPosSent;
                     PlayerPoses[i] = ProcessMemory.getInstance().Read<Vector2>((IntPtr)(pcontrol.NetTransform + offset));
                     newPlayerCon[i] = pcontrol;
-                    if (pcontrol.myLight_ != 0) myId = i;
+                    if (pcontrol.myLight_ != 0)
+                    {
+                        myId = i;
+                        RemainingEmergencies[i] = (sbyte)pcontrol.RemainingEmergencies;
+                        for (int j = 0; j < playerCount; j++) RemainingEmergencies[j] = RemainingEmergencies[i];
+                    }
+
+                    if (pcontrol.protectedByGuardian) protectedByGuardian[i] = true;
                 }
 
                 playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
@@ -1440,7 +1346,36 @@ namespace AmongUsCapture
                 {
                     if (PlayerColors[i] == Color.Empty) dataCompleted = false;
                 }
-                
+
+                if (CurrentOffsets.ShipStatusOffsets != null)
+                {
+                    var shipStatusPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ShipStatusOffsets.ShipStatusPtr);
+                    ShipStatus shipStatus = new ShipStatus(GameAssemblyPtr, ProcessMemory.getInstance(), CurrentOffsets);
+                    EmergencyCooldown = shipStatus.EmergencyCooldown;
+                    var doorsPtr = shipStatus.AllDoors;
+                    int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, CurrentOffsets.PlayerCountOffsets);
+                    if (doorNum > 100) doorNum = 100;
+                    var doorsListPtr = doorsPtr + CurrentOffsets.PlayerListPtr;
+                    if (doors == null || doors.Length != doorNum) doors = new Door[doorNum];
+
+                    bool[] doorOpen = new bool[doorNum];
+                    for (int i = 0; i < doorNum; i++)
+                    {
+                        doors[i] = ProcessMemory.getInstance().Read<Door>(doorsListPtr, 4 * i, 0);
+                        doorOpen[doors[i].Id] = doors[i].Open;
+                    }
+                    if (playMap == PlayerData.PlayMap.Skeld)
+                        doorsUint = Doors.skeld.Doors2Uint(doors);
+                    else if (playMap == PlayerData.PlayMap.Polus)
+                        doorsUint = Doors.polus.Doors2Uint(doors);
+                    else if (playMap == PlayerData.PlayMap.AirShip)
+                    {
+                        var platform = ProcessMemory.getInstance().Read<Doors.airship.MovingPlatformBehaviour>(shipStatus.GapPlatform);
+                        IsLeft = platform.IsLeft;
+                        doorsUint = Doors.airship.Doors2Uint(doors, IsLeft);
+                    }
+                }
+
                 if (!dataCompleted)
                 {
                     repeatcount++;
@@ -1450,8 +1385,7 @@ namespace AmongUsCapture
                     allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
                     allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
                     playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
-                    playerAddrPtr = allPlayers + 0x10;
-                    PlayerInfoPtrList = ProcessMemory.getInstance().ReadArray(playerAddrPtr, playerCount);
+                    playerAddrPtr = allPlayers + CurrentOffsets.PlayerListPtr;
                 }
             }
 
@@ -1466,23 +1400,29 @@ namespace AmongUsCapture
             playMap = (PlayerData.PlayMap)ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.PlayMapOffsets);
 
                 var move = new PlayerMoveArgs
-            {
-                time = 0,
-                state = GameState.TASKS,
-                PlayerNum = playerCount,
-                PlayerColors = PlayerColors,
-                PlayerNames = PlayerNames,
-                IsImpostor = IsImpostorLis,
-                PlayerPoses = PlayerPoses,
-                PlayerIsDead = playerIsDead,
-                ImpostorId = ImpostorId,
-                InVent = InVent,
-                TaskProgress = TaskProgress,
-                Sabotage = Sabotage,
-                myId = myId,
-                doorsUint = doorsUint,
-                voteList = voteList
-            };
+                {
+                    time = 0,
+                    state = GameState.TASKS,
+                    PlayerNum = playerCount,
+                    PlayerColors = PlayerColors,
+                    PlayerNames = PlayerNames,
+                    IsImpostor = IsImpostorLis,
+                    PlayerPoses = PlayerPoses,
+                    PlayerIsDead = playerIsDead,
+                    ImpostorId = ImpostorId,
+                    InVent = InVent,
+                    TaskProgress = TaskProgress,
+                    Sabotage = Sabotage,
+                    myId = myId,
+                    doorsUint = doorsUint,
+                    voteList = voteList,
+                    shapeId = shapeId,
+                    IsGuardian = IsGuardian,
+                    protectedByGuardian = protectedByGuardian,
+                    RemainingEmergencies = RemainingEmergencies,
+                    EmergencyCooldown = EmergencyCooldown,
+                    ReportTarget = ReportTarget
+                };
 
 
             GameStart?.Invoke(this, new GameStartEventArgs
@@ -1494,7 +1434,8 @@ namespace AmongUsCapture
                 PlayerColorsInt = PlayerColorsInt,
                 HatIds = HatIds,
                 PetIds = PetIds,
-                SkinIds =SkinIds
+                SkinIds =SkinIds,
+                RoleType = RoleType
         }) ;
 
 
@@ -1574,6 +1515,8 @@ namespace AmongUsCapture
         public uint[] HatIds;
         public uint[] PetIds;
         public uint[] SkinIds;
+
+        public RoleTypes[] RoleType;
     }
 
 
@@ -1603,6 +1546,13 @@ namespace AmongUsCapture
 
         public sbyte[] voteList;
 
+        public bool[] IsGuardian;
+        public bool[] protectedByGuardian;
+        public sbyte[] shapeId;
+        public sbyte[] RemainingEmergencies;
+        public float EmergencyCooldown;
+        public int ReportTarget;
+        public bool displayVote = false;
     }
    
  
@@ -1668,7 +1618,7 @@ namespace AmongUsCapture
                 var imDist = new ImpostorDist();
                 imDist.Id = ImpostorId[i];
                 imDist.distance = (PosList[ImpostorId[i]] - BodyPos).LengthSquared();
-                if (imDist.distance < 25.0f && IsDead[ImpostorId[i]] == 0 ) ImpostorDists.Add(imDist);
+                if (imDist.distance < 25.0f && IsDead[ImpostorId[i]] == (int)PlayerData.DeadState.living ) ImpostorDists.Add(imDist);
             }
             ImpostorDists.Sort((a, b) => (a.distance > b.distance) ? 1 : (a.distance < b.distance) ? -1 : 0);
             if (ImpostorDists.Count != 0) NearestImpostorId = ImpostorDists[0].Id;
