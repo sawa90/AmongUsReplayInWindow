@@ -125,7 +125,7 @@ namespace AmongUsReplayInWindow
                 vent?.Dispose();
                 vent = null;
 
-                dead.Dispose();
+                dead?.Dispose();
                 dead = null;
 
                 megaphone?.Dispose();
@@ -190,7 +190,7 @@ namespace AmongUsReplayInWindow
         static public void DrawVoting(Graphics g, PlayerMoveArgs move, List<DeadPos> deadOrderList, Map.MapScale map, IconDict icons, Point mapLocation, Size mapSize, int version)
         {
             if (mapSize.Width == 0 || mapSize.Height == 0 || move == null || move.voteList == null) return;
-            bool drawEmergency = DrawEmergency && version > 2;
+            bool drawEmergency = DrawEmergency && version > 3;
             string fontName = "Times New Roman";
 
             

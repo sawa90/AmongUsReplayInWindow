@@ -309,6 +309,9 @@ namespace AmongUsReplayInWindow
 
             [DefaultValue(false)]
             public bool AngelVisible = false;
+
+            [DefaultValue(false)]
+            public bool DrawEmergency = false;
         }
 
         void applySettings()
@@ -327,6 +330,7 @@ namespace AmongUsReplayInWindow
             DrawMove.VoteVisible = settings.VoteVisible;
             DrawMove.AngelVisible = settings.AngelVisible;
             DrawMove.backgroundColor = settings.backgroundColor;
+            DrawMove.DrawEmergency = settings.DrawEmergency;
 
             Map.mapFolder = settings.MapImageFolder;
 

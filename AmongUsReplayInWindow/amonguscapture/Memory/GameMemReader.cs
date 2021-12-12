@@ -392,6 +392,7 @@ namespace AmongUsCapture
             var tokenSource = new CancellationTokenSource();
             var cancelToken = tokenSource.Token;
             RunLoop(cancelToken);
+            tokenSource.Dispose();
         }
 
         public void RunLoop(CancellationToken cancelToken)
@@ -1347,6 +1348,7 @@ namespace AmongUsCapture
                     if (PlayerColors[i] == Color.Empty) dataCompleted = false;
                 }
 
+                playMap = (PlayerData.PlayMap)ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.PlayMapOffsets);
                 if (CurrentOffsets.ShipStatusOffsets != null)
                 {
                     var shipStatusPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ShipStatusOffsets.ShipStatusPtr);
@@ -1397,8 +1399,7 @@ namespace AmongUsCapture
                 s += $"{PlayerNames[i]}/{PlayerColorsInt[i]}, ";
             }
             Console.WriteLine(s);
-            playMap = (PlayerData.PlayMap)ProcessMemory.getInstance().Read<int>(GameAssemblyPtr, CurrentOffsets.PlayMapOffsets);
-
+            
                 var move = new PlayerMoveArgs
                 {
                     time = 0,
