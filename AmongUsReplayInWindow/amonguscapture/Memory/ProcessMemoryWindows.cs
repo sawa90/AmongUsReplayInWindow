@@ -132,10 +132,11 @@ namespace AmongUsCapture
             for (int i = 0; i < offsets.Length - 1; i++)
             {
                 WinAPI.ReadProcessMemory(process.Handle, address + offsets[i], buffer, buffer.Length, out int bytesRead);
-                if (is64Bit)
-                    address = (IntPtr)BitConverter.ToUInt64(buffer, 0);
-                else
-                    address = (IntPtr)BitConverter.ToUInt32(buffer, 0);
+                UInt64 adInt = 0;
+                if (is64Bit) adInt = BitConverter.ToUInt64(buffer, 0);
+                else adInt = BitConverter.ToUInt32(buffer, 0);
+                if (adInt <= (UInt64)IntPtr.MaxValue) address = (IntPtr)adInt;
+                else address = IntPtr.Zero;
                 if (address == IntPtr.Zero)
                     break;
             }
