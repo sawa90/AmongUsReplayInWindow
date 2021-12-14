@@ -27,9 +27,9 @@ BOOL WINAPI DllMain(HINSTANCE hInstDLL, DWORD dwReason, LPVOID lpReserved)
         hInst = hInstDLL;
         break;
     case DLL_PROCESS_DETACH:
-        ResetKeyboardHook();
         if(IsWindow(hwnd))
             PostMessage(hwnd, WM_CLOSE, 0, 0);
+        ResetKeyboardHook();
         break;
     }
     return TRUE;
