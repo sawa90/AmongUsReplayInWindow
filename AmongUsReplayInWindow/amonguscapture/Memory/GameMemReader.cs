@@ -1049,7 +1049,7 @@ namespace AmongUsCapture
                     }
 
                     //get chat
-                    if (CurrentOffsets.HudManagerOffset != 0)
+                    if (CurrentOffsets.ChatOffsets != null)
                     {
                         ChatOffsets offsets = CurrentOffsets.ChatOffsets;
                         if (loadLastchatNextturn)
