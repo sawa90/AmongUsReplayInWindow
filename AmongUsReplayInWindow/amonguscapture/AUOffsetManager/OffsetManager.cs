@@ -15,6 +15,7 @@ namespace AUOffsetManager
         public static int GameMemReaderVersion = 1; //GameMemReader should update this.
         private Dictionary<string, GameOffsets> OffsetIndex = new Dictionary<string, GameOffsets>();
         private Dictionary<string, GameOffsets> LocalOffsetIndex = new Dictionary<string, GameOffsets>();
+        private Dictionary<string, GameOffsets> ReplayOffsetIndex = null;
         public string indexURL;
         private string StorageFolder = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsReplayInWindow");
         private string StorageLocation = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "\\AmongUsReplayInWindow\\index.json");
@@ -44,14 +45,15 @@ namespace AUOffsetManager
                 OffsetIndex = new Dictionary<string, GameOffsets>();
                 return;
             }
-
+            ReplayOffsetIndex = null;
             using var httpClient = new HttpClient();
             try
             {
                 this.indexURL = "https://raw.githubusercontent.com/sawa90/AmongUsReplayInWindow/master/AmongUsReplayInWindow/amonguscapture/Offsets.txt";
                 var json = await httpClient.GetStringAsync(indexURL);
                 OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(json);
-                await using StreamWriter sw = File.CreateText(StorageLocationCache);
+                ReplayOffsetIndex = OffsetIndex;
+               await using StreamWriter sw = File.CreateText(StorageLocationCache);
                 await sw.WriteAsync(JsonConvert.SerializeObject(OffsetIndex, Formatting.Indented));
             }
             catch (Exception e)
@@ -60,6 +62,7 @@ namespace AUOffsetManager
                 if (File.Exists(StorageLocationCache))
                 {
                     OffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(File.ReadAllText(StorageLocationCache));
+                    ReplayOffsetIndex = JsonConvert.DeserializeObject<Dictionary<string, GameOffsets>>(AmongUsReplayInWindow.Properties.Resources.Offsets);
                 }
             }
             if (OffsetIndex == null || !OffsetIndex.ContainsKey(hash))
@@ -100,11 +103,11 @@ namespace AUOffsetManager
                 if (offsets is not null)
                 {
                     Console.WriteLine($"Loaded offsets: {OffsetIndex[sha256Hash].Description}");
-                    if (offsets.StructVersion == 0)
+                    if (offsets.StructVersion == 0 && ReplayOffsetIndex != null)
                     {
                         GameOffsets newest_offsets = offsets;
                         float newest_date = 0;
-                        foreach (var sets in OffsetIndex.Values)
+                        foreach (var sets in ReplayOffsetIndex.Values)
                         {
                             if (sets != offsets)
                             {
