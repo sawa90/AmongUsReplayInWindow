@@ -26,19 +26,12 @@ namespace AmongUsReplayInWindow
         delegate void void_stringDelegate(string str);
         delegate void void_ProcessDelegate(Process process);
         internal DrawMove.IconDict iconDict;
-        internal Settings settings = null;
-        string settingPath;
+        static internal Settings settings = null;
+        static string settingPath;
         bool closed = false;
 
         public StartWindow()
         {
-            settingPath = Program.exeFolder + "\\setting.json";
-            try
-            {
-                if (File.Exists(settingPath))
-                    settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(settingPath));
-            } catch(Exception e) { }
-            if (settings == null) settings = new Settings();
             InitializeComponent();
             iconDict = new DrawMove.IconDict();
             applySettings();
@@ -312,10 +305,26 @@ namespace AmongUsReplayInWindow
 
             [DefaultValue(false)]
             public bool DrawEmergency = false;
+
+            [DefaultValue(false)]
+            public bool Console = false;
+        }
+
+        public static void LoadSettings()
+        {
+            settingPath = Program.exeFolder + "\\setting.json";
+            try
+            {
+                if (File.Exists(settingPath))
+                    settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(settingPath));
+            }
+            catch (Exception e) { }
+            if (settings == null) settings = new Settings();
         }
 
         void applySettings()
         {
+            if (settings == null) LoadSettings();
             replaySpeedTrackBar.Value = settings.speed;
             mapAlphaUpdown.Value = settings.mapAlpha;
 

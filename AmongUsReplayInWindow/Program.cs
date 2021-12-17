@@ -20,6 +20,7 @@ namespace AmongUsReplayInWindow
         static public string exeFolder;
 
         public const bool testflag = false;
+        static bool ConsoleIsOpen = false;
 
         /// <summary>
         ///  The main entry point for the application.
@@ -34,6 +35,9 @@ namespace AmongUsReplayInWindow
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            StartWindow.LoadSettings();
+            if (StartWindow.settings?.Console == true) ConsoleIsOpen = AllocConsole();
             //AllocConsole();
             if (testflag)
             {
@@ -48,9 +52,12 @@ namespace AmongUsReplayInWindow
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
             }
-            //Console.WriteLine("\n\nPress Key to exit");
-            //Console.ReadKey();
-            //FreeConsole();
+            if (ConsoleIsOpen)
+            {
+                Console.WriteLine("\n\nPress Key to exit");
+                Console.ReadKey();
+                FreeConsole();
+            }
 
         }
 

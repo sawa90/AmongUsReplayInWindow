@@ -15,7 +15,7 @@ namespace AmongUsReplayInWindow
             InitializeComponent();
             this.startWindow = startWindow;
 
-            StartWindow.Settings setting = startWindow.settings;
+            StartWindow.Settings setting = StartWindow.settings;
 
             PlayerIcon.SelectedIndex = (int)setting.playerIcon;
 
@@ -27,7 +27,7 @@ namespace AmongUsReplayInWindow
             }
             MapImageBox.Items.AddRange(mapFolders);
             if (!Directory.Exists(Program.exeFolder + @"\map\" + setting.MapImageFolder))
-                startWindow.settings.MapImageFolder = "color";
+                StartWindow.settings.MapImageFolder = "color";
             MapImageBox.SelectedIndex = MapImageBox.Items.IndexOf(setting.MapImageFolder);
 
             PlayerNameCheckBox.Checked = setting.PlayerNameVisible;
@@ -47,17 +47,17 @@ namespace AmongUsReplayInWindow
         private void PlayerIcon_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (sender != null)
-                startWindow.settings.playerIcon = (StartWindow.PlayerIconRendering)PlayerIcon.SelectedIndex;
-            DrawMove.drawIcon = startWindow.settings.playerIcon == StartWindow.PlayerIconRendering.Icon;
+                StartWindow.settings.playerIcon = (StartWindow.PlayerIconRendering)PlayerIcon.SelectedIndex;
+            DrawMove.drawIcon = StartWindow.settings.playerIcon == StartWindow.PlayerIconRendering.Icon;
 
         }
 
         private void MapImageBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             string mapfolder = (string)MapImageBox.SelectedItem;
-            if (mapfolder != startWindow.settings.MapImageFolder)
+            if (mapfolder != StartWindow.settings.MapImageFolder)
             {
-                startWindow.settings.MapImageFolder = mapfolder;
+                StartWindow.settings.MapImageFolder = mapfolder;
                 Map.mapFolder = mapfolder;
                 Map.backgroundMap.resetImage();
             }
@@ -66,25 +66,25 @@ namespace AmongUsReplayInWindow
         private void PlayerSizeBar_Scroll(object sender, EventArgs e)
         {
             float size = PlayerSizeBar.Value * 0.01f;
-            startWindow.settings.PlayerSize = size;
+            StartWindow.settings.PlayerSize = size;
             DrawMove.playerSize = size;
         }
 
         private void PlayerNameCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            startWindow.settings.PlayerNameVisible = PlayerNameCheckBox.Checked;
+            StartWindow.settings.PlayerNameVisible = PlayerNameCheckBox.Checked;
             DrawMove.PlayerNameVisible = PlayerNameCheckBox.Checked;
         }
 
         private void TaskBarCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            startWindow.settings.TaskBarVisible = TaskBarCheckBox.Checked;
+            StartWindow.settings.TaskBarVisible = TaskBarCheckBox.Checked;
             DrawMove.TaskBarVisible = TaskBarCheckBox.Checked;
         }
 
         private void VoteCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            startWindow.settings.VoteVisible = VoteCheckBox.Checked;
+            StartWindow.settings.VoteVisible = VoteCheckBox.Checked;
             DrawMove.VoteVisible = VoteCheckBox.Checked;
         }
 
@@ -93,7 +93,7 @@ namespace AmongUsReplayInWindow
             UInt32 key;
             if(StartWindow.hotKeyDict.TryGetValue((string)HotKeyBox.SelectedItem,out key))
             {
-                startWindow.settings.hotkey = (string)HotKeyBox.SelectedItem;
+                StartWindow.settings.hotkey = (string)HotKeyBox.SelectedItem;
                 startWindow.hotkey = key;
                 StartWindow.SetHotKey(key);
             }
@@ -101,14 +101,14 @@ namespace AmongUsReplayInWindow
 
         private void textLogCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            startWindow.settings.OutputTextLog = textLogCheckBox.Checked;
+            StartWindow.settings.OutputTextLog = textLogCheckBox.Checked;
             OverlayWindow.OutputTextLog = textLogCheckBox.Checked;
             textLogPopupCheckBox.Enabled = textLogCheckBox.Checked;
         }
 
         private void textLogPopupCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            startWindow.settings.PopupTextLog = textLogPopupCheckBox.Checked;
+            StartWindow.settings.PopupTextLog = textLogPopupCheckBox.Checked;
             OverlayWindow.PopupTextLog = textLogPopupCheckBox.Checked;
         }
 
@@ -117,7 +117,7 @@ namespace AmongUsReplayInWindow
             if(backgroundColorDialog.ShowDialog() == DialogResult.OK)
             {
                 DrawMove.backgroundColor = backgroundColorDialog.Color;
-                startWindow.settings.backgroundColor = backgroundColorDialog.Color;
+                StartWindow.settings.backgroundColor = backgroundColorDialog.Color;
                 foreach (var wind in fromFile.fromFileList)
                     wind.changeColor();
             }
@@ -125,7 +125,7 @@ namespace AmongUsReplayInWindow
 
         private void AngelCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            startWindow.settings.AngelVisible = AngelCheckBox.Checked;
+            StartWindow.settings.AngelVisible = AngelCheckBox.Checked;
             DrawMove.AngelVisible = AngelCheckBox.Checked;
         }
     }

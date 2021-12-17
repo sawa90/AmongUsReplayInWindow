@@ -78,7 +78,7 @@ namespace AmongUsReplayInWindow
                 this.startWindow = startWindow;
                 Init();
                 cancelTokenSource = tokenSource;
-                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), (byte)startWindow.settings.mapAlpha, ULW_COLORKEY | ULW_ALPHA);
+                SetLayeredWindowAttributes(this.Handle, ToCOLORREF(Color.Snow), (byte)StartWindow.settings.mapAlpha, ULW_COLORKEY | ULW_ALPHA);
 
                 if (ownerProcess != null)
                 {
