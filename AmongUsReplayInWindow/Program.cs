@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Text;
 
 namespace AmongUsReplayInWindow
 {
@@ -26,7 +28,7 @@ namespace AmongUsReplayInWindow
         ///  The main entry point for the application.
         /// </summary>
         [STAThread]
-        public static void Main()
+        public static void Main(string[] args)
         {
             exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             if (exePath != null) exeFolder = System.IO.Path.GetDirectoryName(exePath);
@@ -42,6 +44,16 @@ namespace AmongUsReplayInWindow
             if (testflag)
             {
                 AmongUsCapture.GameMemReader.testflag = true;
+            }
+            if (args.Length > 0)
+            {
+                int ptr = int.Parse(args[0]);
+                Console.WriteLine($"ReadSpace:{ptr:X}");
+                if (ptr > 0)
+                {
+                    AmongUsCapture.ReadSpace.readSpacePtr = (IntPtr)ptr;
+                    AmongUsCapture.ReadSpace.ExistReadSpace = true;
+                }
             }
             try
             {

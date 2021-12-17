@@ -316,7 +316,8 @@ namespace AmongUsCapture
         PlayerData.PlayMap playMap = PlayerData.PlayMap.Skeld;
         public string filename = null;
         int myId = 0;
-        int[] IdList = new int[PlayerData.MaxPlayerNum];
+        public int[] IdList = new int[PlayerData.MaxPlayerNum];
+        public int[] PlayerIdList = new int[PlayerData.MaxPlayerNum];
 
         Door[] doors;
         UInt32 doorsUint = 0;
@@ -339,6 +340,7 @@ namespace AmongUsCapture
         int ReportTarget;
         bool discussion_end;
         long discussionStartTime = 100000;
+        bool beforeFirstDisc = true;
         #endregion
 
         public GameMemReader()
@@ -365,6 +367,7 @@ namespace AmongUsCapture
                 voteList[i] = -3;
                 discussionEndTime = -10000;
                 IdList[i] = i;
+                PlayerIdList[i] = i;
                 RoleType[i] = RoleTypes.Crewmate;
                 IsGuardian[i] = false;
                 protectedByGuardian[i] = false;
@@ -384,6 +387,7 @@ namespace AmongUsCapture
             Reporter = -1;
             discussion_end = true;
             discussionStartTime = 100000;
+            beforeFirstDisc = true;
         }
 
 
@@ -577,6 +581,8 @@ namespace AmongUsCapture
                     //get voting state and report
                     if (state == GameState.DISCUSSION || (state == GameState.TASKS && !discussion_end ))
                     {
+                        discussion_end = false;
+                        beforeFirstDisc = false;
                         if (state == GameState.DISCUSSION)
                         {
                             discussionEndTime = gametimeMili;
@@ -602,7 +608,6 @@ namespace AmongUsCapture
                                             sbyte votedId = voteArea.votedFor;
                                             if (votedId >= 0 && votedId < PlayerData.MaxPlayerNum) votedId = (sbyte)IdList[votedId];
                                             voteList[id] = votedId;
-
                                         if (voteArea.didReport)
                                         {
                                             Reporter = id;
@@ -615,50 +620,6 @@ namespace AmongUsCapture
                         else
                         {
                             for (int i = 0; i < PlayerData.MaxPlayerNum; i++) voteList[i] = (sbyte)PlayerData.VoteState.HasNotVoted;
-                        }
-
-                        //get report
-                        if (discussion_end && gametimeMili - discussionStartTime > 500 && state == GameState.DISCUSSION && oldState == GameState.DISCUSSION)
-                        {
-                            discussion_end = false;
-                            if (CurrentOffsets.MeetingRoomManagerOffsets != null)
-                            {
-                                var MeetingRoomManagerPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.MeetingRoomManagerOffsets.MeetingRoomManager_Offsets);
-                                String Sender = null;
-                                if (Reporter >= 0 && Reporter < PlayerData.MaxPlayerNum) Sender = PlayerNames[Reporter];
-
-                                //get target
-                                var targetInfoPtr = ProcessMemory.getInstance().Read<IntPtr>(MeetingRoomManagerPtr, CurrentOffsets.MeetingRoomManagerOffsets.target);
-                                ReportTarget = -1;
-                                PlayerInfo targetInfo = null;
-                                if (targetInfoPtr != IntPtr.Zero)
-                                {
-                                    targetInfo = new PlayerInfo(MeetingRoomManagerPtr + CurrentOffsets.MeetingRoomManagerOffsets.target, ProcessMemory.getInstance(), CurrentOffsets);
-                                    if (targetInfo.PlayerId >= 0 && targetInfo.PlayerId < PlayerData.MaxPlayerNum) ReportTarget = IdList[targetInfo.PlayerId];
-                                }
-                                    if (ReportTarget == -1)
-                                    {
-                                        if (Reporter != myId && Reporter >= 0 && Reporter < PlayerData.MaxPlayerNum)
-                                            RemainingEmergencies[Reporter] -= 1;
-                                     /*
-                                        TextLogEvent?.Invoke(this, new ChatMessageEventArgs
-                                        {
-                                            time = -1,
-                                            Sender = Sender,
-                                            Message = "called an emergency meeting"
-                                        });
-                                     */
-                                    }else{
-                                    /*
-                                        TextLogEvent?.Invoke(this, new ChatMessageEventArgs
-                                        {
-                                            time = -1,
-                                            Sender = Sender,
-                                            Message = "reported " + targetInfo?.PlayerName + "/" + targetInfo?.ColorId.ToString() + "'s body"
-                                        });
-                                    */
-                                    }
-                            }
                         }
 
                     }
@@ -813,6 +774,22 @@ namespace AmongUsCapture
                     playerAddrPtr = allPlayers + CurrentOffsets.PlayerListPtr;
                     AllImposterNum = 0;
 
+                    //get BepInEx data
+                    if (ReadSpace.ExistReadSpace)
+                    {
+                        if (ReadSpace.setEmergency(ref Reporter, ref ReportTarget, in IdList))
+                        {
+                            beforeFirstDisc = false;
+                            if (ReportTarget == -1 && Reporter != -1)
+                                RemainingEmergencies[Reporter]--;
+                        }
+                        while (ReadSpace.chatExist)
+                        {
+                            var chat = ReadSpace.readChat(gametimeMili, in IdList, in PlayerNames);
+                            Console.WriteLine(chat?.Sender+ ":" + chat?.Message);
+                            ChatMessageAdded?.Invoke(this, chat);
+                        }
+                    }
 
                     //get current state
                     for (var i = 0; i < playerCount; i++)
@@ -853,6 +830,9 @@ namespace AmongUsCapture
                         if (id == myId)
                         {
                             RemainingEmergencies[id] = (sbyte)pcontrol.RemainingEmergencies;
+                                if (beforeFirstDisc)
+                                    for (int j = 0; j < playerCount; j++)
+                                        RemainingEmergencies[j] = RemainingEmergencies[id];
                         }
                         InVent[id] = pcontrol.inVent;
                         if ((!pi.GetIsDisconnected() && !pi.IsImpostor) || pcontrol.myLight_ != 0)
@@ -952,8 +932,8 @@ namespace AmongUsCapture
                             {
                                 var deadbody = new DeadBodyPos(i, PlayerPoses, ImpostorId, playerIsDead, AllImposterNum);
                                 DeadBodyPosList.Insert(0, deadbody);
-                                int killercount = deadbody.ImpostorDists.Count;
-                                if (killercount == 0)
+                                
+                                if (deadbody.NearestImpostorId == -1)
                                 {
                                     playerIsDead[i] = (int)PlayerData.DeadState.killedBySomeone;
                                     DeadBodyPosList.RemoveAt(0);
@@ -967,6 +947,7 @@ namespace AmongUsCapture
                                 }
                                 else
                                 {
+                                    int killercount = deadbody.ImpostorDists.Count;
                                     playerIsDead[i] = deadbody.ImpostorDists[0].Id + (int)PlayerData.DeadState.killer_offset;
                                     string killer = PlayerNames[deadbody.ImpostorDists[0].Id] + "/" + PlayerColorsInt[deadbody.ImpostorDists[0].Id];
                                     if (killercount > 1)
@@ -1045,7 +1026,7 @@ namespace AmongUsCapture
                     }
 
                     //get chat
-                    if (CurrentOffsets.ChatOffsets != null)
+                    if (!ReadSpace.ExistReadSpace && CurrentOffsets.ChatOffsets != null)
                     {
                         ChatOffsets offsets = CurrentOffsets.ChatOffsets;
                         if (loadLastchatNextturn)
@@ -1070,25 +1051,25 @@ namespace AmongUsCapture
                             }
                             loadLastchatNextturn = false;
                         }
-                        
+
                         var HudManagerPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.HudManagerOffset);
                         var chatControllerPtr = ProcessMemory.getInstance().Read<IntPtr>(HudManagerPtr, offsets.chatControllerPtr);
                         if (chatControllerPtr != IntPtr.Zero)
                         {
                             var chatPoolPtr = ProcessMemory.getInstance().Read<IntPtr>(chatControllerPtr, offsets.chatPoolPtr);
                             var chatBubblesPtr = ProcessMemory.getInstance().Read<IntPtr>(chatPoolPtr, offsets.chatBubblesPtr);
-                            var chatBubsVersion =  ProcessMemory.getInstance().Read<int>(chatBubblesPtr, offsets.chatBubsVersionPtr);
+                            var chatBubsVersion = ProcessMemory.getInstance().Read<int>(chatBubblesPtr, offsets.chatBubsVersionPtr);
                             if (chatBubsVersion != prevChatBubsVersion)
                             {
                                 var poolSize = 20;//ProcessMemory.getInstance().Read<Int32>(chatPoolPtr, 0xc);
                                 var numChatBubbles = ProcessMemory.getInstance().Read<int>(chatBubblesPtr, offsets.numChatBubblesPtr);
                                 var chatBubblesAddr = ProcessMemory.getInstance().Read<IntPtr>(chatBubblesPtr, offsets.chatBubblesAddrPtr) + CurrentOffsets.PlayerListPtr;
                                 var chatBubblePtrs = ProcessMemory.getInstance().ReadArray(chatBubblesAddr, numChatBubbles);
-                                
+
                                 var newMsgs = 0;
                                 if (chatBubblesAddr != (IntPtr)CurrentOffsets.PlayerListPtr)
                                 {
-                                    
+
                                     if (chatBubsVersion > prevChatBubsVersion) // new message has been sent
                                     {
                                         if (chatBubsVersion > poolSize) // increments are twofold (push to and pop from pool)
@@ -1133,6 +1114,7 @@ namespace AmongUsCapture
                                             .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[1], offsets.TextMeshPtr));
                                         var msgSender = ProcessMemory.getInstance()
                                             .ReadString(ProcessMemory.getInstance().Read<IntPtr>(msgPtrList[0], offsets.TextMeshPtr));
+
                                         ChatMessageAdded?.Invoke(this, new ChatMessageEventArgs
                                         {
                                             time = gametimeMili,
@@ -1143,6 +1125,7 @@ namespace AmongUsCapture
                                             Console.WriteLine(msgSender + ":\t" + msgText);
                                         else
                                             Console.WriteLine(msgSender);
+
                                     }
                                 }
                             }
@@ -1293,6 +1276,7 @@ namespace AmongUsCapture
                     PlayerInfo pi = new PlayerInfo(playerAddrPtr + CurrentOffsets.AddPlayerPtr * i, ProcessMemory.getInstance(), CurrentOffsets);
 
                     IdList[pi.PlayerId] = i;
+                    PlayerIdList[i] = pi.PlayerId;
                     PlayerNames[i] = pi.GetPlayerName();
                     if (PlayerNames[i] == null) PlayerNames[i] = "";
                     PlayerName2IDdict[PlayerNames[i]] = i;
@@ -1590,7 +1574,7 @@ namespace AmongUsCapture
     public class DeadBodyPos
     {
         public int KilledId;
-        public int NearestImpostorId;
+        public int NearestImpostorId = -1;
         public Vector2 BodyPos;
         public List<ImpostorDist> ImpostorDists = new List<ImpostorDist>();
 
@@ -1607,15 +1591,28 @@ namespace AmongUsCapture
         {
             KilledId = gKilledId;
             BodyPos = PosList[KilledId];
-            for (int i = 0; i < AllImpNum; i++)
+            if (ReadSpace.ExistReadSpace) {
+                NearestImpostorId = ReadSpace.getMurder(KilledId);
+            }
+            if (NearestImpostorId != -1)
             {
                 var imDist = new ImpostorDist();
-                imDist.Id = ImpostorId[i];
-                imDist.distance = (PosList[ImpostorId[i]] - BodyPos).LengthSquared();
-                if (imDist.distance < 25.0f && IsDead[ImpostorId[i]] == (int)PlayerData.DeadState.living ) ImpostorDists.Add(imDist);
+                imDist.Id = NearestImpostorId;
+                imDist.distance = (PosList[NearestImpostorId] - BodyPos).LengthSquared();
+                ImpostorDists.Add(imDist);
             }
-            ImpostorDists.Sort((a, b) => (a.distance > b.distance) ? 1 : (a.distance < b.distance) ? -1 : 0);
-            if (ImpostorDists.Count != 0) NearestImpostorId = ImpostorDists[0].Id;
+            else
+            {
+                for (int i = 0; i < AllImpNum; i++)
+                {
+                    var imDist = new ImpostorDist();
+                    imDist.Id = ImpostorId[i];
+                    imDist.distance = (PosList[ImpostorId[i]] - BodyPos).LengthSquared();
+                    if (imDist.distance < 25.0f && IsDead[ImpostorId[i]] == (int)PlayerData.DeadState.living) ImpostorDists.Add(imDist);
+                }
+                ImpostorDists.Sort((a, b) => (a.distance > b.distance) ? 1 : (a.distance < b.distance) ? -1 : 0);
+                if (ImpostorDists.Count != 0) NearestImpostorId = ImpostorDists[0].Id;
+            }
         }
     }
 

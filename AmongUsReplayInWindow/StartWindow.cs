@@ -19,6 +19,7 @@ namespace AmongUsReplayInWindow
 {
     public partial class StartWindow : Form
     {
+        public static StartWindow instance = null;
         CancellationTokenSource tokenSource = null;
         Task createWindowTask = null;
         Task gameReaderTask = null;
@@ -33,8 +34,10 @@ namespace AmongUsReplayInWindow
         public StartWindow()
         {
             InitializeComponent();
+            instance = this;
             iconDict = new DrawMove.IconDict();
             applySettings();
+            if (ReadSpace.ExistReadSpace) GetAmongUsWindow_Click(null, null);
 
         }
 
@@ -45,6 +48,7 @@ namespace AmongUsReplayInWindow
 
         private void StartWindow_FormClosing(object sender, FormClosingEventArgs ev)
         {
+            instance = null;
             closed = true;
             if (settings != null)
             {
@@ -52,7 +56,7 @@ namespace AmongUsReplayInWindow
                 {
                     using (StreamWriter sw = File.CreateText(settingPath))
                         sw.Write(JsonConvert.SerializeObject(settings));
-                } catch(Exception e) { }
+                } catch(Exception e) { Console.WriteLine(e); }
             }
             if(OverlayWindow.open) overlayForm?.Close();
             try { tokenSource?.Cancel(); } catch (ObjectDisposedException e) { }

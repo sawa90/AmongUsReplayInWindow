@@ -62,7 +62,7 @@ namespace AmongUsReplayInWindow
 
         public class WriteMoveLogFile
         {
-            static int version = 3;
+            static int version = 4;
             string folderPass;
             private Stream stream;
             private BinaryWriter writer;
@@ -675,7 +675,7 @@ namespace AmongUsReplayInWindow
 
             public void WriteChat(ChatMessageEventArgs chat)
             {
-                if (!outputTextlog) return;
+                if (!outputTextlog || chat == null) return;
                 lock (lockObject)
                 {
                     if (chatwriter == null) return;
@@ -700,7 +700,7 @@ namespace AmongUsReplayInWindow
 
             public void WritePostGameChat(ChatMessageEventArgs chat)
             {
-                if (!outputTextlog) return;
+                if (!outputTextlog || chat == null) return;
                 lock (lockObject)
                 {
                     if (chat.Sender != null)

@@ -165,6 +165,7 @@ namespace AmongUsReplayInWindow
             trackwin = null;
 
             open = false;
+            StartWindow.instance?.Close();
         }
 
 
