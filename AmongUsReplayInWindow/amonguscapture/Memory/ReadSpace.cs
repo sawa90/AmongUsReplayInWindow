@@ -24,9 +24,10 @@ namespace AmongUsCapture
             [FieldOffset(0x01)] public sbyte Reporter; 
             [FieldOffset(0x02)] public sbyte Target; 
             [FieldOffset(0x03)] public byte ChatNum; 
+            [FieldOffset(0x04)] public bool CameraOn; 
         }
 
-        public static bool setEmergency(ref int reporter, ref int target, in int[] IdList)
+        public static bool getReadSpace(ref int reporter, ref int target, ref bool CameraOn, in int[] IdList)
         {
             if (ExistReadSpace)
             {
@@ -36,6 +37,7 @@ namespace AmongUsCapture
                 if(IdInRange(space.Target)) target = IdList[space.Target];
                 else target = -1;
                 ChatNum = space.ChatNum % 15;
+                CameraOn = space.CameraOn;
                 if (MeetingNum != space.MeetingNum)
                 {
                     MeetingNum = space.MeetingNum;

@@ -341,6 +341,7 @@ namespace AmongUsCapture
         bool discussion_end;
         long discussionStartTime = 100000;
         bool beforeFirstDisc = true;
+        bool CameraOn = false;
         #endregion
 
         public GameMemReader()
@@ -388,6 +389,7 @@ namespace AmongUsCapture
             discussion_end = true;
             discussionStartTime = 100000;
             beforeFirstDisc = true;
+            CameraOn = false;
         }
 
 
@@ -777,7 +779,8 @@ namespace AmongUsCapture
                     //get BepInEx data
                     if (ReadSpace.ExistReadSpace)
                     {
-                        if (ReadSpace.setEmergency(ref Reporter, ref ReportTarget, in IdList))
+                        //if report return true
+                        if (ReadSpace.getReadSpace(ref Reporter, ref ReportTarget, ref CameraOn, in IdList))
                         {
                             beforeFirstDisc = false;
                             if (ReportTarget == -1 && Reporter != -1)
@@ -1209,8 +1212,9 @@ namespace AmongUsCapture
                         protectedByGuardian = protectedByGuardian,
                         RemainingEmergencies = RemainingEmergencies,
                         EmergencyCooldown = EmergencyCooldown,
-                        ReportTarget = ReportTarget
-    };
+                        ReportTarget = ReportTarget,
+                        CameraOn = CameraOn
+                    };
                     var Millinow = (Int32)((DateTime.Now.Ticks - gameStartTime) / TimeSpan.TicksPerMillisecond);
                     int frame_now = (int)Math.Round(Millinow / 100.0);
 
@@ -1354,7 +1358,10 @@ namespace AmongUsCapture
                         doorsUint = Doors.airship.Doors2Uint(doors, IsLeft);
                     }
                 }
-
+                if (ReadSpace.ExistReadSpace)
+                {
+                    ReadSpace.getReadSpace(ref Reporter, ref ReportTarget, ref CameraOn, in IdList);
+                }
                 if (!dataCompleted)
                 {
                     repeatcount++;
@@ -1399,7 +1406,8 @@ namespace AmongUsCapture
                     protectedByGuardian = protectedByGuardian,
                     RemainingEmergencies = RemainingEmergencies,
                     EmergencyCooldown = EmergencyCooldown,
-                    ReportTarget = ReportTarget
+                    ReportTarget = ReportTarget,
+                    CameraOn = CameraOn
                 };
 
 
@@ -1531,6 +1539,7 @@ namespace AmongUsCapture
         public float EmergencyCooldown;
         public int ReportTarget;
         public bool displayVote = false;
+        public bool CameraOn = false;
     }
    
  

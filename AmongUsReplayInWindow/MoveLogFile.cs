@@ -205,6 +205,7 @@ namespace AmongUsReplayInWindow
                         writer.Write((byte)e.Sabotage.TaskType);
                         if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote) writer.Write((sbyte)e.ReportTarget);
                         else writer.Write((sbyte)Math.Max(sbyte.MinValue, Math.Ceiling(e.EmergencyCooldown)));
+                        writer.Write(e.CameraOn);
                         writer.Write((UInt32)e.doorsUint);
                         //for (int i = 0; i < AllImposorNum; i++) writer.Write((bool)e.InVent[i]);
                         uint inVent = 0;
@@ -353,8 +354,10 @@ namespace AmongUsReplayInWindow
                         bytePerMove = 10 + AllImposorNum + 10 * PlayerNum;
                     else if (version == 2)
                         bytePerMove = 11 + AllImposorNum + 10 * PlayerNum;
-                    else if (version > 2)
+                    else if (version == 3)
                         bytePerMove = 23 + 11 * PlayerNum;
+                    else if (version > 3)
+                        bytePerMove = 24 + 11 * PlayerNum;
                     PlayerDataByte = stream.Position;
                     maxMoveNum = (stream.Length - PlayerDataByte) / bytePerMove - 1;
                     displayVote = new bool[maxMoveNum + 1];
@@ -389,7 +392,8 @@ namespace AmongUsReplayInWindow
                 {
                     if (version <= 1) return ReadFrombFileMove_v0_v1();
                     else if (version == 2) return ReadFrombFileMove_v2();
-                    else return ReadFrombFileMove_v3();
+                    else if (version == 3) return ReadFrombFileMove_v3();
+                    else return ReadFrombFileMove_v4();
 
                 }
                 return e;
@@ -493,6 +497,55 @@ namespace AmongUsReplayInWindow
                         e.Sabotage.TaskType = (TaskTypes)reader.ReadByte();
                         if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote) e.ReportTarget = reader.ReadSByte();
                         else e.EmergencyCooldown = reader.ReadSByte();
+                        e.doorsUint = reader.ReadUInt32();
+                        uint inVent = reader.ReadUInt32();
+                        uint isGuardian = reader.ReadUInt32();
+                        uint protectedByGuardian = reader.ReadUInt32();
+                        for (int i = 0; i < e.PlayerNum; i++)
+                        {
+                            e.InVent[i] = (inVent & ((uint)1 << i)) != 0;
+                            e.IsGuardian[i] = (isGuardian & ((uint)1 << i)) != 0;
+                            e.protectedByGuardian[i] = (protectedByGuardian & ((uint)1 << i)) != 0;
+                        }
+                        for (int i = 0; i < PlayerNum; i++)
+                        {
+                            e.PlayerPoses[i].X = reader.ReadSingle();
+                            e.PlayerPoses[i].Y = reader.ReadSingle();
+                            e.PlayerIsDead[i] = reader.ReadSByte();
+                            if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote)
+                            {
+                                e.voteList[i] = reader.ReadSByte();
+                                e.RemainingEmergencies[i] = reader.ReadSByte();
+                            }
+                            else
+                            {
+                                e.TaskProgress[i] = reader.ReadByte() / 255.0f;
+                                e.shapeId[i] = reader.ReadSByte();
+                            }
+                            
+                        }
+                    }
+                    catch (EndOfStreamException er)
+                    {
+
+                    }
+                }
+                return e;
+            }
+
+            public PlayerMoveArgs ReadFrombFileMove_v4()
+            {
+                if (reader != null)
+                {
+                    try
+                    {
+                        e.displayVote = displayVote[getFrame()];
+                        e.time = reader.ReadInt32();
+                        e.state = (GameState)reader.ReadByte();
+                        e.Sabotage.TaskType = (TaskTypes)reader.ReadByte();
+                        if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote) e.ReportTarget = reader.ReadSByte();
+                        else e.EmergencyCooldown = reader.ReadSByte();
+                        e.CameraOn = reader.ReadBoolean();
                         e.doorsUint = reader.ReadUInt32();
                         uint inVent = reader.ReadUInt32();
                         uint isGuardian = reader.ReadUInt32();

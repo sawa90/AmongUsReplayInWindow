@@ -458,7 +458,21 @@ namespace AmongUsReplayInWindow
                     }
                 }
             }
-
+            if (move.CameraOn)
+            {
+                if (map.Id >= 0 && map.Id < Map.Cameras.Length)
+                {
+                    List<Vector2> cameras = Map.Cameras[map.Id];
+                    float CameraSize = MathF.Max(1, circleSize / 2);
+                    foreach (var camera in cameras)
+                    {
+                        float pointX = mapLocation.X + ((camera.X * map.xs + map.xp) * mapSize.Width);
+                        float pointY = mapLocation.Y + ((-camera.Y * map.ys + map.yp) * mapSize.Height);
+                        paint.Graphics.FillEllipse(Brushes.Red, pointX - CameraSize * 0.5f, pointY - CameraSize * 0.5f, CameraSize, CameraSize);
+                    }
+                }
+                else paint.Graphics.FillEllipse(Brushes.Red, 0, circleSize * 7, circleSize * 2, circleSize * 2);
+            }
 
 
             using (var fnt = new Font(fontName, Math.Max(1, circleSize * 0.9f), FontStyle.Bold, GraphicsUnit.Pixel))

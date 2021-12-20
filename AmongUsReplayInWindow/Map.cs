@@ -82,6 +82,14 @@ namespace AmongUsReplayInWindow
             },
         };
 
+        static public List<Vector2>[] Cameras = new List<Vector2>[5]{
+            new List<Vector2>(){new Vector2(-7.493f, 2.205f), new Vector2(-18.017f, -4.281f), new Vector2(0.232f, -6.070f), new Vector2(12.958f, -3.647f) },
+            new List<Vector2>(),
+            new List<Vector2>(){ new Vector2(-0.657f,15.179f), new Vector2(-7.693f,-0.498f), new Vector2(5.180f,1.753f), new Vector2(3.479f,7.115f), new Vector2(12.757f,14.892f), new Vector2(17.473f,7.115f) },
+            new List<Vector2>(){ new Vector2(-7.493f, 2.205f), new Vector2(-18.017f, -4.281f), new Vector2(0.232f, -6.070f), new Vector2(12.958f, -3.647f) },
+            new List<Vector2>(){ new Vector2(3.030f,16.686f), new Vector2(-4.004f,9.448f), new Vector2(16.504f,10.155f), new Vector2(23.647f,10.155f), new Vector2(-8.496f,-0.185f), new Vector2(29.978f,-0.512f), new Vector2(4.654f,-11.397f)},
+        };
+
         static public Image setMapImage(int mapId)
         {
             Image MapImage = null;
