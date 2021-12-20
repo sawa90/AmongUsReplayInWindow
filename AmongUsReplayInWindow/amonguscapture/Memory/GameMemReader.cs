@@ -868,6 +868,7 @@ namespace AmongUsCapture
                                 var IdxOffset = 0;
                                 if (pcontrol.myLight_ != 0)
                                 {
+                                    if (pi.IsDead) IdxOffset++;
                                     int sabotage_task = ProcessMemory.getInstance().Read<int>((IntPtr)pcontrol.myTasks, CurrentOffsets.PlayerCountOffsets);
                                     if (sabotage_task > 0 && sabotage_task <= TaskNum[id] + 3) Sabotage.set(TaskPtrList[sabotage_task - 1], ProcessMemory.getInstance(), CurrentOffsets);
                                     else Sabotage.TaskType = TaskTypes.SubmitScan;
