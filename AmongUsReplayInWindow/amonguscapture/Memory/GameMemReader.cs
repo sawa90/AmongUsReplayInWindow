@@ -788,7 +788,7 @@ namespace AmongUsCapture
                         }
                         while (ReadSpace.chatExist)
                         {
-                            var chat = ReadSpace.readChat(gametimeMili, in IdList, in PlayerNames);
+                            var chat = ReadSpace.readChat(gametimeMili);
                             Console.WriteLine(chat?.Sender+ ":" + chat?.Message);
                             ChatMessageAdded?.Invoke(this, chat);
                         }

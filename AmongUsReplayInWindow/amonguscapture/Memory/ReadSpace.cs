@@ -47,21 +47,32 @@ namespace AmongUsCapture
             return false;
         }
 
-        public static ChatMessageEventArgs readChat(int gameTimeMilli, in int[] IdList, in string[] PlayerNames)
+        public static ChatMessageEventArgs readChat(int gameTimeMilli)
         {
             if (!chatExist || !ExistReadSpace) return null;
             IntPtr chatPtr = readSpacePtr + 8 + 0x200 * ReadChatNum;
             ReadChatNum = (ReadChatNum + 1) % 15;
-            ChatMessageEventArgs chat = new ChatMessageEventArgs() { time = gameTimeMilli };
-            byte[] bytes = ProcessMemory.getInstance().ReadByteArray(chatPtr, 0x8);
-            if (bytes != null) {
-                int id = (sbyte)bytes[0];
-                if (IdInRange(id)) chat.Sender = PlayerNames[IdList[id]];
-                else chat.Sender = null;
-                int len = BitConverter.ToInt32(bytes, 4);
-                if (len > 0x1F8) len = 0x1F8;
-                bytes = ProcessMemory.getInstance().ReadByteArray(chatPtr + 0x8, len);
-                if (bytes != null) chat.Message = Encoding.UTF8.GetString(bytes);
+            ChatMessageEventArgs chat = new ChatMessageEventArgs() { time = gameTimeMilli, Sender = null, Message = null };
+
+
+            byte[] bytes = ProcessMemory.getInstance().ReadByteArray(chatPtr, 0x38);
+
+            if (bytes != null)
+            {
+                int senderLen = BitConverter.ToInt32(bytes, 0);
+                if (senderLen > 0)
+                {
+                    if (senderLen > 0x30) senderLen = 0x30;
+                    chat.Sender = Encoding.UTF8.GetString(bytes, 4, senderLen);
+                }
+                int len = BitConverter.ToInt32(bytes, 0x34);
+                if (len > 0)
+                {
+                    if (len > 0x1C8) len = 0x1C8;
+                    var massageBytes = ProcessMemory.getInstance().ReadByteArray(chatPtr + 0x38,len);
+                    if (massageBytes != null)
+                        chat.Message = Encoding.UTF8.GetString(massageBytes);
+                }
             }
             return chat;
         }

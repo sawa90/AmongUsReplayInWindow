@@ -764,10 +764,10 @@ namespace AmongUsReplayInWindow
                             string nameinfo = Name2WithInfo[id] + "\t";
                             if (move.PlayerIsDead[id] != 0) nameinfo += "(Dead) ";
                             File.AppendAllText(chatfilename, nameinfo + chat.Message + "\n");
+                            return;
                         }
-                        else
-                            File.AppendAllText(chatfilename, chat.Sender + ":" + chat.Message + "\n");
                     }
+                    File.AppendAllText(chatfilename, chat.Sender + ":" + chat.Message + "\n");
                 }
             }
 
