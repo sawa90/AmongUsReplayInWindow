@@ -1267,18 +1267,15 @@ namespace AmongUsCapture
             frame = -1;
             var ImposterNum = 0;
 
-            var allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
-            var playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
-
-            while (playerCount > PlayerData.MaxPlayerNum && repeatcount < 50)
+            while (!PlayerControl.RoleAssigned(GameAssemblyPtr, CurrentOffsets) && repeatcount < 50)
             {
-                Console.WriteLine($"Wrong data : Player count is {playerCount}. | Retrying in 100ms");
-                Thread.Sleep(100);
-                allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);      
-                playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);     
+                Console.WriteLine($"Wrong data : Roles have not been assigned yet. | Retrying in 100ms");
+                Thread.Sleep(100);   
                 repeatcount++;
             }
-            if (repeatcount > 50)
+            var allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
+            var playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
+            if (playerCount > PlayerData.MaxPlayerNum)
             {
                 Console.WriteLine($"Wrong data : Player count is {playerCount}. | Continue");
                 playerCount = PlayerData.MaxPlayerNum;

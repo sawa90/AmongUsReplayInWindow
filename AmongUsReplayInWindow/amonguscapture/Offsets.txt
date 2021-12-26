@@ -924,6 +924,7 @@
       "myLight_": 0x60,
       "NetTransform": 0x6C,
       "myTasks": 0x88,
+      "roleAssigned": 0xB9,
     },
     "TaskInfoOffsets": {
       "StartAt": 0x18,

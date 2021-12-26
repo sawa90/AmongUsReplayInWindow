@@ -46,6 +46,30 @@ namespace AmongUsCapture
                 }
             }
         }
+        static public bool RoleAssigned(IntPtr GameAssemblyPtr, GameOffsets CurrentOffsets)
+        {
+            var allPlayersPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.AllPlayerPtrOffsets);
+            var allPlayers = ProcessMemory.getInstance().Read<IntPtr>(allPlayersPtr, CurrentOffsets.AllPlayersOffsets);
+            var playerCount = ProcessMemory.getInstance().Read<int>(allPlayersPtr, CurrentOffsets.PlayerCountOffsets);
+            if (allPlayers == IntPtr.Zero || playerCount < 1 || playerCount > PlayerData.MaxPlayerNum) return false;
+            bool roleAssignedExist = CurrentOffsets.PlayerControlOffsets.roleAssigned != 0;
+            bool completed = true;
+            var playerAddrPtr = allPlayers + CurrentOffsets.PlayerListPtr;
+            for (var i = 0; i < playerCount; i++)
+            {
+                PlayerInfo pi = new PlayerInfo(playerAddrPtr + CurrentOffsets.AddPlayerPtr * i, ProcessMemory.getInstance(), CurrentOffsets);
+                if (!roleAssignedExist)
+                {
+                    var col = (int)pi.GetPlayerColor();
+                    if (col < 0 || col >= PlayerData.PlayerColorNum) completed = false;
+                }
+                else
+                {
+                    if (!ProcessMemory.getInstance().Read<bool>(pi._object, CurrentOffsets.PlayerControlOffsets.roleAssigned)) completed = false;
+                }
+            }
+            return completed;
+        }
     }
     /*
     public interface PlayerControl

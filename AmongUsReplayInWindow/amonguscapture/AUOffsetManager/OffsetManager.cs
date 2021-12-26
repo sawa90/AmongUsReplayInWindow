@@ -298,6 +298,7 @@ namespace AUOffsetManager
         public int myLight_ { get; set; }
         public int NetTransform { get; set; }
         public int myTasks { get; set; }
+        public int roleAssigned { get; set; }
     }
 
     public class TaskInfoOffsets
