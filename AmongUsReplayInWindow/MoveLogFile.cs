@@ -171,6 +171,7 @@ namespace AmongUsReplayInWindow
                     {
                         writer.Write((Int32)version);
                         writer.Write((Int32)startArgs.PlayMap);
+                        writer.Write((UInt32)startArgs.electricalDoors);
                         writer.Write((Int32)startArgs.PlayerMove.PlayerNum);
                         writer.Write((Int32)startArgs.PlayerMove.myId);
                         writer.Write((Int32)AllImposorNum);
@@ -286,6 +287,7 @@ namespace AmongUsReplayInWindow
 
                     version = reader.ReadInt32();
                     startArgs.PlayMap = (PlayerData.PlayMap)reader.ReadInt32();
+                    if (version >= 4) startArgs.electricalDoors = reader.ReadUInt32();
                     PlayerNum = reader.ReadInt32();
                     e.myId = reader.ReadInt32();
                     AllImposorNum = reader.ReadInt32();

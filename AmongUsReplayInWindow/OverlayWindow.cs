@@ -42,6 +42,7 @@ namespace AmongUsReplayInWindow
 
         Map.backgroundMap backgroundMap;
         public int mapId = 0;
+        uint electricalDoors = 0;
 
         public Point mapLocation;
         public Size mapSize;
@@ -121,7 +122,7 @@ namespace AmongUsReplayInWindow
             Paint += new PaintEventHandler(Draw);
             FormClosing += new FormClosingEventHandler(overlay_FormClosing);
             trackwin = new TrackBarWin(this);
-            backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId, true);
+            backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId, true, electricalDoors);
             drawTimer = new System.Windows.Forms.Timer();
             drawTimer.Interval = startWindow.interval;
             drawTimer.Tick += new EventHandler(DrawTimerHandler);
@@ -186,6 +187,7 @@ namespace AmongUsReplayInWindow
                     return false;
                 }
                 version = logReader.version;
+                electricalDoors = logReader.startArgs.electricalDoors;
                 MapChange((int)logReader.startArgs.PlayMap);
                 discFrames = logReader.discFrames;
                 deadList = logReader.deadList;
@@ -241,6 +243,7 @@ namespace AmongUsReplayInWindow
             Console.WriteLine("game start");
             Playing = true;
             discussionTime = -1000;
+            electricalDoors = startArgs.electricalDoors;
             MapChange((int)startArgs.PlayMap);
             Invoke(new voidDelegate(removeReader));
             writer?.Close();
@@ -392,13 +395,13 @@ namespace AmongUsReplayInWindow
 
         public void MapChange(int newMapId)
         {
-            if (mapId == newMapId) return;
+            if (mapId == newMapId && mapId != 4) return;
             Invoke(new void_intDelegate(delegateMapChange), newMapId);
         }
 
         private void delegateMapChange(int newMapId)
         {
-            if (mapId == newMapId) return;
+            if (mapId == newMapId && mapId != 4) return;
             mapId = newMapId;
             float h = Height * (1 - Map.Maps[mapId].ypad);
             float w = Width * (1 - Map.Maps[mapId].xpad);
@@ -413,8 +416,8 @@ namespace AmongUsReplayInWindow
             }
             mapLocation = new Point((int)((Width - w) * 0.5), (int)((Height - h) * 0.5));
             mapSize = new Size((int)w, (int)h);
-            backgroundMap.ChangeMapId(mapId, ClientSize, mapLocation, mapSize);
-            Invalidate();
+            if (backgroundMap.ChangeMapId(mapId, ClientSize, mapLocation, mapSize, electricalDoors))
+                Invalidate();
         }
         private void Draw(object sender, PaintEventArgs paint)
         {

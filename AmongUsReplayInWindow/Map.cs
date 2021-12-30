@@ -12,6 +12,8 @@ namespace AmongUsReplayInWindow
     {
         static string[] mapFilename = new string[5] { "skeld.png", "mira.png", "polus.png", "skeld.png", "airship.png" };
         static public string mapFolder = "color";
+        static Image CloseDoor_h;
+        static Image CloseDoor_v;
         public struct MapScale
         {
             public int Id;
@@ -132,6 +134,36 @@ namespace AmongUsReplayInWindow
             return MapImage;
         }
 
+        static public float[] electricalDoorsPos_xy = new float[2] { 1200, 638 };
+        static public Vector2[] electricalDoorsPos = new Vector2[12] { new Vector2(811, 497), new Vector2(756, 497), new Vector2(811, 453), new Vector2(756, 453),
+                                                                       new Vector2(700, 453), new Vector2(734, 467), new Vector2(791, 467), new Vector2(791, 420),
+                                                                       new Vector2(734, 420), new Vector2(791, 511), new Vector2(678, 420), new Vector2(679, 467), };
+        static public Image[] setDoorImages(int mapId)
+        {
+            if (mapId != 4) return null;
+            string hPath = Program.exeFolder + "\\map\\" + mapFolder + "\\CloseDoor_h.png";
+            string vPath = Program.exeFolder + "\\map\\" + mapFolder + "\\CloseDoor_v.png";
+            if (File.Exists(hPath) && File.Exists(vPath))
+            {
+                Image[] MapImage = new Image[2];
+                try
+                {
+                    using (FileStream stream = File.OpenRead(hPath))
+                        MapImage[0] = Image.FromStream(stream, false, false);
+                    using (FileStream stream = File.OpenRead(vPath))
+                        MapImage[1] = Image.FromStream(stream, false, false);
+                    return MapImage;
+                }
+                catch (Exception e)
+                {
+                    MapImage[0]?.Dispose();
+                    MapImage[1]?.Dispose();
+                    Console.WriteLine(e.Message);
+                    Console.WriteLine(e.StackTrace);
+                }
+            }
+            return null;
+        }
         public class backgroundMap
         {
             static List<backgroundMap> instanceList = new List<backgroundMap>();
@@ -145,10 +177,12 @@ namespace AmongUsReplayInWindow
             Point location;
             Size size;
             bool IsOverlay;
+            uint electricalDoors;
+            Image[] DoorImages = null;
 
             const int SRCCOPY = 0x00CC0020;
 
-            public backgroundMap(Size formClientSize, Point location, Size size, int mapId, bool IsOverlay)
+            public backgroundMap(Size formClientSize, Point location, Size size, int mapId, bool IsOverlay, uint electricalDoors)
             {
                 this.IsOverlay = IsOverlay;
                 instanceList.Add(this);
@@ -156,7 +190,9 @@ namespace AmongUsReplayInWindow
                 this.formClientSize = formClientSize;
                 this.location = location;
                 this.size = size;
+                this.electricalDoors = electricalDoors;
                 MapImage = setMapImage(mapId);
+                DoorImages = setDoorImages(mapId);
                 ChangeSize(formClientSize, location, size);
             }
 
@@ -171,17 +207,29 @@ namespace AmongUsReplayInWindow
                     instanceList.Remove(this);
                 DisposeBitmap();
                 MapImage?.Dispose();
-            }
-            
-            public void ChangeMapId(int mapId, Size formClientSize, Point location, Size size)
-            {
-                if (this.mapId != mapId)
+                if (DoorImages != null)
                 {
-                    this.mapId = mapId;
-                    MapImage?.Dispose();
-                    MapImage = setMapImage(mapId);
-                    ChangeSize(formClientSize, location, size);
+                    DoorImages[0]?.Dispose();
+                    DoorImages[1]?.Dispose();
                 }
+            }
+
+            public bool ChangeMapId(int mapId, Size formClientSize, Point location, Size size, uint electricalDoors)
+            {
+                if (this.mapId == mapId && (mapId != 4 || this.electricalDoors == electricalDoors)) return false;
+                this.electricalDoors = electricalDoors;
+                this.mapId = mapId;
+                MapImage?.Dispose();
+                MapImage = setMapImage(mapId);
+                if (DoorImages != null)
+                {
+                    DoorImages[0]?.Dispose();
+                    DoorImages[1]?.Dispose();
+                    DoorImages = null;
+                }
+                DoorImages = setDoorImages(mapId);
+                ChangeSize(formClientSize, location, size);
+                return true;
             }
 
             public void DisposeBitmap()
@@ -243,6 +291,31 @@ namespace AmongUsReplayInWindow
                         mapGraphics.FillRectangle(brush, 0, 0, w, h);
                 }
                 mapGraphics.DrawImage(MapImage, location.X, location.Y, size.Width, size.Height);
+                if (mapId == 4 && electricalDoors != 0 && DoorImages != null) 
+                {
+                    for(int i = 0; i < 5; i++)
+                    {
+                        if (((electricalDoors >> i) & 1) != 0)
+                        {
+                            var xpos = location.X + Map.electricalDoorsPos[i].X * size.Width / Map.electricalDoorsPos_xy[0];
+                            var ypos = location.Y + Map.electricalDoorsPos[i].Y * size.Height / Map.electricalDoorsPos_xy[1];
+                            var xsize = DoorImages[0].Width * size.Width / Map.electricalDoorsPos_xy[0];
+                            var ysize = DoorImages[0].Height * size.Height / Map.electricalDoorsPos_xy[1];
+                            mapGraphics.DrawImage(DoorImages[0], xpos, ypos, xsize, ysize);
+                        }
+                    }
+                    for (int i = 5; i < 12; i++)
+                    {
+                        if (((electricalDoors >> i) & 1) != 0) 
+                        {
+                            var xpos = location.X + Map.electricalDoorsPos[i].X * size.Width / Map.electricalDoorsPos_xy[0];
+                            var ypos = location.Y + Map.electricalDoorsPos[i].Y * size.Height / Map.electricalDoorsPos_xy[1];
+                            var xsize = DoorImages[1].Width * size.Width / Map.electricalDoorsPos_xy[0];
+                            var ysize = DoorImages[1].Height * size.Height / Map.electricalDoorsPos_xy[1];
+                            mapGraphics.DrawImage(DoorImages[1], xpos, ypos, xsize, ysize);
+                        }
+                    }
+                }
                 mapGraphics.SmoothingMode = smoothing;
                 mapGraphics.InterpolationMode = interpolation;
                 mapGraphics.Dispose();
@@ -256,6 +329,13 @@ namespace AmongUsReplayInWindow
                 {
                     bgmap.MapImage?.Dispose();
                     bgmap.MapImage = setMapImage(bgmap.mapId);
+                    if (bgmap.DoorImages != null)
+                    {
+                        bgmap.DoorImages[0]?.Dispose();
+                        bgmap.DoorImages[1]?.Dispose();
+                        bgmap.DoorImages = null;
+                    }
+                    bgmap.DoorImages = setDoorImages(bgmap.mapId);
                     bgmap.ChangeSize(bgmap.formClientSize, bgmap.location, bgmap.size);
                 }
             }

@@ -14,6 +14,7 @@ namespace AmongUsCapture
         static byte MeetingNum = 0;
         static int ChatNum = 0;
         static int ReadChatNum = 0;
+        static byte ElectricalDoorCount = 0;
         public static bool chatExist { get { return ChatNum != ReadChatNum; } }
 
 
@@ -25,6 +26,17 @@ namespace AmongUsCapture
             [FieldOffset(0x02)] public sbyte Target; 
             [FieldOffset(0x03)] public byte ChatNum; 
             [FieldOffset(0x04)] public bool CameraOn; 
+        }
+        public static bool getElectricalDoors(out uint doors)
+        {
+            doors = 0;
+            var bytes = ProcessMemory.getInstance().ReadByteArray(readSpacePtr + 0x1E18, 4);
+            if (ElectricalDoorCount == bytes[3]) return false;
+            ElectricalDoorCount = bytes[3];
+            bytes[3] = 0;
+            doors = BitConverter.ToUInt32(bytes);
+            Console.WriteLine(doors.ToString());
+            return true;
         }
 
         public static bool getReadSpace(ref int reporter, ref int target, ref bool CameraOn, in int[] IdList)

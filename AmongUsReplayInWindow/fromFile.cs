@@ -26,6 +26,7 @@ namespace AmongUsReplayInWindow
         float hw = 1;
         public Point mapLocation;
         public Size mapSize;
+        uint electricalDoors = 0;
 
 
         public PlayerMoveArgs e = null;
@@ -135,9 +136,10 @@ namespace AmongUsReplayInWindow
                 }
                 version = logReader.version;
                 mapId = (int)logReader.startArgs.PlayMap;
+                electricalDoors = logReader.startArgs.electricalDoors;
                 hw = Map.Maps[mapId].hw;
                 SizeChangedHandler(null, null);
-                backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId,false);
+                backgroundMap = new Map.backgroundMap(ClientSize, mapLocation, mapSize, mapId, false, electricalDoors);
                 Invalidate();
                 discFrames = logReader.discFrames;
                 deadList = logReader.deadList;

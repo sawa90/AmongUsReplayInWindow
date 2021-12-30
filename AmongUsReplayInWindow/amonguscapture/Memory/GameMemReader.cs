@@ -1147,6 +1147,11 @@ namespace AmongUsCapture
                             LobbyCode = split[1];
                             Console.WriteLine("Code:" + LobbyCode);
                             shouldReadLobby = false;
+                            if (ReadSpace.ExistReadSpace)
+                            {
+                                uint oldDoor;
+                                ReadSpace.getElectricalDoors(out oldDoor);
+                            }
                         }
                     }
 
@@ -1269,6 +1274,8 @@ namespace AmongUsCapture
             uint[] HatIds = new uint[PlayerData.MaxPlayerNum];
             uint[] PetIds = new uint[PlayerData.MaxPlayerNum];
             uint[] SkinIds = new uint[PlayerData.MaxPlayerNum];
+            uint electricalDoors = 0;
+            bool doorOk = false;
 
             while (!dataCompleted)
             {
@@ -1361,6 +1368,16 @@ namespace AmongUsCapture
                 if (ReadSpace.ExistReadSpace)
                 {
                     ReadSpace.getReadSpace(ref Reporter, ref ReportTarget, ref CameraOn, in IdList);
+                    if (playMap == PlayerData.PlayMap.AirShip)
+                    {
+                        int count = 0;
+                        while (!ReadSpace.getElectricalDoors(out electricalDoors) && count < 300 && !doorOk)
+                        {
+                            count++;
+                            Thread.Sleep(100);
+                        }
+                        doorOk = true;
+                    }
                 }
                 if (!dataCompleted)
                 {
@@ -1421,7 +1438,8 @@ namespace AmongUsCapture
                 HatIds = HatIds,
                 PetIds = PetIds,
                 SkinIds =SkinIds,
-                RoleType = RoleType
+                RoleType = RoleType,
+                electricalDoors = electricalDoors
         }) ;
 
 
@@ -1503,6 +1521,7 @@ namespace AmongUsCapture
         public uint[] SkinIds;
 
         public RoleTypes[] RoleType;
+        public uint electricalDoors;
     }
 
 
