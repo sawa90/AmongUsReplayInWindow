@@ -990,16 +990,11 @@ namespace AmongUsCapture
                             }
                         }
                     }
-
-                    if (CurrentOffsets.ShipStatusOffsets == null)
-                    {
-                        if ((gametimeMili - discussionEndTime) < 7000) discussion_end = true;
-                    }
-                    else
+                    if ((gametimeMili - discussionEndTime) > 13000) discussion_end = true;
+                    if (CurrentOffsets.ShipStatusOffsets != null)
                     {
                         var shipStatusPtr = ProcessMemory.getInstance().Read<IntPtr>(GameAssemblyPtr, CurrentOffsets.ShipStatusOffsets.ShipStatusPtr);
                         ShipStatus shipStatus = new ShipStatus(GameAssemblyPtr, ProcessMemory.getInstance(), CurrentOffsets);
-                        if (EmergencyCooldown < shipStatus.EmergencyCooldown) discussion_end = true;
                         EmergencyCooldown = shipStatus.EmergencyCooldown;
                         var doorsPtr = shipStatus.AllDoors;
                         int doorNum = ProcessMemory.getInstance().Read<Int32>(doorsPtr, CurrentOffsets.PlayerCountOffsets);

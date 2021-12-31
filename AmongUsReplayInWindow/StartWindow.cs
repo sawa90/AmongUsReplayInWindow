@@ -300,11 +300,11 @@ namespace AmongUsReplayInWindow
             [DefaultValue("Snow")]
             public Color backgroundColor = Color.Snow;
 
-            [DefaultValue(false)]
-            public bool AngelVisible = false;
+            [DefaultValue(true)]
+            public bool AngelVisible = true;
 
-            [DefaultValue(false)]
-            public bool DrawEmergency = false;
+            [DefaultValue(true)]
+            public bool DrawEmergency = true;
 
             [DefaultValue(false)]
             public bool Console = false;

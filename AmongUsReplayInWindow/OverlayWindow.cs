@@ -318,8 +318,8 @@ namespace AmongUsReplayInWindow
             if (Playing)
             {
                 moveArg = moveArgs;
-                if (moveArg.state != GameState.DISCUSSION) writer?.writeMove2bFile(moveArgs);
-                else if (moveArg.time - discussionTime > 1000)
+                if (moveArg.state != GameState.DISCUSSION && moveArg.state != GameState.VotingResult) writer?.writeMove2bFile(moveArgs);
+                else if (moveArg.time - discussionTime >= (moveArg.state == GameState.DISCUSSION ? 1000 : 300))
                 {
                     writer?.writeMove2bFile(moveArgs);
                     discussionTime = moveArg.time;
