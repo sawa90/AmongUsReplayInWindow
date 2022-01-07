@@ -74,6 +74,8 @@ namespace AmongUsReplayInWindow
 
             public WriteMoveLogFile(GameStartEventArgs startArgs)
             {
+                if (ReadSpace.ExistReadSpace) version = 4;
+                else version = 3;
                 lock (lockObject)
                 {
                     writeMoves.Add(this);
@@ -171,7 +173,8 @@ namespace AmongUsReplayInWindow
                     {
                         writer.Write((Int32)version);
                         writer.Write((Int32)startArgs.PlayMap);
-                        writer.Write((UInt32)startArgs.electricalDoors);
+                        if (version > 3)
+                            writer.Write((UInt32)startArgs.electricalDoors);
                         writer.Write((Int32)startArgs.PlayerMove.PlayerNum);
                         writer.Write((Int32)startArgs.PlayerMove.myId);
                         writer.Write((Int32)AllImposorNum);
@@ -206,7 +209,8 @@ namespace AmongUsReplayInWindow
                         writer.Write((byte)e.Sabotage.TaskType);
                         if (e.state == GameState.DISCUSSION || e.state == GameState.VotingResult || e.state == GameState.HumansWinByVote || e.state == GameState.ImpostorWinByVote) writer.Write((sbyte)e.ReportTarget);
                         else writer.Write((sbyte)Math.Max(sbyte.MinValue, Math.Ceiling(e.EmergencyCooldown)));
-                        writer.Write(e.CameraOn);
+                        if (version > 3)
+                            writer.Write(e.CameraOn);
                         writer.Write((UInt32)e.doorsUint);
                         //for (int i = 0; i < AllImposorNum; i++) writer.Write((bool)e.InVent[i]);
                         uint inVent = 0;
