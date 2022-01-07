@@ -29,7 +29,7 @@ Among Us (Steam version)に簡易的なリプレイ機能を追加するツー�
 - 左上の時間表記の上に現在の状況（タスク中、会議中、サボタージュ）が表示され、ゲーム終了時には「ImpostorsWinByVote」のように勝者と勝因が表示されますが、切断で決着がついた際などは誤って表示されることがあります。
 - マップ画像などは差し替えが可能です。map,iconフォルダ内に同名で画像を保存してください。マップ画像はマップの位置と画像の縦横比を元のファイルに合わせてください。
 - このツールは[amonguscapture](https://github.com/automuteus/amonguscapture)を基にしたものであり、メモリの読み取りとキーボード・ウィンドウプロシージャフック、元ウィンドウに重ねた半透明のウィンドウを使って実現させています。ゲーム自体の改変やメモリの書き換えは行いません。
-- うまく動かない場合はエラー報告をしてくださると大変助かります。[latest release](https://github.com/sawa90/AmongUsReplayInWindow/releases/latest)から_withConsoleのついたバージョンをダウンロードしてコンソールウィンドウの出力を貼っていただけるとありがたいです。出力にはエラーと表示されない場合でも何かありましたらお気軽にどうぞ。
+- うまく動かない場合はエラー報告をしてくださると大変助かります。コンソールウィンドウの出力を貼っていただけるとありがたいです。コンソールウィンドウはexeと同じフォルダに作成されるsetting.jsonをメモ帳などで開き、"Console":falseを"Console":trueに変更してから起動すると表示されます。出力にはエラーと表示されない場合でも何かありましたらお気軽にどうぞ｡
 
 ## License
 ソースコードはMITライセンスです。  
@@ -39,3 +39,6 @@ Among Us (Steam version)に簡易的なリプレイ機能を追加するツー�
 [amonguscapture](https://github.com/automuteus/amonguscapture) by Denver Quane  
 [among-us-replay-mod](https://github.com/Smertig/among-us-replay-mod) by Smertig  
 [AmongUsMemory](https://github.com/shlifedev/AmongUsMemory) by shlifedev  
+
+##
+This tool is not affiliated with Among Us or Innersloth LLC, and the content contained therein is not endorsed or otherwise sponsored by Innersloth LLC. Portions of the materials contained herein are property of Innersloth LLC. © Innersloth LLC.
