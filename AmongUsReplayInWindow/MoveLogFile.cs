@@ -35,7 +35,7 @@ namespace AmongUsReplayInWindow
                     try
                     {
                         DateTime filetime = DateTime.ParseExact(time, "yyyyMMdd_HHmm_ss", null);
-                        if (filetime.AddMinutes(15) < DateTime.Now)
+                        if (filetime.AddMinutes(60) < DateTime.Now)
                         {
                             string destname = folderPass + "\\" + Path.GetFileName(tempfile);
                             if(File.Exists(destname)){
