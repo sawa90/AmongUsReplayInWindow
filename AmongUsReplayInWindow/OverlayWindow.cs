@@ -93,7 +93,7 @@ namespace AmongUsReplayInWindow
                     {
                         Console.WriteLine("Set Keyboad hook...");
                         SetKeyboardHook(threadId, Handle, trackwin.Handle, ownerHandle);
-                        SetKeyboardEnable(Playing, false);
+                        SetKeyboardEnable(Playing, true);
                         return;
 
                     }
@@ -285,7 +285,7 @@ namespace AmongUsReplayInWindow
                                 Invoke(new bool_stringDelegate(setpopup), chatfile);
                             }
                         }
-                    }
+                    } else SetKeyboardEnable(Playing, true);
                     if (newState == GameState.MENU) oldwriter = null;
                 }
                 else if (!Playing)
@@ -354,7 +354,28 @@ namespace AmongUsReplayInWindow
             drawTimer?.Start();
             SetKeyboardEnable(Playing, true);
         }
-
+        const int WM_SHOWWINDOW = 0x0018;
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_SHOWWINDOW)
+            {
+                if (m.WParam == IntPtr.Zero) ClearWindow();
+                else reDrawWindow();
+            }
+            base.WndProc(ref m);
+        }
+        void ClearWindow()
+        {
+            using (var g = CreateGraphics())
+                g.Clear(Color.Snow);
+            using (var g = pictureBox2.CreateGraphics())
+                g.Clear(Color.Snow);
+        }
+        void reDrawWindow()
+        {
+            Invalidate();
+            pictureBox2.Invalidate();
+        }
         void StopDraw()
         {
             drawTimer?.Stop();
@@ -368,7 +389,11 @@ namespace AmongUsReplayInWindow
 
         private void DrawBar(object sender, System.Windows.Forms.PaintEventArgs paint)
         {
-            if (logReader?.reader == null) return;
+            if (logReader?.reader == null)
+            {
+                paint.Graphics.Clear(Color.Snow);
+                return;
+            }
             Graphics g = paint.Graphics;
             float wPerFrame = (float)pictureBox2.ClientSize.Width / logReader.maxMoveNum;
 
@@ -418,6 +443,11 @@ namespace AmongUsReplayInWindow
         private void Draw(object sender, PaintEventArgs paint)
         {
             if (Width <= 0 || Height <= 0) return;
+            if (moveArg == null)
+            {
+                paint?.Graphics?.Clear(Color.Snow);
+                return;
+            }
             if (Program.testflag)
             {
                 //backgroundMap?.Draw(paint.Graphics);
